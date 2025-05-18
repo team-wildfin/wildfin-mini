@@ -1,5 +1,6 @@
 import wandb
 from matplotlib import pyplot as plt
+from matplotlib.ticker import FuncFormatter
 
 custom_labels = {
     "otqfq10b": "DINO (stride=1, TI=1)",
@@ -8,24 +9,39 @@ custom_labels = {
 
 api = wandb.Api()
 plt.figure(figsize=(8, 5))
+metric = "train_loss"
+title = "Validation mAP curve"
 
 for run_id in custom_labels.keys():
     run = api.run(f"fish-benchmark/abby/{run_id}")
-    history = run.history(samples=10000)
+    history = run.history()
     label = custom_labels.get(run_id, run.name)
     
     steps = history["trainer/global_step"]
-    train_loss = history["train_loss"]  # Make sure this key exists in your run
+     # Fill missing values or drop them
+    if history[metric].isnull().any():
+        history[metric] = history[metric].interpolate(method='linear', limit_direction='both')
 
-    plt.plot(steps, train_loss, label=label)
 
+    plt.plot(steps, history[metric], label=label)
+
+# Format x-axis ticks like "1k", "2k", etc.
+def thousands_formatter(x, _):
+    if x >= 1000:
+        return f"{int(x/1000)}k"
+    return str(int(x))
+
+plt.gca().xaxis.set_major_formatter(FuncFormatter(thousands_formatter))
+
+# Start axes at 0
+plt.xlim(left=0)
+plt.ylim(bottom=0)
 plt.xlabel("Step")
-plt.ylabel("Training Loss")
-plt.title("Training Loss Curve")
+plt.ylabel(metric)
+plt.title(title)
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
 
 # Save as vector image (PDF or SVG)
-plt.savefig("figures/train_loss.pdf")
-# Optional: plt.savefig("figures/train_loss.png", dpi=300)
+plt.savefig(f"figures/{metric}.svg")
