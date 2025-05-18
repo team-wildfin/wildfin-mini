@@ -11,12 +11,19 @@ relevant_columns = {
         'mAP', 
         'f1_macro', 
         'acc', 
+
         'biting_f1_macro', 
         'biting_mAP',
-        'biting_acc',
+        # 'biting_acc',
+        'biting_precision_macro',
+        'biting_recall_macro',
+
         'aggression_f1_macro',
         'aggression_mAP',
-        'aggression_acc',
+        # 'aggression_acc',
+        'aggression_precision_macro',
+        'aggression_recall_macro',
+        
     ], 
     'mike': [
         'backbone',
