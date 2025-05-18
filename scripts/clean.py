@@ -10,7 +10,9 @@ relevant_columns = {
         'sampler', 
         'mAP', 
         'f1_macro', 
-        'acc', 
+        'precision_macro',
+        'recall_macro',
+        # 'acc', 
 
         'biting_f1_macro', 
         'biting_mAP',
@@ -23,7 +25,7 @@ relevant_columns = {
         # 'aggression_acc',
         'aggression_precision_macro',
         'aggression_recall_macro',
-        
+
     ], 
     'mike': [
         'backbone',
@@ -31,7 +33,10 @@ relevant_columns = {
         'sampler',
         'mAP',
         'f1_macro',
-        'acc',
+        # 'acc',
+        'precision_macro',
+        'recall_macro',
+        
         'movement_f1_macro',
         'movement_mAP',
         # 'movement_acc',
