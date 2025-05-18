@@ -10,7 +10,7 @@ custom_labels = {
 api = wandb.Api()
 plt.figure(figsize=(8, 5))
 metric = "train_loss"
-title = "Validation mAP curve"
+title = "Train Loss curve"
 
 for run_id in custom_labels.keys():
     run = api.run(f"fish-benchmark/abby/{run_id}")
