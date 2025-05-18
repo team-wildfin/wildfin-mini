@@ -62,10 +62,12 @@ relevant_columns = {
         'other_recall_macro',
     ]
 }
+
 os.makedirs(OUTPUT_PATH, exist_ok=True)
 for DATASET in DATASETS:
     for TOL in TOLS:
         PATH = f'results/subgroup_metrics/{DATASET}_eval_tol={TOL}_w_subgroup_metrics.csv'
         df = pd.read_csv(PATH)
+        df = df[df['sampler'] == 'balanced']
         cleaned_df = df[relevant_columns[DATASET]].copy()
         cleaned_df.to_csv(os.path.join(OUTPUT_PATH, f"{DATASET}_tol={TOL}_appendix.csv"), index=False)
