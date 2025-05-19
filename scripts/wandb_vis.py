@@ -9,8 +9,8 @@ custom_labels = {
 
 api = wandb.Api()
 plt.figure(figsize=(8, 5))
-metric = "train_loss"
-title = "Train Loss curve"
+metric = "val_mAP"
+title = "Validation mAP curve"
 
 for run_id in custom_labels.keys():
     run = api.run(f"fish-benchmark/abby/{run_id}")
@@ -44,4 +44,4 @@ plt.grid(True)
 plt.tight_layout()
 
 # Save as vector image (PDF or SVG)
-plt.savefig(f"figures/{metric}.svg")
+plt.savefig(f"figures/{metric}.pdf")

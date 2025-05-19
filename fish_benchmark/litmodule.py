@@ -95,35 +95,7 @@ class LitBinaryClassifierModule(L.LightningModule):
         self.prob_list.extend(probs.detach())   # each item is a list of floats
         self.target_list.extend(y.detach())     # each item is a list of ints
     
-    # def on_test_epoch_end(self):
-    #     preds = torch.cat([x["preds"] for x in self.test_outputs], dim=0)
-    #     targets = torch.cat([x["targets"] for x in self.test_outputs], dim=0)
-    #     num_classes = preds.shape[1]
-        # metrics = {
-        #     "f1_micro": multilabel_f1_score(preds, targets, num_labels=num_classes, average="micro").item(),
-        #     "f1_macro": multilabel_f1_score(preds, targets, num_labels=num_classes, average="macro").item(),
-        #     "precision_micro": multilabel_precision(preds, targets, num_labels=num_classes, average="micro").item(),
-        #     "precision_macro": multilabel_precision(preds, targets, num_labels=num_classes, average="macro").item(),
-        #     "recall_micro": multilabel_recall(preds, targets, num_labels=num_classes, average="micro").item(),
-        #     "recall_macro": multilabel_recall(preds, targets, num_labels=num_classes, average="macro").item(),
-        #     "mAP": multilabel_average_precision(preds, targets, num_labels=num_classes, average="macro").item(),
-        #     "acc": (preds == targets).float().mean().item(),
-        # }
-        # for k, v in metrics.items():
-        #     self.log(f"test_{k}", v)
-        # per_class_metrics = {
-        #     "f1": multilabel_f1_score(preds, targets, num_labels=num_classes, average=None).tolist(),
-        #     "precision": multilabel_precision(preds, targets, num_labels=num_classes, average=None).tolist(),
-        #     "recall": multilabel_recall(preds, targets, num_labels=num_classes, average=None).tolist(),
-        #     "num_positive": targets.float().sum(dim=0).tolist(), 
-        #     "mAP": multilabel_average_precision(preds, targets, num_labels=num_classes, average=None).tolist(),
-        #     "acc": (preds == targets).float().mean(dim=0).tolist(),
-        # }
-        # for k, v in per_class_metrics.items():
-        #     for i, val in enumerate(v):
-        #         self.log(f"test_{k}_class_{i}", val)
-        # return None
-    
+
     def configure_optimizers(self):
         learning_rate = self.hparams.learning_rate
         weight_decay = self.hparams.weight_decay

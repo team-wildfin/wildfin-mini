@@ -25,12 +25,145 @@
 ```bash
 git clone https://github.com/JeromeTH/wildfins.git
 cd wildfins
-pip install -r requirements.txt
+conda env create -f environment.yml
+```
+
+# Reproducing Experiments in **WildFins**
+
+> **Note:** The datasets have internal nicknames in the codebase:  
+> - **FishFollow** is referred to as `"mike"`  
+> - **CoralCam** is referred to as `"abby"`
+
+---
+
+## 🛠️ Design Overview
+
+The `scripts/` folder orchestrates the end-to-end machine learning pipeline by executing logic defined in:
+- `training/`
+- `evaluation/`
+- `data/action_scripts/`
+
+> ⚠️ **Important:** Before running any script, **inspect and adjust the global variables** at the top of the file.  
+> These variables control key behavior such as dataset name, model, paths, and filter settings.  
+> **Do not run scripts blindly** — make sure they match your experimental intent.
+
+---
+
+## 📌 Steps
+
+### 1. Download the Data
+Organize the dataset directory as follows:
+
+```
+<root>/
+  <split>/            # train / val / test
+    <video_id>/
+      <video_id>.mp4
+      <video_id>.tsv
 ```
 
 ---
+
+### 2. Set the Root Directory
+Edit `config/datasetsv2.yml` and set the `path` field for `"mike"` and `"abby"` to the root directory you created above.
+
+---
+
+### 3. Configure Sliding Styles
+- In the same YAML file, set the desired `sliding_style` for each dataset.
+- Definitions for each style are found in `config/sliding_styles.yml`.
+
+> ✅ The default configurations reproduce the settings used in the paper.
+
+---
+
+### 4. Generate (Clip, Label) Pairs
+Run:
+
+```bash
+python scripts/preprocess_sliding_window.py
+```
+
+This applies the sliding window to the videos and outputs:
+- `(clip, label)` pairs, or
+- just labels (if you prefer to extract features later without storing raw clips).
+
+---
+
+### 5. Extract Model Features
+Run:
+
+```bash
+python scripts/extract_features.py
+```
+
+This extracts model features for each clip.  
+- Input: Clips from the previous step or loaded via `DatasetBuilder`.
+- Output:
+  - Features stored in `<model>_features/`
+  - File naming:
+    - Features: `<video_id>_<frame_id>.npy`
+    - Labels: `<video_id>.txt`
+
+---
+
+### 6. Train Classification Heads
+Run:
+
+```bash
+python scripts/train.py
+```
+
+This script trains classification heads on precomputed features.
+
+> 🔒 Ensure that the same model used for feature extraction is set in the global config.  
+> 🧭 Sign in to your Weights & Biases (wandb) account to monitor training and manage artifacts.
+
+---
+
+### 7. Evaluate on the Test Set
+Run:
+
+```bash
+python scripts/evaluate.py
+```
+
+This script evaluates each training configuration on its corresponding test set.  
+- Training–test mapping is defined in `config/datasetsv2.yml`.
+- Evaluation runs are logged to dedicated `wandb` projects and reference their original training runs.
+
+---
+
+### 8. Export Results as Tables
+Run:
+
+```bash
+python scripts/export.py
+```
+
+This retrieves evaluated runs based on filters defined in the script and produces CSV summaries including:
+- Aggregated metrics
+- Subgroup scores
+- Per-class metrics
+
+---
+
+### 9. Clean Final Results for the Paper
+Run:
+
+```bash
+python scripts/clean.py
+```
+
+This script filters and formats relevant columns into paper-ready result tables.
+
+---
+
+
+General Software Architecture explanation:  
 ## 🗂 Dataset Formats
 Choose the corresponding source for your data and update the get_source in fish_benchmark.data.dataset.py and mount the correct source type on the folder.  
+
 ### 1. Frame-Annotated
 Each `.mp4` file is paired with a `.tsv` file containing frame-level labels.
 
