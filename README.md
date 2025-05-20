@@ -1,6 +1,6 @@
-# 🐟 WildFins
+# 🐟 WildFin
 
-**WildFins** is a modular and scalable video classification framework for multiclass tasks. Designed for dynamic, efficient experimentation, it offers DMVR-style video ingestion, flexible model composition, and support for large-scale training over any video dataset. Built in PyTorch, it's fully configurable and integrates seamlessly with Weights & Biases for tracking and artifact management.
+**WildFin** is a modular and scalable video classification framework for multiclass tasks. Designed for dynamic, efficient experimentation, it offers DMVR-style video ingestion, flexible model composition, and support for large-scale training over any video dataset. Built in PyTorch, it's fully configurable and integrates seamlessly with Weights & Biases for tracking and artifact management.
 
 ---
 
@@ -23,16 +23,16 @@
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/JeromeTH/wildfins.git
-cd wildfins
+git clone https://github.com/JeromeTH/wildfin.git
+cd wildfin
 conda env create -f environment.yml
 ```
 
-# Reproducing Experiments in **WildFins**
+# Reproducing Experiments in **WildFin**
 
-> **Note:** The datasets have internal nicknames in the codebase:  
-> - **FishFollow** is referred to as `"mike"`  
-> - **CoralCam** is referred to as `"abby"`
+**Note:** The datasets have internal nicknames in the codebase:  
+- **FishFollow** is referred to as `"mike"`  
+- **CoralCam** is referred to as `"abby"`
 
 ---
 
@@ -43,10 +43,11 @@ The `scripts/` folder orchestrates the end-to-end machine learning pipeline by e
 - `evaluation/`
 - `data/action_scripts/`
 
-> ⚠️ **Important:** Before running any script, **inspect and adjust the global variables** at the top of the file.  
-> These variables control key behavior such as dataset name, model, paths, and filter settings.  
-> **Do not run scripts blindly** — make sure they match your experimental intent.
+⚠️ **Important:** Before executing any script, **review and configure the global variables** defined at the top of the file.  
+These variables determine critical settings such as dataset name, model architecture, data paths, and filtering parameters.  
+**Do not execute scripts without verifying these settings** — they must align with your experimental goals.
 
+To enable SLURM-based distributed processing, set the `PARALLEL` variable to `True`. This will launch one job per video via the cluster scheduler. For local testing and debugging, set `PARALLEL` to `False`. A common workflow is to test locally first, then scale up via SLURM for full-batch processing.
 ---
 
 ## 📌 Steps
@@ -57,14 +58,15 @@ Organize the dataset directory as follows:
 ```
 <root>/
   <split>/            # train / val / test
-    <video_id>/
-      <video_id>.mp4
-      <video_id>.tsv
+    <video_id>/   
+      <video_id>.mp4  # video 
+      <video_id>.tsv  # per-frame annotation
 ```
 
 ---
 
 ### 2. Set the Root Directory
+
 Edit `config/datasetsv2.yml` and set the `path` field for `"mike"` and `"abby"` to the root directory you created above.
 
 ---
@@ -159,8 +161,8 @@ This script filters and formats relevant columns into paper-ready result tables.
 
 ---
 
+# Software Architecture Overview:  
 
-General Software Architecture explanation:  
 ## 🗂 Dataset Formats
 Choose the corresponding source for your data and update the get_source in fish_benchmark.data.dataset.py and mount the correct source type on the folder.  
 
@@ -252,7 +254,7 @@ model = ModelBuilder() \
     .build()
 ```
 
-WildFins automatically wraps each component in a `BroadcastableModule` for flexible input shape handling.
+WildFin automatically wraps each component in a `BroadcastableModule` for flexible input shape handling.
 
 ---
 
@@ -317,7 +319,7 @@ This will:
 
 ## 📡 Distributed Computing
 
-WildFins supports distributed and automated job execution on SLURM-based high-performance computing (HPC) clusters, making it easy to run large-scale preprocessing and training jobs in parallel over multiple shards or configuration combinations.
+WildFin supports distributed and automated job execution on SLURM-based high-performance computing (HPC) clusters, making it easy to run large-scale preprocessing and training jobs in parallel over multiple shards or configuration combinations.
 
 ### 🧪 Feature Extraction
 
@@ -408,7 +410,7 @@ This supports massive grid search scaling over GPU resources in an HPC environme
 ## 📁 Project Structure
 
 ```
-wildfins/
+wildfin/
 ├── data/             # Sources, patchers, sliding window datasets
 ├── models/           # Backbone, pooler, classifier definitions
 ├── scripts/          # Training & evaluation scripts
@@ -430,4 +432,4 @@ wildfins/
 
 ## 📜 License
 
-MIT License © 2025 WildFins Contributors
+MIT License © 2025 WildFin Contributors
