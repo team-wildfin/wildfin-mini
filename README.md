@@ -48,6 +48,7 @@ These variables determine critical settings such as dataset name, model architec
 **Do not execute scripts without verifying these settings** — they must align with your experimental goals.
 
 To enable SLURM-based distributed processing, set the `PARALLEL` variable to `True`. This will launch one job per video via the cluster scheduler. For local testing and debugging, set `PARALLEL` to `False`. A common workflow is to test locally first, then scale up via SLURM for full-batch processing.
+
 ---
 
 ## 📌 Steps
@@ -224,14 +225,13 @@ Sampling is controlled via YAML config (`sliding_style.yml`) with the following 
 ```python
 from fish_benchmark.data.dataset import DatasetBuilder
 
-builder = DatasetBuilder(
-    path="/path/to/precomputed/dataset",
-    dataset_name="abby",
-    style="frames",
-    precomputed=True,
-    feature_model="dino",
-)
-dataset = builder.build()
+dataset = DatasetBuilder(
+  path=SOURCE,
+  dataset_name=DATASET,
+  style=SLIDING_STYLE, 
+  transform=input_transform,
+  precomputed=PRECOMPUTED
+).build()
 ```
 
 Options:
@@ -246,12 +246,16 @@ Options:
 ```python
 from fish_benchmark.models import ModelBuilder
 
-model = ModelBuilder() \
-    .set_backbone("dino") \
-    .set_pooling("mean") \
-    .set_classifier("mlp", input_dim=768, output_dim=10) \
-    .set_aggregator("max") \
+hidden_size = ModelBuilder().set_backbone(MODEL).get_hidden_size()
+classifier = (ModelBuilder()
+    .set_hidden_size(hidden_size)
+    .set_pooling(POOLING)
+    .set_classifier(CLASSIFIER, 
+      input_dim=hidden_size, 
+      output_dim=len(train_dataset.categories))
+    .set_aggregator(AGGREGATOR)
     .build()
+)
 ```
 
 WildFin automatically wraps each component in a `BroadcastableModule` for flexible input shape handling.
@@ -373,7 +377,7 @@ To automate training jobs across combinations of:
 run:
 
 ```bash
-python scripts/launch_training_grid.py
+python scripts/train.py
 ```
 
 Each job runs:

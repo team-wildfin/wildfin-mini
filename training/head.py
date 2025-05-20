@@ -166,8 +166,7 @@ if __name__ == '__main__':
                         logger=wandb_logger, 
                         log_every_n_steps= 50, 
                         callbacks=[best_ckpt, latest_ckpt], 
-                        check_val_every_n_epoch = 5, 
-                        limit_val_batches=100)
+                        check_val_every_n_epoch = 5)
     
     trainer.fit(lit_module, train_dataloader, val_dataloader)
     
