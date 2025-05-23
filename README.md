@@ -22,9 +22,9 @@
 
 ## 📦 Installation
 
+Unzip the zip file, then
 ```bash
-git clone https://github.com/JeromeTH/wildfin.git
-cd wildfin
+cd wildfin-mini
 conda env create -f environment.yml
 ```
 
