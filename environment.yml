@@ -190,4 +190,4 @@ dependencies:
     - wandb==0.19.9
     - webdataset==0.2.111
     - wheel==0.37.1
-prefix: /home/jth264/.conda/envs/benchmark
+prefix: ‘your_path’

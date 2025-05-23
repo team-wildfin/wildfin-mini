@@ -20,6 +20,5 @@ def get_slurm_submission_command(name, output_dir, wrap_cmd, gpu_types = "", gpu
         f"{gres}"
         f'--wrap="{wrap_cmd}"'
     )
-    #srun --pty --ntasks=1 --cpus-per-task=4 --mem=128G --time=48:00:00 --gres=gpu:a6000:1 --partition=jjs533-interactive,gpu-interactive bash
     logger.info(f"Submitted job for {name} with command: {command}")
     return command 

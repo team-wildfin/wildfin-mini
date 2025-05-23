@@ -239,7 +239,7 @@ import os
 import torch
 import pandas as pd
 
-train_dir = "/share/j_sun/jth264/precomputed/abbyv2/sliding_window/train"
+train_dir = "your_path"
 
 # List all video subdirectories (e.g., GX017045_95, etc.)
 for video_dir in sorted(os.listdir(train_dir)):
