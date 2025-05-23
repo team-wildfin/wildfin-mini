@@ -64,8 +64,3 @@ def main():
                 
 if __name__ == '__main__':
     main()
-
-'''
-example: 
-python data/action_scripts/preprocess_sliding_window.py --source "/share/j_sun/jth264/mike/train/AT_070523_GH010367" --dataset "MikeFramesPatched" --dest "/share/j_sun/jth264/precomputed/mike_frames_patched/train/AT_070523_GH010367" --id "AT_070523_GH010367"
-'''

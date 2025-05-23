@@ -9,3 +9,5 @@
 /wandb/
 /creds/
 /test_metrics/
+/.DS_Store
+/.idea/

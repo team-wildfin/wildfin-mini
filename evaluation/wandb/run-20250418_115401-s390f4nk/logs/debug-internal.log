@@ -1,8 +1,0 @@
-{"time":"2025-04-18T11:54:01.457057642-04:00","level":"INFO","msg":"stream: starting","core version":"0.19.9","symlink path":"/home/jth264/fish-benchmark/evaluation/wandb/run-20250418_115401-s390f4nk/logs/debug-core.log"}
-{"time":"2025-04-18T11:54:06.140223477-04:00","level":"INFO","msg":"created new stream","id":"s390f4nk"}
-{"time":"2025-04-18T11:54:06.140367698-04:00","level":"INFO","msg":"stream: started","id":"s390f4nk"}
-{"time":"2025-04-18T11:54:06.140385788-04:00","level":"INFO","msg":"sender: started","stream_id":"s390f4nk"}
-{"time":"2025-04-18T11:54:06.140386758-04:00","level":"INFO","msg":"handler: started","stream_id":"s390f4nk"}
-{"time":"2025-04-18T11:54:06.140432339-04:00","level":"INFO","msg":"writer: Do: started","stream_id":"s390f4nk"}
-{"time":"2025-04-18T11:54:06.241434351-04:00","level":"INFO","msg":"Starting system monitor"}
-{"time":"2025-04-18T11:54:11.444042159-04:00","level":"WARN","msg":"sender: sendUseArtifact: job builder disabled, skipping"}

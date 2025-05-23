@@ -54,7 +54,24 @@ To enable SLURM-based distributed processing, set the `PARALLEL` variable to `Tr
 ## 📌 Steps
 
 ### 1. Download the Data
-Organize the dataset directory as follows:
+
+Please find the datasets from these links:
+
+CoralCam:
+```
+https://dataverse.harvard.edu/previewurl.xhtml?token=b35e20a9-8204-4538-92bc-46f0fe310d61
+```
+
+Fishfollow:
+```
+https://dataverse.harvard.edu/previewurl.xhtml?token=ec755cda-1309-4de6-be2a-0ab2555b5e5f
+```
+RiverCam:
+```
+https://dataverse.harvard.edu/previewurl.xhtml?token=e465cfc9-708a-4f5b-b771-72fa3d4bd94d
+```
+
+Once you download the datasets, organize the dataset directory as follows:
 
 ```
 <root>/
@@ -437,3 +454,4 @@ wildfin/
 ## 📜 License
 
 MIT License © 2025 WildFin Contributors
+# wildfin-mini

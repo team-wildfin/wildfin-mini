@@ -1,7 +1,0 @@
-name: clean
-channels:
-  - defaults
-dependencies:
-  - python=3.12
-  - ipykernel
-  - lightning

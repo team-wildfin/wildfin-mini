@@ -1,6 +1,6 @@
 mike: 
-  path: '/share/j_sun/jth264/mikev3'
-  precomputed_path: '/share/j_sun/jth264/precomputed/mikev3'
+  path: 'you_path'
+  precomputed_path: 'you_path'
   splits:
     train:
       sliding_styles:
@@ -25,8 +25,8 @@ mike:
         - test_fix_patched_512
 
 abby: 
-  path: '/share/j_sun/jth264/abbyv2'
-  precomputed_path: '/share/j_sun/jth264/precomputed/abbyv2'
+  path: 'you_path'
+  precomputed_path: 'you_path'
   splits:
     train:
       sliding_styles:
