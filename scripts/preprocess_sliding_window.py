@@ -21,7 +21,7 @@ SLIDING_STYLES = [
 PARALLEL = True
 SAVE_INPUT = False
 
-config = yaml.safe_load(open("config/datasetsv2.yml", "r"))
+config = yaml.safe_load(open("config/dataset.yml", "r"))
 logger = setup_logger(
     name = 'precompute_sliding_window',
     log_file = 'logs/output/precompute_sliding_window.log', 

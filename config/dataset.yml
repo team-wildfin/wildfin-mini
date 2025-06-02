@@ -1,6 +1,12 @@
-mike: 
+fishfollow: 
   path: 'you_path'
   precomputed_path: 'you_path'
+  categories: 
+    - mouth not visible
+    - feeding
+    - charging
+    - being charged
+    - cturn
   splits:
     train:
       sliding_styles:
@@ -24,9 +30,31 @@ mike:
         - test_sliding_window
         - test_fix_patched_512
 
-abby: 
+coralcam: 
   path: 'you_path'
   precomputed_path: 'you_path'
+  categories: 
+    - Other behavior
+    - Medium bites
+    - High bites
+    - Traversing/swimming
+    - Departure
+    - Cleaner wrasse
+    - Low bites
+    - Change in Focal Fish
+    - Solo foraging/swimming
+    - Seafloor bites
+    - Aggressive on focal
+    - Social foraging/swimming
+    - Sand rubbing
+    - Not visible
+    - Foraging
+    - Idle
+    - Coral habitat
+    - Rubble habitat
+    - Aggressive by focal
+    - Sand habitat
+
   splits:
     train:
       sliding_styles:
