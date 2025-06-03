@@ -134,8 +134,6 @@ if __name__ == '__main__':
     # to get hidden size
     hidden_size = ModelBuilder().set_backbone(MODEL).get_hidden_size()
     classifier = (ModelBuilder()
-                .set_hidden_size(hidden_size)
-                .set_pooling(POOLING)
                 .set_classifier(CLASSIFIER, input_dim=hidden_size, output_dim=len(train_dataset.categories))
                 .set_aggregator(AGGREGATOR)
                 .build())

@@ -482,7 +482,12 @@ class SourceFactory:
     def build(self):
         if self.source_type == 'video_annotated':
             assert self.n_classes is not None, "n_classes should be set for video_annotated source"
-            return VideoAnnotatedSource(self.path, self.n_classes, self.front_padding, self.back_padding)
+            return VideoAnnotatedSource(
+                self.path, 
+                self.n_classes, 
+                self.front_padding, 
+                self.back_padding
+            )
         elif self.source_type == 'frame_annotated':
             return FrameAnnotatedSource(
                 self.path, 
