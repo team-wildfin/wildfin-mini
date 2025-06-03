@@ -17,23 +17,23 @@ TARGET_MODELS = [
     'dino_large'
 ]
 TARGET_DATASETS = [
-    # "abby", 
-    "mike"
+    "coralcam", 
+    "fishfollow"
 ]
 SLIDING_STYLES = [
-    # "frames", 
-    # "frames_w_temp", 
-    # "sliding_window", 
-    # "sliding_window_w_temp", 
-    # "sliding_window_w_stride", 
-    # "fix_patched_512", 
+    "frames", 
+    "frames_w_temp", 
+    "sliding_window", 
+    "sliding_window_w_temp", 
+    "sliding_window_w_stride", 
+    "fix_patched_512", 
     # "test_frames", 
-    "test_sliding_window", 
-    "test_fix_patched_512",
+    # "test_sliding_window", 
+    # "test_fix_patched_512",
 ]
 
 PRECOMPUTED = False
-PARALLEL = True
+PARALLEL = False
 
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
@@ -41,6 +41,8 @@ sliding_style_config = yaml.safe_load(open("config/sliding_style.yml", "r"))
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 OUT_ROOT = os.path.join('logs', 'extract_features')
+if not os.path.exists(OUT_ROOT): 
+    os.makedirs(OUT_ROOT, exist_ok=True)
 logger = setup_logger(
     'extract_features', 
     os.path.join(OUT_ROOT, 'extract_features.log'), 
@@ -59,7 +61,7 @@ def get_wrap_command(source, dataset, sliding_style, dest_path, video_id, model,
     PRECOMPUTED = args.precomputed
     '''
     return (
-        f'python data/action_scripts/extract_features.py '
+        f'python data/action/extract_features.py '
         f'--source "{source}" --dest_path "{dest_path}" --id "{video_id}" --sliding_style {sliding_style} '
         f'--dataset {dataset} --model {model} --precomputed {precomputed} '
     )
