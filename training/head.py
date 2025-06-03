@@ -36,7 +36,7 @@ def get_args():
     return parser.parse_args()
 
 if __name__ == '__main__':
-    dataset_config = yaml.safe_load(open('config/dataset.yml', 'r'))
+    dataset_config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
     sliding_style_config = yaml.safe_load(open('config/sliding_style.yml', 'r'))
     model_config = yaml.safe_load(open('config/models.yml', 'r'))
 

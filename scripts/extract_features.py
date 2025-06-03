@@ -36,7 +36,7 @@ PRECOMPUTED = False
 PARALLEL = True
 
 model_config = yaml.safe_load(open("config/models.yml", "r"))
-dataset_config = yaml.safe_load(open("config/dataset.yml", "r"))
+dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 sliding_style_config = yaml.safe_load(open("config/sliding_style.yml", "r"))
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'

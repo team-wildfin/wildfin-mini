@@ -14,7 +14,7 @@ import lightning as L
 import json
 import glob
 
-dataset_config = yaml.safe_load(open('config/dataset.yml', 'r'))
+dataset_config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
 eval_config = yaml.safe_load(open('config/eval.yml', 'r'))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")

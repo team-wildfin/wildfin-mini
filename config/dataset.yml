@@ -1,6 +1,7 @@
 fishfollow: 
   path: 'you_path'
   precomputed_path: 'you_path'
+  label_type: onehot
   categories: 
     - mouth not visible
     - feeding
@@ -33,6 +34,7 @@ fishfollow:
 coralcam: 
   path: 'you_path'
   precomputed_path: 'you_path'
+  label_type: onehot
   categories: 
     - Other behavior
     - Medium bites
@@ -75,3 +77,40 @@ coralcam:
         - test_frames
         - test_sliding_window
         - test_fix_patched_512
+
+ucf101: 
+  path: 'you_path'
+  precomputed_path: 'you_path'
+  label_type: onehot
+  categories: 
+    - ApplyEyeMakeup
+    - Archery
+    - BalanceBeam
+    - BaseballPitch
+    - BasketballDunk
+    - ApplyLipstick
+    - BabyCrawling
+    - BandMarching
+    - Basketball
+    - BenchPress
+
+  splits:
+    train:
+      sliding_styles:
+        - frames
+        - frames_w_temp
+        - sliding_window
+        - sliding_window_w_temp
+        - sliding_window_w_stride
+    val:
+      sliding_styles:
+        - frames
+        - frames_w_temp
+        - sliding_window
+        - sliding_window_w_temp
+        - sliding_window_w_stride
+    test:
+      sliding_styles:
+        - test_frames
+        - test_sliding_window
+  

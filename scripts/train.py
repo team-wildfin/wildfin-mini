@@ -38,7 +38,7 @@ SAMPLERS = [
 OUTPUT_BASE = os.path.join('logs', 'train')
 PARALLEL = False
 model_config = yaml.safe_load(open("config/models.yml", "r"))
-dataset_config = yaml.safe_load(open("config/dataset.yml", "r"))
+dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 
 logger = setup_logger(
     'extract_features', 

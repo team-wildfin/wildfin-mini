@@ -19,21 +19,17 @@ from tqdm import tqdm
 from collections import deque
 from fish_benchmark.debug import step_timer
 from torchvision.transforms import ToTensor
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict 
 from typing import Callable, Optional, List 
 import logging
 import math 
+import yaml
 
 to_tensor = ToTensor()
 PROFILE = False
 PROFILE_LOADING = True
 logger = logging.getLogger(__name__)
-
-class BaseCategoricalDataset(Dataset):
-    @property
-    @abstractmethod
-    def categories(self):
-        pass
+dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 
 def onehot(num_total_classes, active_classes):
     """
@@ -42,129 +38,6 @@ def onehot(num_total_classes, active_classes):
     one_hot = torch.zeros(num_total_classes, dtype=torch.float32)
     one_hot[active_classes] = 1
     return one_hot
-
-class UCF101(BaseCategoricalDataset):
-    '''
-    Each data entry should contain 16 frames and a label. The 16 frames are sampled from the video.
-    Data is stored in a folder with the following structure:
-    /path/to/data/
-        train/
-            ├── class1/
-                |video1.avi
-                |video2.avi
-            ├── class2/
-            │
-    '''
-    def __init__(self, data_path, train= True, clip_len = 16, transform=None, load_data = True, label_type = "categorical"):
-        super().__init__()
-        self.data_path = data_path
-        self.train = train
-        self.transform = transform
-        self.clip_len = clip_len
-        self.label_type = label_type
-        # Step 1: Precompute a fixed, sorted class list
-        train_classes = sorted([d for d in os.listdir(os.path.join(data_path, 'train')) if os.path.isdir(os.path.join(data_path, 'train', d))])
-        test_classes = sorted([d for d in os.listdir(os.path.join(data_path, 'test')) if os.path.isdir(os.path.join(data_path, 'test', d))])
-        assert len(train_classes) == len(test_classes), "Train and test classes should be the same"
-
-        # Take only common classes to prevent index mismatch
-        self.classes = sorted(set(train_classes) & set(test_classes))
-        self.class_to_idx = {cls: idx for idx, cls in enumerate(self.classes)}  # Fixed mapping
-
-        self.data = []
-        self.labels = []
-        if load_data:
-            self.load_data()
-
-    @property
-    def categories(self):
-        return self.classes
-    
-    def load_data(self):
-        path = os.path.join(self.data_path, 'train' if self.train else 'test')
-        for class_name in self.classes: 
-            class_path = os.path.join(path, class_name)
-            if not os.path.isdir(class_path): continue
-            class_idx = self.class_to_idx[class_name]
-            for video_name in os.listdir(class_path):
-                video_path = os.path.join(class_path, video_name) 
-                if not os.path.isfile(video_path): continue
-                container = av.open(video_path)
-                indices = sample_frame_indices(clip_len=self.clip_len, frame_sample_rate=1, seg_len=container.streams.video[0].frames)
-                video = read_video_pyav(container, indices)
-                self.data.append(video)
-                self.labels.append(class_idx)
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        #preprocess the data using transform
-        if self.transform:
-            d = self.transform(self.data[idx])
-        
-        if self.label_type == "onehot":
-            return d, onehot(len(self.categories), self.labels[idx])
-        elif self.label_type == "categorical":
-            return d, self.labels[idx]
-        else:
-            raise ValueError(f"label_type {self.label_type} not recognized.")
-        
-class CalTech101WithSplit(Dataset):
-    def __init__(self, path, train=True, transform=None, label_type = "categorical"):
-        dataset = Caltech101(root=path, target_type = "category", transform= transform, download=True)
-        '''
-        label_type = "categorical" or "onehot"
-        '''
-        # print(dataset.categories)
-        #generate random indices to be the training set * 0.8, will split using SubSet later to be the training set 
-        random_perm = torch.randperm(len(dataset))
-        training_indices = random_perm[:int(0.8 * len(dataset))]  # 80% for training
-        testing_indices = random_perm[int(0.8 * len(dataset)):]  # 20% for testing
-        if train: 
-            res = Subset(dataset, training_indices)
-        else: 
-            res = Subset(dataset, testing_indices)
-        res.categories = dataset.categories
-        res.transform = transform
-        self.data = res
-        self.label_type = label_type
-
-    @property
-    def categories(self):
-        return self.data.categories
-
-    def __len__(self):
-        return len(self.data)
-    
-    def __getitem__(self, idx):
-        if self.label_type == "onehot":
-            # Convert the label to one-hot encoding
-            return self.data[idx][0], onehot(len(self.categories), self.data[idx][1])
-        elif self.label_type == "categorical":
-            return self.data[idx]
-        else:
-            raise ValueError(f"label_type {self.label_type} not recognized.")
-
-def load_from_cur_dir(path):
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
-    full_path = os.path.join(cur_dir, path)
-    with open(full_path, 'r') as f:
-        data = json.load(f)
-    return data
-
-def load_behavior_idx_map(path):
-        '''
-        json file containing the list of all behaviors: 
-        [
-            "behavior1", 
-            "behavior2",
-            ...
-        ]
-        '''
-        behaviors = load_from_cur_dir(path)
-        behavior_idx_map = {behavior['name']: idx for idx, behavior in enumerate(behaviors)}
-        return behavior_idx_map
 
 def parse_annotation(annotation):
     behaviors = []
@@ -198,31 +71,6 @@ class BaseConfig:
             'categories': self.categories,
             'label_type': self.label_type,
         }
-    
-class MikeConfig(BaseConfig):
-    def __init__(self):
-        self.categories = get_categories('mike')
-        self.label_type = "onehot"
-
-class AbbyConfig(BaseConfig):
-    def __init__(self):
-        self.categories = get_categories('abby')
-        self.label_type = "onehot"
-
-class UCF101Config(BaseConfig):
-    def __init__(self):
-        self.categories = get_categories('ucf101')
-        self.label_type = "onehot"
-
-def get_config(dataset_name):
-    if dataset_name == 'ucf101':
-        return UCF101Config()
-    elif dataset_name == 'mike':
-        return MikeConfig()
-    elif dataset_name == 'abby':
-        return AbbyConfig()
-    else:
-        raise ValueError(f"dataset_name {dataset_name} not recognized")
     
 class Patcher: 
     def __init__(self, patch_type, h, w):
@@ -450,15 +298,10 @@ class BaseSlidingWindowDataset(IterableDataset):
         return summary
 
 def get_categories(dataset_name):
-    if dataset_name == 'ucf101':
-        return load_from_cur_dir('ucf101_categories.json')
-    elif dataset_name == 'mike':
-        return load_behavior_idx_map('behavior_categories.json').keys()
-    elif dataset_name == 'abby':
-        return load_from_cur_dir('abby_dset_categories.json')
+    if dataset_name in dataset_config:
+        return dataset_config[dataset_name]['categories']
     else:
         raise ValueError(f"dataset_name {dataset_name} not recognized")
-
 
 class FrameAnnotatedSource(BaseSource):
     '''
@@ -657,14 +500,14 @@ class SourceFactory:
                 source_type='video_annotated',
                 n_classes=len(get_categories('ucf101'))
             )
-        elif dataset_name == 'mike':
+        elif dataset_name == 'fishfollow':
             return cls(
                 path=path,
                 source_type='frame_annotated',
                 video_file_type='.mp4',
                 label_file_type='.tsv'
             )
-        elif dataset_name == 'abby':
+        elif dataset_name == 'coralcam':
             return cls(
                 path=path,
                 source_type='frame_annotated',
@@ -674,7 +517,7 @@ class SourceFactory:
         else:
             raise ValueError(f"dataset_name {dataset_name} not recognized")
 
-class PrecomputedDatasetV2(Dataset):
+class PrecomputedDataset(Dataset):
     '''
     Dataset mounted on precomputed sliding window clips and labels. 
     Corresponding clips and labels have the same name but live in different folders
@@ -756,13 +599,14 @@ class SlidingWindowConfig(BaseModel):
 class DatasetConfig(BaseModel):
     categories: list
     label_type: str
+    model_config = ConfigDict(extra="ignore")
 
 class DatasetBuilder():
     def __init__(self, path, dataset_name, style, transform=None, precomputed=False, feature_model=None, min_ctime=None, only_labels=False):
         self.path = path
         self.dataset_name = dataset_name
         self.set_sliding_window_config(yaml.safe_load(open("config/sliding_style.yml", "r"))[style])
-        self.set_dataset_config(get_config(dataset_name).get_config())
+        self.set_dataset_config(dataset_config[dataset_name])
         self.input_transform = None
         self.transform = transform
         self.precomputed = precomputed
@@ -797,7 +641,7 @@ class DatasetBuilder():
     def build(self):
         if self.precomputed: 
             #if precomputed is true, then the sliding style information should be contained in the path
-            return PrecomputedDatasetV2(
+            return PrecomputedDataset(
                 self.path, 
                 self.dsconfig.categories, 
                 self.transform, 

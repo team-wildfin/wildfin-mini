@@ -85,7 +85,7 @@ Once you download the datasets, organize the dataset directory as follows:
 
 ### 2. Set the Root Directory
 
-Edit `config/dataset.yml` and set the `path` field for `"mike"` and `"abby"` to the root directory you created above.
+Edit `config/actual/dataset.yml` and set the `path` field for `"mike"` and `"abby"` to the root directory you created above.
 
 ---
 
@@ -149,7 +149,7 @@ python scripts/evaluate.py
 ```
 
 This script evaluates each training configuration on its corresponding test set.  
-- Training–test mapping is defined in `config/dataset.yml`.
+- Training–test mapping is defined in `config/actual/dataset.yml`.
 - Evaluation runs are logged to dedicated `wandb` projects and reference their original training runs.
 
 ---
@@ -322,7 +322,7 @@ python evaluation/eval.py \
 
 This will:
 - Load the trained model from its W&B artifact
-- Load the test dataset from `config/dataset.yml`
+- Load the test dataset from `config/actual/dataset.yml`
 - Run inference and log metrics
 - Save predictions (`probs`, `targets`) into a JSON file
 - Upload this as a W&B artifact of type `metrics`
@@ -377,7 +377,7 @@ SLIDING_STYLES = ["test_frames", "test_sliding_window"]
 SPLITS = ["train", "val", "test"]
 ```
 
-The script skips incompatible sliding styles using the whitelist in `config/dataset.yml`.
+The script skips incompatible sliding styles using the whitelist in `config/actual/dataset.yml`.
 
 ---
 
