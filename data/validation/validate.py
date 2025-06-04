@@ -4,9 +4,8 @@ import os
 from fish_benchmark.utils import setup_logger
 config = yaml.safe_load(open("config/sliding_style.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
-DATASET = 'coralcam'
-SLIDING_STYLE = 'frames'
-FEATURE_EXTRACTOR = 'dino'  # or 'clip', etc.
+DATASETS = ['coralcam']
+FEATURE_EXTRACTORS = ['dino', 'dino_large', 'videomae']  # or 'clip', etc.
 SAVE_DIR = 'data/validation/reports'
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR, exist_ok=True)
@@ -50,33 +49,37 @@ def validate_labels(expected_files, label_path):
     is_valid = actual_lines == expected_files
     return is_valid, expected_files, actual_lines
 
-def run(dataset, sliding_style, feature_extractor):
+def run(dataset, split, sliding_style, feature_extractor):
     report = {}
     dset = dataset_config[dataset]
-    for split in dset['splits']: 
-        split_path = os.path.join(dset['path'], split)
-        report[split] = {}
-        for subset in os.listdir(split_path): 
-            logger.info(f"Validating {dataset} {sliding_style} {feature_extractor} for split {split}, subset {subset}")
-            subset_path = os.path.join(split_path, subset) 
-            video_path = os.path.join(subset_path, f'{subset}.mp4')
-            output_path = os.path.join(dset['precomputed_path'], sliding_style, split, subset, f'{feature_extractor}_features')
-            label_path = os.path.join(dset['precomputed_path'], sliding_style, split, subset, 'labels', f'{subset}.tsv')
-            expected_items = calculate_expected_files(video_path, sliding_style)
-            feature_good, _, actual_files = validate_features(expected_items, output_path)
-            label_good, _, actual_lines = validate_labels(expected_items, label_path)
-            report[split][subset] = {
-                'valid': feature_good and label_good,
-                'expected_items': expected_items,
-                'actual_files': actual_files,
-                'label_lines': actual_lines,
-            }
+    split_path = os.path.join(dset['path'], split)
+    report[split] = {}
+    for subset in os.listdir(split_path): 
+        logger.info(f"Validating {dataset} {sliding_style} {feature_extractor} for split {split}, subset {subset}")
+        subset_path = os.path.join(split_path, subset) 
+        video_path = os.path.join(subset_path, f'{subset}.mp4')
+        output_path = os.path.join(dset['precomputed_path'], sliding_style, split, subset, f'{feature_extractor}_features')
+        label_path = os.path.join(dset['precomputed_path'], sliding_style, split, subset, 'labels', f'{subset}.tsv')
+        expected_items = calculate_expected_files(video_path, sliding_style)
+        feature_good, _, actual_files = validate_features(expected_items, output_path)
+        label_good, _, actual_lines = validate_labels(expected_items, label_path)
+        report[split][subset] = {
+            'valid': feature_good and label_good,
+            'expected_items': expected_items,
+            'actual_files': actual_files,
+            'label_lines': actual_lines,
+        }
     return report
 
 if __name__ == '__main__':
-    report = run(DATASET, SLIDING_STYLE, FEATURE_EXTRACTOR)
-    report_path = os.path.join(SAVE_DIR, f'{DATASET}_{SLIDING_STYLE}_{FEATURE_EXTRACTOR}_report.yml')
-    with open(report_path, 'w') as f:
-        yaml.dump(report, f)
-    print(f"Validation report saved to {report_path}")
-    print("Report:", report)
+    for DATASET in DATASETS: 
+        for SPLIT in dataset_config[DATASET]['splits'].keys():   
+            for SLIDING_STYLE in dataset_config[DATASET]['splits'][SPLIT]['sliding_styles']: 
+                for FEATURE_EXTRACTOR in FEATURE_EXTRACTORS:
+                    report = run(DATASET, SPLIT, SLIDING_STYLE, FEATURE_EXTRACTOR)
+                    report_path = os.path.join(SAVE_DIR, DATASET, SPLIT, SLIDING_STYLE, f'{FEATURE_EXTRACTOR}_report.yml')
+                    os.makedirs(os.path.dirname(report_path), exist_ok=True)
+                    with open(report_path, 'w') as f:
+                        yaml.dump(report, f)
+                    print(f"Validation report saved to {report_path}")
+                    print("Report:", report)
