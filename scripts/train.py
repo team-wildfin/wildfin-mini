@@ -20,15 +20,15 @@ POOLINGS = [
     # 'attention'
 ]
 DATASETS = [
-    # 'abby', 
-    'mike'
+    'coralcam', 
+    # 'fishfollow'
 ]
 SLIDING_STYLES = [
-    # 'frames', 
+    'frames', 
     'frames_w_temp', 
-    # 'sliding_window', 
-    # 'sliding_window_w_temp', 
-    # 'sliding_window_w_stride', 
+    'sliding_window', 
+    'sliding_window_w_temp', 
+    'sliding_window_w_stride', 
     # 'fix_patched_512',
 ]
 SAMPLERS = [
@@ -36,13 +36,14 @@ SAMPLERS = [
     'balanced'
 ]
 OUTPUT_BASE = os.path.join('logs', 'train')
+os.makedirs(OUTPUT_BASE, exist_ok=True)
 PARALLEL = False
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 
 logger = setup_logger(
-    'extract_features', 
-    os.path.join(OUTPUT_BASE, 'extract_features.log'), 
+    'train', 
+    os.path.join(OUTPUT_BASE, 'train.log'), 
     console=(not PARALLEL), 
     file=True
 )

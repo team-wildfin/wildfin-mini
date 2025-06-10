@@ -4,7 +4,8 @@ import os
 from fish_benchmark.utils import setup_logger
 config = yaml.safe_load(open("config/sliding_style.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
-DATASETS = ['coralcam']
+model_config =yaml.safe_load(open("config/models.yml", "r"))
+DATASETS = ['coralcam', 'fishfollow']
 FEATURE_EXTRACTORS = ['dino', 'dino_large', 'videomae']  # or 'clip', etc.
 SAVE_DIR = 'data/validation/reports'
 if not os.path.exists(SAVE_DIR):
@@ -76,6 +77,7 @@ if __name__ == '__main__':
         for SPLIT in dataset_config[DATASET]['splits'].keys():   
             for SLIDING_STYLE in dataset_config[DATASET]['splits'][SPLIT]['sliding_styles']: 
                 for FEATURE_EXTRACTOR in FEATURE_EXTRACTORS:
+                    if model_config[FEATURE_EXTRACTOR]['sliding_styles'] and SLIDING_STYLE not in model_config[FEATURE_EXTRACTOR]['sliding_styles']: continue
                     report = run(DATASET, SPLIT, SLIDING_STYLE, FEATURE_EXTRACTOR)
                     report_path = os.path.join(SAVE_DIR, DATASET, SPLIT, SLIDING_STYLE, f'{FEATURE_EXTRACTOR}_report.yml')
                     os.makedirs(os.path.dirname(report_path), exist_ok=True)

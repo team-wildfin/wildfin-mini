@@ -17,23 +17,23 @@ TARGET_MODELS = [
     'dino_large'
 ]
 TARGET_DATASETS = [
-    "coralcam", 
+    # "coralcam", 
     "fishfollow"
 ]
 SLIDING_STYLES = [
-    "frames", 
-    "frames_w_temp", 
-    "sliding_window", 
-    "sliding_window_w_temp", 
-    "sliding_window_w_stride", 
-    "fix_patched_512", 
-    # "test_frames", 
-    # "test_sliding_window", 
-    # "test_fix_patched_512",
+    # "frames", 
+    # "frames_w_temp", 
+    # "sliding_window", 
+    # "sliding_window_w_temp", 
+    # "sliding_window_w_stride", 
+    # "fix_patched_512", 
+    "test_frames", 
+    "test_sliding_window", 
+    "test_fix_patched_512",
 ]
 
 PRECOMPUTED = False
-PARALLEL = False
+PARALLEL = True
 
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
@@ -45,7 +45,7 @@ if not os.path.exists(OUT_ROOT):
     os.makedirs(OUT_ROOT, exist_ok=True)
 logger = setup_logger(
     'extract_features', 
-    os.path.join(OUT_ROOT, 'extract_features.log'), 
+    os.path.join(OUT_ROOT, 'extract_fishfollow_test_features.log'), 
     console=False, 
     file=True
 )
@@ -69,8 +69,8 @@ def get_wrap_command(source, dataset, sliding_style, dest_path, video_id, model,
 def main():
     for DATASET in TARGET_DATASETS:
         for SLIDING_STYLE in SLIDING_STYLES:
-            for SPLIT in list(dataset_config[DATASET]['splits'].keys()):
-                for MODEL in TARGET_MODELS:
+            for MODEL in TARGET_MODELS:
+                for SPLIT in list(dataset_config[DATASET]['splits'].keys()):
                     if SLIDING_STYLE not in dataset_config[DATASET]['splits'][SPLIT]['sliding_styles']: continue
                     if SLIDING_STYLE not in model_config[MODEL]['sliding_styles']: continue
 
@@ -89,11 +89,14 @@ def main():
                         )
                         output_dir = os.path.join(OUT_ROOT, DATASET, SLIDING_STYLE, SPLIT, SUBSET, MODEL)
                         submission_name = f'{DATASET}_{SLIDING_STYLE}_{SPLIT}_{SUBSET}_{MODEL}'
-                        command = (get_slurm_submission_command(submission_name, output_dir, wrap_cmp, gpu=1) 
+                        command = (get_slurm_submission_command(submission_name, output_dir, wrap_cmp, gpu_count=1) 
                                    if PARALLEL 
                                    else wrap_cmp)   
                         logger.info(f"Running command for {submission_name} with command: {command}")
-                        subprocess.run(command, shell=True, check=True)
+                        try: 
+                            subprocess.run(command, shell=True, check=True)
+                        except subprocess.CalledProcessError as e:
+                            logger.error(f"Error running command for {submission_name}: {e}")
 
 if __name__ == '__main__':
     main()

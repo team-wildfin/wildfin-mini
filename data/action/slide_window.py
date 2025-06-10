@@ -33,7 +33,7 @@ if __name__ == '__main__':
     SLIDING_STYLE = args.sliding_style
     SAVE_INPUT = True if args.save_input == 'True' else False
     ID = args.id
-    dataset_config = yaml.safe_load(open("config/datasetsv2.yml", "r"))
+    dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
     
     # Delete old folders if they exist
     if SAVE_INPUT and os.path.exists(INPUT_DEST): shutil.rmtree(INPUT_DEST)
