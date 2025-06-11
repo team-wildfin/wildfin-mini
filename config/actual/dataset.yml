@@ -1,6 +1,6 @@
 fishfollow: 
   doi: https://doi.org/10.7910/DVN/QN66Z8
-  path: '/share/j_sun/jth264/mikev3'
+  path: '/share/j_sun/jth264/fishfollow'
   precomputed_path: '/share/j_sun/jth264/precomputed/fishfollow'
   label_type: onehot
   categories: 
@@ -50,7 +50,7 @@ fishfollow:
 
 coralcam: 
   doi: https://doi.org/10.7910/DVN/BRCPIG
-  path: '/share/j_sun/jth264/abbyv2'
+  path: '/share/j_sun/jth264/coralcam'
   precomputed_path: '/share/j_sun/jth264/precomputed/coralcam'
   label_type: onehot
   categories: 
