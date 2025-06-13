@@ -17,23 +17,23 @@ TARGET_MODELS = [
     'dino_large'
 ]
 TARGET_DATASETS = [
-    # "coralcam", 
-    "fishfollow"
+    "coralcam", 
+    # "fishfollow"
 ]
 SLIDING_STYLES = [
-    # "frames", 
-    # "frames_w_temp", 
-    # "sliding_window", 
-    # "sliding_window_w_temp", 
-    # "sliding_window_w_stride", 
-    # "fix_patched_512", 
+    "frames", 
+    "frames_w_temp", 
+    "sliding_window", 
+    "sliding_window_w_temp", 
+    "sliding_window_w_stride", 
+    "fix_patched_512", 
     "test_frames", 
     "test_sliding_window", 
     "test_fix_patched_512",
 ]
 
 PRECOMPUTED = False
-PARALLEL = True
+PARALLEL = False
 
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
@@ -45,7 +45,7 @@ if not os.path.exists(OUT_ROOT):
     os.makedirs(OUT_ROOT, exist_ok=True)
 logger = setup_logger(
     'extract_features', 
-    os.path.join(OUT_ROOT, 'extract_fishfollow_test_features.log'), 
+    os.path.join(OUT_ROOT, 'extract_fishfollow_features.log'), 
     console=False, 
     file=True
 )
