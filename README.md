@@ -118,6 +118,7 @@ python scripts/extract_features.py
 ## 🧱 Step 5: Apply Sliding Window and Generate Labels
 
 Use sliding window settings to generate `(clip, label)` pairs.
+Note that the default setting is to only store labels, since labels can be directly paired with features extracted in the previous step. 
 
 ```bash
 python scripts/slide_window.py
@@ -127,7 +128,7 @@ python scripts/slide_window.py
 
 ## 🔍 Step 6: Validate Feature and Label Integrity
 
-Checks for mismatches and logs stats; important when using SLURM.
+Checks for mismatches and logs stats; important when using SLURM, to check that all processes correctly finished.
 
 ```bash
 python data/validation/validate.py
@@ -137,7 +138,7 @@ python data/validation/validate.py
 
 ## 🏋️ Step 7: Train Classification Models
 
-Train a linear/probe classifier on top of extracted features.
+Train a MLP / Linear classifier on top of extracted features.
 
 ```bash
 python scripts/train.py
