@@ -66,7 +66,7 @@ fishfollow:
     test:
       sliding_styles:
         - test_frames
-
+```
 
 # 🐟 Reproducing Experiments in **WildFin**
 
