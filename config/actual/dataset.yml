@@ -1,6 +1,6 @@
 fishfollow: 
   doi: https://doi.org/10.7910/DVN/QN66Z8
-  path: '/share/j_sun/jth264/fishfollow/organized'
+  path: '/share/j_sun/jth264/mikev3'
   precomputed_path: '/share/j_sun/jth264/precomputed/fishfollow'
   label_type: onehot
   categories: 

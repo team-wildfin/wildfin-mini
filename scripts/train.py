@@ -20,8 +20,8 @@ POOLINGS = [
     # 'attention'
 ]
 DATASETS = [
-    'coralcam', 
-    # 'fishfollow'
+    # 'coralcam', 
+    'fishfollow'
 ]
 SLIDING_STYLES = [
     'frames', 
