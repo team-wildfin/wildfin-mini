@@ -1,3 +1,13 @@
+"""
+Utility functions for data loading, video decoding, logging, and miscellaneous helpers.
+
+Includes:
+- Video frame extraction with PyAV
+- Frame sampling utilities
+- File and annotation helpers
+- Logging setup
+- Priority queue implementation
+"""
 import numpy as np
 import torch
 import os

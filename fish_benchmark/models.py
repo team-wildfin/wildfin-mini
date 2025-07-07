@@ -1,3 +1,14 @@
+"""
+Model definitions and composition for WildFin.
+
+This module provides:
+- Backbone model wrappers for various vision architectures (CLIP, DINO, VideoMAE, etc.)
+- Pooling layers (mean, max, attention)
+- Classifiers (MLP, linear)
+- Factories for building poolers and classifiers
+- A ModelBuilder class for flexible model composition
+- BroadcastableModule for handling variable input shapes
+"""
 from transformers import VideoMAEModel, CLIPVisionModel, AutoModel, Swinv2Model, TimesformerModel
 import torch.nn as nn
 import torch.nn.functional as F
