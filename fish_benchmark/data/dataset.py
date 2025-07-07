@@ -24,6 +24,7 @@ from typing import Callable, Optional, List
 import logging
 import math 
 import yaml
+from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 
 to_tensor = ToTensor()
 PROFILE = False
@@ -669,8 +670,7 @@ class DatasetBuilder():
             # if the window size is 4, then front padding should be 1 and back padding should be 2 so the number of frames equals the number of sliding windows
             dataset.set_source(source)
             dataset.set_only_labels(self.only_labels)
-            return dataset   
-        
+            return dataset           
 
 class MultiLabelBalancedSampler(Sampler):
     def __init__(self, dataset, max_samples_per_class=1000):

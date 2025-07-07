@@ -4,7 +4,8 @@ In this file, we want to train the video MAE model for video classification with
 import torch
 import lightning as L
 from fish_benchmark.models import get_input_transform, ModelBuilder
-from fish_benchmark.data.dataset import DatasetBuilder, MultiLabelBalancedSampler
+from fish_benchmark.data.dataset import DatasetBuilder
+from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
 from pytorch_lightning.loggers import WandbLogger
 import wandb

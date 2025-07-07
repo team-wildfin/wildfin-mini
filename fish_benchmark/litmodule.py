@@ -1,3 +1,12 @@
+"""
+PyTorch Lightning modules for training and evaluating classification models.
+
+Includes:
+- LitBinaryClassifierModule: For multi-label classification
+- LitCategoricalClassifierModule: For single-label (categorical) classification
+- Logging of metrics (precision, recall, F1, mAP, accuracy)
+- Optimizer and scheduler configuration
+"""
 import torch
 import torch.nn.functional as F
 import lightning as L
