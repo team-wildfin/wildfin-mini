@@ -308,13 +308,14 @@ class FrameAnnotatedSource(BaseSource):
     '''
     Data is stored in a folder with the following structure:
     /path/to/data/
-        ├── shard1/
-            |videoid1.mp4
-            |videoid1.tsv
-            |videoid2.mp4
-            |videoid2.tsv
-        ├── shard2/
-        │
+        |-- train
+            ├── shard1/
+                |videoid1.mp4
+                |videoid1.tsv
+            ├── shard2/
+                |videoid2.mp4
+                |videoid2.tsv
+            │
     Each row of the tsv files is the annotation for the respective frame in the video
     Requires: 
     1. video in the mp4 has the same number of frames as the rows of the tsv file
@@ -363,7 +364,7 @@ class FrameAnnotatedSource(BaseSource):
 
             label = np.loadtxt(label_path, delimiter='\t', dtype=int)
             container = av.open(video_path)
-            assert label.shape[0] == container.streams.video[0].frames, f"Number of frames in {video_path} does not match number of annotations in {label_path}"
+            assert label.shape[0] == container.streams.video[0].frames, f"Number of frames in {video_path}: {container.streams.video[0].frames} does not match number of annotations in {label_path}: {label.shape[0]}"
 
             #front padding
             first_frame = get_first_frame(video_path)
@@ -511,7 +512,7 @@ class SourceFactory:
                 path=path,
                 source_type='frame_annotated',
                 video_file_type='.mp4',
-                label_file_type='.tsv'
+                label_file_type='.txt'
             )
         elif dataset_name == 'coralcam':
             return cls(
@@ -718,3 +719,8 @@ class MultiLabelBalancedSampler(Sampler):
 
     def __len__(self):
         return self.max_samples_per_class * self.non_zero.sum().item()
+
+# 30576
+#AssertionError: Number of frames in /share/j_sun/jth264/fishfollow/organized/train/GH010249/GH010249.mp4: 30839 does not match number of annotations in /share/j_sun/jth264/fishfollow/organized/train/GH010249/GH010249.txt: 30720
+#AssertionError: Number of frames in /share/j_sun/jth264/fishfollow/organized/train/GH013724/GH013724.mp4: 31186 does not match number of annotations in /share/j_sun/jth264/fishfollow/organized/train/GH013724/GH013724.txt: 31140
+#AssertionError: Number of frames in /share/j_sun/jth264/fishfollow/organized/train/GH010118/GH010118.mp4: 30576 does not match number of annotations in /share/j_sun/jth264/fishfollow/organized/train/GH010118/GH010118.txt: 30360

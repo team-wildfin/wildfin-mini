@@ -5,7 +5,10 @@ from fish_benchmark.utils import setup_logger
 from submission import get_slurm_submission_command
 
 # Example config values (replace with loading from a file if needed)
-TARGETS = ["coralcam", "fishfollow"]
+TARGETS = [
+    # "coralcam", 
+    "fishfollow"
+]
 SLIDING_STYLES = [
     "frames", 
     "frames_w_temp", 

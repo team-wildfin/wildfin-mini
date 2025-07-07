@@ -50,7 +50,7 @@ fishfollow:
 
 coralcam: 
   doi: https://doi.org/10.7910/DVN/BRCPIG
-  path: '/share/j_sun/jth264/abbyv2'
+  path: '/share/j_sun/jth264/coralcam/organized'
   precomputed_path: '/share/j_sun/jth264/precomputed/coralcam'
   label_type: onehot
   categories: 

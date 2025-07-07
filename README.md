@@ -28,156 +28,167 @@ cd wildfin-mini
 conda env create -f environment.yml
 ```
 
-# Reproducing Experiments in **WildFin**
+## ⚙️ Dataset Configuration
 
-**Note:** The datasets have internal nicknames in the codebase:  
-- **FishFollow** is referred to as `"mike"`  
-- **CoralCam** is referred to as `"abby"`
+All dataset settings are managed through `config/actual/dataset.yml`.
+
+Each dataset block defines:
+
+- `doi`: Link to the official dataset source (Dataverse)
+- `path`: Location of the organized video + annotation directory
+- `precomputed_path`: Where extracted features and sliding label outputs will be stored
+- `label_type`: Currently supports `onehot` for multi-class classification
+- `categories`: Full list of behavior/action labels  
+  > 🧠 These are **domain-specific categories** defined by marine biologists and used throughout training, evaluation, and reporting
+- `splits`: Defines which sliding styles to use for `train`, `val`, and `test`
+
+Example (excerpt for `fishfollow`):
+
+```yaml
+fishfollow:
+  doi: https://doi.org/10.7910/DVN/QN66Z8
+  path: '/path/to/organized'
+  precomputed_path: '/path/to/precomputed'
+  label_type: onehot
+  categories:
+    - Other behavior
+    - Medium bites
+    - High bites
+    ...
+  splits:
+    train:
+      sliding_styles:
+        - frames
+        - sliding_window
+    val:
+      sliding_styles:
+        - frames
+    test:
+      sliding_styles:
+        - test_frames
+```
+
+# 🐟 Reproducing Experiments in **WildFin**
+
+This guide outlines how to reproduce all experiments reported in the WildFin benchmark.
 
 ---
 
-## 🛠️ Design Overview
+## 🔽 Step 1: Download Raw Videos and Annotations
 
-The `scripts/` folder orchestrates the end-to-end machine learning pipeline by executing logic defined in:
-- `training/`
-- `evaluation/`
-- `data/action_scripts/`
-
-⚠️ **Important:** Before executing any script, **review and configure the global variables** defined at the top of the file.  
-These variables determine critical settings such as dataset name, model architecture, data paths, and filtering parameters.  
-**Do not execute scripts without verifying these settings** — they must align with your experimental goals.
-
-To enable SLURM-based distributed processing, set the `PARALLEL` variable to `True`. This will launch one job per video via the cluster scheduler. For local testing and debugging, set `PARALLEL` to `False`. A common workflow is to test locally first, then scale up via SLURM for full-batch processing.
-
----
-
-## 📌 Steps
-
-### 1. Download the Data
-
-Please find the datasets from these links:
-
-CoralCam:
-```
-https://dataverse.harvard.edu/previewurl.xhtml?token=b35e20a9-8204-4538-92bc-46f0fe310d61
-```
-
-Fishfollow:
-```
-https://dataverse.harvard.edu/previewurl.xhtml?token=ec755cda-1309-4de6-be2a-0ab2555b5e5f
-```
-RiverCam:
-```
-https://dataverse.harvard.edu/previewurl.xhtml?token=e465cfc9-708a-4f5b-b771-72fa3d4bd94d
-```
-
-Once you download the datasets, organize the dataset directory as follows:
-
-```
-<root>/
-  <split>/            # train / val / test
-    <video_id>/   
-      <video_id>.mp4  # video 
-      <video_id>.tsv  # per-frame annotation
-```
-
----
-
-### 2. Set the Root Directory
-
-Edit `config/actual/dataset.yml` and set the `path` field for `"mike"` and `"abby"` to the root directory you created above.
-
----
-
-### 3. Configure Sliding Styles
-- In the same YAML file, set the desired `sliding_style` for each dataset.
-- Definitions for each style are found in `config/sliding_styles.yml`.
-
-> ✅ The default configurations reproduce the settings used in the paper.
-
----
-
-### 4. Generate (Clip, Label) Pairs
-Run:
+Use the following script to download raw data from Dataverse.
 
 ```bash
-python scripts/preprocess_sliding_window.py
+python data/action/download/download.py
 ```
-
-This applies the sliding window to the videos and outputs:
-- `(clip, label)` pairs, or
-- just labels (if you prefer to extract features later without storing raw clips).
 
 ---
 
-### 5. Extract Model Features
-Run:
+## 📁 Step 2: Organize Dataset Structure
+
+Run dataset-specific organization scripts to match the required directory layout.
+
+```bash
+python data/organization/scripts/coralcam.py
+python data/organization/scripts/fishfollow.py
+```
+
+---
+
+## ✅ Step 3: Match Frame Counts with Annotations
+
+Ensure that frame counts and TSV annotation lines are aligned.
+
+```bash
+python data/validation/match_labels.py
+```
+
+---
+
+## 🧠 Step 4: Extract Features with Pretrained Models
+
+Extract features using models like DINOv2, VideoMAE, etc.
 
 ```bash
 python scripts/extract_features.py
 ```
 
-This extracts model features for each clip.  
-- Input: Clips from the previous step or loaded via `DatasetBuilder`.
-- Output:
-  - Features stored in `<model>_features/`
-  - File naming:
-    - Features: `<video_id>_<frame_id>.npy`
-    - Labels: `<video_id>.txt`
+---
+
+## 🧱 Step 5: Apply Sliding Window and Generate Labels
+
+Use sliding window settings to generate `(clip, label)` pairs.
+Note that the default setting is to only store labels, since labels can be directly paired with features extracted in the previous step. 
+
+```bash
+python scripts/slide_window.py
+```
 
 ---
 
-### 6. Train Classification Heads
-Run:
+## 🔍 Step 6: Validate Feature and Label Integrity
+
+Checks for mismatches and logs stats; important when using SLURM, to check that all processes correctly finished.
+
+```bash
+python data/validation/validate.py
+```
+
+---
+
+## 🏋️ Step 7: Train Classification Models
+
+Train a MLP / Linear classifier on top of extracted features.
 
 ```bash
 python scripts/train.py
 ```
 
-This script trains classification heads on precomputed features.
-
-> 🔒 Ensure that the same model used for feature extraction is set in the global config.  
-> 🧭 Sign in to your Weights & Biases (wandb) account to monitor training and manage artifacts.
-
 ---
 
-### 7. Evaluate on the Test Set
-Run:
+## 🧪 Step 8: Evaluate on Test Set
+
+Run inference on the test set using wandb artifacts from training.
 
 ```bash
 python scripts/evaluate.py
 ```
 
-This script evaluates each training configuration on its corresponding test set.  
-- Training–test mapping is defined in `config/actual/dataset.yml`.
-- Evaluation runs are logged to dedicated `wandb` projects and reference their original training runs.
-
 ---
 
-### 8. Export Results as Tables
-Run:
+## 📊 Step 9: Export Evaluation Results
+
+Aggregate results into structured tables for analysis and reporting.
 
 ```bash
 python scripts/export.py
 ```
 
-This retrieves evaluated runs based on filters defined in the script and produces CSV summaries including:
-- Aggregated metrics
-- Subgroup scores
-- Per-class metrics
-
 ---
 
-### 9. Clean Final Results for the Paper
-Run:
+## 🧼 Step 10: Clean Tables for Paper Use
+
+Produce paper-ready tables and clean summaries.
 
 ```bash
 python scripts/clean.py
 ```
 
-This script filters and formats relevant columns into paper-ready result tables.
-
 ---
+
+## 📌 Notes
+
+- Dataset splits are located in:  
+  `data/organization/splits/<dataset>.json`
+
+- All global settings (e.g., dataset name, model, paths, sliding style) should be configured in:  
+  `config/actual/dataset.yml`
+
+- Sliding window styles are defined in:  
+  `config/sliding_styles.yml`
+
+- To run jobs in parallel using SLURM, set `PARALLEL = True` inside applicable scripts.
+
 
 # Software Architecture Overview:  
 
