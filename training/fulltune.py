@@ -89,26 +89,25 @@ if __name__ == '__main__':
         entity="fish-benchmark",
         save_dir="./logs",
         log_model="best", 
-        tags=[DATASET, SLIDING_STYLE, MODEL, POOLING,CLASSIFIER, SAMPLER],
+        tags=[DATASET, SLIDING_STYLE, MODEL, POOLING,CLASSIFIER, SAMPLER, 'fulltune'],
         config=config_dict,
     )
     print("Loading train data...")
     train_dataset = DatasetBuilder(
-        path = os.path.join(dataset_config[DATASET]['path'], SLIDING_STYLE, 'train', TR_SUBSET), 
+        path = os.path.join(dataset_config[DATASET]['precomputed_path'], SLIDING_STYLE, 'train', TR_SUBSET), 
         dataset_name = DATASET,
         style=SLIDING_STYLE,
-        transform=get_input_transform(MODEL), 
-        precomputed=False, 
-        feature_model=None,
-        min_ctime=MIN_CTIME,
-    ).build()
+        transform=None, 
+        precomputed=True, 
+        feature_model=None, #use inputs, already transformed but not extracted by model 
+    ).build() #This needs sampling, so cannot use the default 
     print("Loading val data...")
     val_dataset = DatasetBuilder(
-        path = os.path.join(dataset_config[DATASET]['path'], SLIDING_STYLE, 'val', VAL_SUBSET), 
+        path = os.path.join(dataset_config[DATASET]['precomputed_path'], SLIDING_STYLE, 'val', VAL_SUBSET), 
         dataset_name = DATASET,
         style=SLIDING_STYLE,
-        transform=get_input_transform(MODEL), 
-        precomputed=False, 
+        transform=None, 
+        precomputed=True, 
         feature_model=None,
     ).build()
     
@@ -135,7 +134,7 @@ if __name__ == '__main__':
     hidden_size = ModelBuilder().set_backbone(MODEL).get_hidden_size()
     model = (ModelBuilder()
              .set_backbone(MODEL)
-             .set_pooling('mean')
+             .set_pooling(POOLING)
              .set_classifier(CLASSIFIER, input_dim=hidden_size, output_dim=len(train_dataset.categories))
              .set_aggregator(AGGREGATOR)
             .build())

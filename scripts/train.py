@@ -6,11 +6,11 @@ from fish_benchmark.utils import setup_logger
 
 #arguments of the file to run
 # python training/head.py --classifier mlp --dataset abby --sliding_style frames --model dino
-
 MODELS = [
     # 'dino', 
-    'dino_large',
-    'videomae'
+    # 'dino_large',
+    # 'videomae', 
+    'resnet50'
 ]
 CLASSIFIERS = [
     'mlp'
@@ -21,23 +21,24 @@ POOLINGS = [
 ]
 DATASETS = [
     'coralcam', 
-    'fishfollow'
+    # 'fishfollow'
 ]
 SLIDING_STYLES = [
     'frames', 
-    # 'frames_w_temp', 
-    'sliding_window', 
+    'frames_w_temp', 
+    # 'sliding_window', 
     # 'sliding_window_w_temp', 
     # 'sliding_window_w_stride', 
     # 'fix_patched_512',
 ]
 SAMPLERS = [
     'random', 
-    # 'balanced'
+    'balanced'
 ]
 OUTPUT_BASE = os.path.join('logs', 'train')
 os.makedirs(OUTPUT_BASE, exist_ok=True)
 PARALLEL = False
+FULLTUNE = False
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 
@@ -53,6 +54,10 @@ def get_wrap_cmd(model, classifier, pooling, dataset, sliding_style, sampler):
         f'python training/head.py '
         f'--classifier {classifier} --pooling {pooling} --dataset {dataset} --sliding_style {sliding_style} '
         f'--model {model} --sampler {sampler} ' 
+    ) if not FULLTUNE else (
+        f'python training/fulltune.py '
+        f'--classifier {classifier} --pooling {pooling} --dataset {dataset} --sliding_style {sliding_style} '
+        f'--model {model} --sampler {sampler} '
     )
 
 def main():
