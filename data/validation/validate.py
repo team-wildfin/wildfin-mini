@@ -6,7 +6,7 @@ config = yaml.safe_load(open("config/sliding_style.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 model_config =yaml.safe_load(open("config/models.yml", "r"))
 DATASETS = [
-    # 'coralcam', 
+    'coralcam', 
     'fishfollow'
 ]
 FEATURE_EXTRACTORS = ['dino', 'dino_large', 'videomae']  # or 'clip', etc.

@@ -13,9 +13,10 @@ from typing import Dict
 from submission import get_slurm_submission_command
 
 TARGET_MODELS = [
-    'videomae', 
-    'dino', 
-    'dino_large'
+    # 'videomae', 
+    # 'dino', 
+    # 'dino_large', 
+    'resnet50'
 ]
 TARGET_DATASETS = [
     "coralcam", 
@@ -34,7 +35,8 @@ SLIDING_STYLES = [
 ]
 
 PRECOMPUTED = False
-PARALLEL = True
+PARALLEL = False
+CHECK_REPORT = False
 
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
@@ -119,13 +121,16 @@ def main():
                     
                     DEST_PATH = os.path.join(dataset_config[DATASET]['precomputed_path'], SLIDING_STYLE, SPLIT)
                     
-                    report = find_report(DATASET, SPLIT, SLIDING_STYLE, MODEL)
-                    filt = get_incomplete_subsets(report) if report else {}
-                    logger.info(f"found {len(filt)} incomplete subsets for {DATASET} {SPLIT} {SLIDING_STYLE} {MODEL}: {filt}")
+                    if CHECK_REPORT: 
+                        report = find_report(DATASET, SPLIT, SLIDING_STYLE, MODEL)
+                        filt = get_incomplete_subsets(report) if report else {}
+                        logger.info(f"found {len(filt)} incomplete subsets for {DATASET} {SPLIT} {SLIDING_STYLE} {MODEL}: {filt}")
+                    else: 
+                        filt = None
 
                     for SUBSET in os.listdir(SOURCE_PATH):
-                        if SUBSET not in filt: 
-                            #logger.info(f"Skipping {SUBSET} for {DATASET} {SPLIT} {SLIDING_STYLE} {MODEL}")
+                        if filt and SUBSET not in filt: 
+                            logger.debug(f"Skipping {SUBSET} for {DATASET} {SPLIT} {SLIDING_STYLE} {MODEL}")
                             continue
                         SUBSET_PATH = os.path.join(SOURCE_PATH, SUBSET)
                         SUBSET_DEST_PATH = os.path.join(DEST_PATH, SUBSET)

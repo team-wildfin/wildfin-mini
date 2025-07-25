@@ -1,4 +1,4 @@
-from transformers import VideoMAEModel, CLIPVisionModel, AutoModel, Swinv2Model, TimesformerModel
+from transformers import VideoMAEModel, CLIPVisionModel, AutoModel, Swinv2Model, TimesformerModel, ResNetModel
 import torch.nn as nn
 import torch.nn.functional as F
 import lightning as L
@@ -8,8 +8,6 @@ from fish_benchmark.data.preprocessors import TorchVisionPreprocessor
 from transformers import AutoConfig
 import yaml
 from abc import ABC, abstractmethod
-
-
 
 class HasInputNDims(ABC):
     def get_input_ndim(self):
@@ -120,10 +118,27 @@ class Linear(BaseClassifier, nn.Module):
     def forward(self, x):
         return self.linear(x)
 
+
+class ResNet50(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = ResNetModel.from_pretrained("microsoft/resnet-50")
+        self.ioconfig = yaml.safe_load(open("config/models.yml", "r"))['resnet50']
+        self.input_ndim = self.ioconfig['input_ndim']
+        self.config = self.model.config
+        self.config.hidden_size = self.model.config.hidden_sizes[-1]  # = 2048
+
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        features = self.model(x).last_hidden_state  # shape: (B, C, H, W)
+        B, C, H, W = features.shape
+        return features.flatten(2).transpose(1, 2)  # → (B, H*W, C)
+    
 '''
 Backbone classes
 '''
-class BackBoneModel(nn.Module, HasInputNDims):
+
+class TransformerModel(nn.Module, HasInputNDims):
     def __init__(self, model_name):
         super().__init__()
         self.model = self.get_pretrained_model(model_name)
@@ -151,7 +166,12 @@ class BackBoneModel(nn.Module, HasInputNDims):
         out = self.model(x).last_hidden_state
         return out
 
- 
+def get_backbone(model_name):
+    if model_name == 'resnet50':
+        return ResNet50()
+    else:
+        return TransformerModel(model_name)
+    
 class PoolerFactory:
     def __init__(self, pooler_type, dim, hidden_size=None):
         self.pooler_type = pooler_type
@@ -227,6 +247,11 @@ def get_input_transform(model_name, do_resize = None):
     elif model_name == 'videomae':
         processor = TorchVisionPreprocessor()
         return processor
+    
+    elif model_name == 'resnet50': 
+        processor = TorchVisionPreprocessor()
+        return processor
+    
     else:
         raise ValueError(f"Unknown model name: {model_name}")
 
@@ -276,7 +301,7 @@ class ModelBuilder():
     
     def set_backbone(self, backbone):
         self.backbone = backbone
-        self.hidden_size = BackBoneModel(backbone).config.hidden_size
+        self.hidden_size = get_backbone(backbone).config.hidden_size
         return self
     
     def set_pooling(self, pooling):
@@ -306,7 +331,7 @@ class ModelBuilder():
     def build(self):
         #dimension check
         if self.classifier and self.backbone: assert self.classifier_input_dim == self.hidden_size, f"Classifier input dimension {self.classifier_input_dim} does not match backbone hidden size {self.hidden_size}"
-        BACKBONE = BroadcastableModule(BackBoneModel(self.backbone)) if self.backbone else nn.Identity()
+        BACKBONE = BroadcastableModule(get_backbone(self.backbone)) if self.backbone else nn.Identity()
         POOLING = BroadcastableModule(PoolerFactory(self.pooling, dim=1, hidden_size=self.hidden_size).build()) if self.pooling else nn.Identity()
         CLASSIFIER = BroadcastableModule(ClassifierFactory(self.classifier, self.classifier_input_dim, self.classifier_output_dim).build()) if self.classifier else nn.Identity()
         AGGREGATOR = BroadcastableModule(PoolerFactory(self.aggregator, dim=1).build()) if self.aggregator else nn.Identity()

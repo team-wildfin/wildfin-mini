@@ -8,7 +8,7 @@ from fish_benchmark.utils import setup_logger
 # python training/head.py --classifier mlp --dataset abby --sliding_style frames --model dino
 
 MODELS = [
-    'dino', 
+    # 'dino', 
     'dino_large',
     'videomae'
 ]
@@ -20,20 +20,20 @@ POOLINGS = [
     # 'attention'
 ]
 DATASETS = [
-    # 'coralcam', 
+    'coralcam', 
     'fishfollow'
 ]
 SLIDING_STYLES = [
     'frames', 
-    'frames_w_temp', 
+    # 'frames_w_temp', 
     'sliding_window', 
-    'sliding_window_w_temp', 
-    'sliding_window_w_stride', 
+    # 'sliding_window_w_temp', 
+    # 'sliding_window_w_stride', 
     # 'fix_patched_512',
 ]
 SAMPLERS = [
-    # 'random', 
-    'balanced'
+    'random', 
+    # 'balanced'
 ]
 OUTPUT_BASE = os.path.join('logs', 'train')
 os.makedirs(OUTPUT_BASE, exist_ok=True)

@@ -40,6 +40,18 @@ dino_large:
     'test_fix_patched_512'
   ]
 
+resnet50: 
+  input_ndim: 3 #channel, height, width
+  output_ndim: 2 #feature_map_flattened, channels
+  sliding_styles: [
+    'frames', 
+    'frames_w_temp',
+    'fix_patched_224', 
+    'fix_patched_512',
+    'test_frames', 
+    'test_fix_patched_512'
+  ]
+
 swinv2: 
   input_ndim: 3 #channel, height, width
   output_ndim: 2 #ntoken, embed_dim
