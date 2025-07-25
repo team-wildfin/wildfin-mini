@@ -12,4 +12,5 @@
 /.DS_Store
 /.idea/
 /data/validation/reports/
+_build/
 /docs/build/

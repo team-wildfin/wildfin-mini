@@ -9,6 +9,7 @@ import numpy as np
 import shutil
 import csv
 import logging
+from fish_benchmark.data.preprocessors import TorchVisionPreprocessor
 
 
 def get_args():
@@ -51,6 +52,8 @@ if __name__ == '__main__':
         path = SOURCE, 
         dataset_name = DATASET,
         style= SLIDING_STYLE, 
+        precomputed = False, 
+        transform = TorchVisionPreprocessor(), 
         only_labels = False if SAVE_INPUT else True
     ).build()
     
