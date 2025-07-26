@@ -617,7 +617,6 @@ class DatasetBuilder():
         self.input_transform = None
         self.transform = transform
         self.precomputed = precomputed
-        assert (not precomputed) == (feature_model is None), "feature_model should be None if precomputed is False"
         if feature_model: assert transform is None, "cannot transform extracted features"
         self.feature_model = feature_model
         self.min_ctime = min_ctime

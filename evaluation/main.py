@@ -72,7 +72,7 @@ if __name__ == "__main__":
         project=f'{config['dataset']}_eval',    
         entity="fish-benchmark",
         save_dir="./logs",
-        tags=[v for k, v in config.items() if k in tags_keys],
+        tags=[v for k, v in config.items() if k in tags_keys] + ['fulltune' if config.get('fulltune') else None],
         config=config,
     )
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         style=config['test_sliding_style'],
         transform=None,
         precomputed=True,
-        feature_model=config['backbone']
+        feature_model=config['backbone'] if not config.get('fulltune') else None
     ).build()
     test_dataloader = DataLoader(
         test_dataset, 

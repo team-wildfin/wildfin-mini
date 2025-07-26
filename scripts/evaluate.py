@@ -10,21 +10,36 @@ from datetime import datetime, timezone
 
 # ==== CONFIG ====
 ENTITY = "fish-benchmark"
-PROJECT = "coralcam"
+PROJECT = "fishfollow"
 PARALLEL = False
 # cutoff = datetime(2024, 5, 12, 17, 44, tzinfo=timezone.utc)
 #srun -p gpu -n 8 --mem=48g --time=24:00:00 --pty /bin/bash
 filt = {
     "dataset": "*",
     "sliding_style": "*", #"sliding_window_w_temp, sliding_window_w_stride",
-    "backbone": "dino, dino_large, videomae",
+    "backbone": "resnet50", #dino, dino_large, videomae
     "pooling": "mean",
     "classifier": "mlp",
     "sampler": "balanced",
+    "fulltune": "True, None" #True, False, None
 }
+
 def match_config(config, filt):
-    return all(config.get(k) in [x.strip() for x in v.split(',')] 
-               or (v == '*' and k in config) for k, v in filt.items())
+    def parse(x):
+        x = x.strip().lower()
+        if x == "none":
+            return None
+        if x == "true":
+            return True
+        if x == "false":
+            return False
+        return x
+
+    return all(
+        config.get(k) in [parse(x) for x in v.split(',')]
+        or (v == '*' and k in config)
+        for k, v in filt.items()
+    )
 
 def get_wrap_cmd(entity, project, run_id):
     return (
@@ -36,7 +51,9 @@ def get_group_key(config):
     '''
     assumes config contains the keys in filt, otherwise it would've been filtered out
     '''
-    return tuple(config.get(k) for k in filt.keys())
+
+    return tuple(config.get(k, False) for k in filt.keys()) #Only possible None value now is for 'fulltune', which is a bool. 
+#TODO: make this more robust to changes in filt
 
 def main():
     api = wandb.Api()
