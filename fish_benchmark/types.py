@@ -1,3 +1,3 @@
 from typing import Literal
 
-Weight = Literal["uniform", "inverse", "method3"]
+Weight = Literal["uniform", "inverse", "focal_loss"]

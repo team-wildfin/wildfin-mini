@@ -160,6 +160,7 @@ if __name__ == '__main__':
     )
 
     lit_module = LitBinaryClassifierModule(model, 
+                                           root_path = dataset_config[DATASET]['path'],
                                            learning_rate = wandb_logger.experiment.config['learning_rate'], 
                                            optimizer = wandb_logger.experiment.config['optimizer'], 
                                            weight_method=WEIGHT_METHOD)

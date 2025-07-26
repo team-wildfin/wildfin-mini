@@ -14,7 +14,7 @@ import json
 import wandb
 from fish_benchmark.types import Weight
 from torch.optim.lr_scheduler import LambdaLR
-
+from data.statistics.pos_frequency import get_pos_freq
 from torchmetrics.functional.classification import (
     multilabel_precision,
     multilabel_recall,
@@ -26,6 +26,7 @@ class LitBinaryClassifierModule(L.LightningModule):
     trains a model multi-label classification task
     '''
     def __init__(self, model, 
+                 root_path,
                  learning_rate=1e-4, 
                  optimizer = 'adam', 
                  weight_decay = 0.001, 
@@ -36,7 +37,8 @@ class LitBinaryClassifierModule(L.LightningModule):
         self.prob_list = []
         self.target_list = []
         self.weight_method = weight_method
-
+        self.statistics_path = root_path + '/train'
+        self.pos_freq = torch.tensor(get_pos_freq(self.statistics_path))
     def log_additional_metrics(self, prefix, preds, y):
         """
         Logs micro/macro precision, recall, F1, and mAP for multi-label classification.
@@ -86,8 +88,23 @@ class LitBinaryClassifierModule(L.LightningModule):
         x, y = batch
         logits = self.model(x)
         probs = torch.sigmoid(logits)
-        assert False, f"TODO: Implement weight handling for {self.weight_method}"
-        loss = F.binary_cross_entropy(probs, y.float(), weight=None)
+        if self.weight_method == 'uniform':
+            loss = F.binary_cross_entropy(probs, y.float(), weight=None)
+        elif self.weight_method == 'inverse':
+            self.pos_freq = self.pos_freq / sum(self.pos_freq)  # convert to frequencies
+            self.inv_weights = 1.0 / (self.pos_freq + 1e-6)
+            loss = F.binary_cross_entropy(probs, y.float(), weight=self.inv_weights.to(probs.device))
+        elif self.weight_method == 'focal_loss':
+            gamma = 5.0
+            alpha = 0.1
+            probs = torch.sigmoid(logits)
+            pt = probs * y + (1 - probs) * (1 - y)
+            alpha_t = alpha * y + (1 - alpha) * (1 - y)
+            focal_loss = -alpha_t * (1 - pt) ** gamma * torch.log(pt + 1e-8)
+            loss = focal_loss.mean()
+        else:
+            raise ValueError(f"Invalid weight method: {self.weight_method}")
+            
         self.log(f'{prefix}_loss', loss)
         preds = (probs > 0.5).float()
         self.log_additional_metrics(prefix, preds, y)

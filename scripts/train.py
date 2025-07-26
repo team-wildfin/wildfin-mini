@@ -9,7 +9,7 @@ from fish_benchmark.types import Weight
 # python training/head.py --classifier mlp --dataset abby --sliding_style frames --model dino
 MODELS = [
     # 'dino', 
-    # 'dino_large',
+    'dino_large',
     # 'videomae', 
     'resnet50'
 ]
@@ -22,7 +22,7 @@ POOLINGS = [
 ]
 DATASETS = [
     'coralcam', 
-    'fishfollow'
+    # 'fishfollow'
 ]
 SLIDING_STYLES = [
     'frames', 
@@ -38,9 +38,9 @@ SAMPLERS = [
 ]
 
 WEIGHT_METHODS: Weight = [
-    'uniform', 
+    # 'uniform', 
     'inverse', 
-    # 'method3'
+    'focal_loss'
 ]
 OUTPUT_BASE = os.path.join('logs', 'train')
 os.makedirs(OUTPUT_BASE, exist_ok=True)

@@ -7,6 +7,7 @@ from fish_benchmark.models import get_input_transform, ModelBuilder
 from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
+from data.statistics.pos_frequency import get_class_weights
 from pytorch_lightning.loggers import WandbLogger
 import wandb
 import yaml
@@ -64,7 +65,6 @@ if __name__ == '__main__':
     AGGREGATOR = ('max' if sliding_style_config[SLIDING_STYLE]['data_ndim'] - consumed_ndim - 1 > 1 
                   else None)  # -1 because pooling consumes one dimension. If there are dimensions left, we need to aggregate them 
                             # In the end, we want it to have one dimension which is the number of classes
-    
     available_gpus = torch.cuda.device_count()
     print(f"Available GPUs: {available_gpus}")
     config_dict = {
@@ -159,8 +159,8 @@ if __name__ == '__main__':
         dirpath=f"./checkpoints/{wandb_logger.experiment.id}",
         filename="latest",
     )
-
     lit_module = LitBinaryClassifierModule(classifier, 
+                                           root_path = dataset_config[DATASET]['path'],
                                            learning_rate = wandb_logger.experiment.config['learning_rate'], 
                                            optimizer = wandb_logger.experiment.config['optimizer'], 
                                            weight_method=WEIGHT_METHOD)

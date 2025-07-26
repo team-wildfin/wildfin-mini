@@ -39,6 +39,15 @@ def walk_and_collect_arrays(root_dir):
 def count_column_positives(array):
     return np.sum(array > 0, axis=0).tolist()
 
+def get_pos_freq(root_dir):
+    arrays = walk_and_collect_arrays(root_dir)
+    if not arrays:
+        print("No .txt or .tsv files found.")
+        return
+    combined = np.vstack(arrays)
+    positive_counts = count_column_positives(combined)
+    return positive_counts
+
 def main(root_dir, output_json):
     arrays = walk_and_collect_arrays(root_dir)
     if not arrays:
@@ -52,12 +61,11 @@ def main(root_dir, output_json):
         json.dump(positive_counts, f, indent=2)
 
     print(f"Saved positive column counts to {output_json}")
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Count positive values per column in .txt/.tsv files.")
     parser.add_argument("--dataset", help="Root directory to search for text files", required=True)
     parser.add_argument("--output", default="positive_counts.json", help="Output JSON filename")
     args = parser.parse_args()
-    root = config[args.dataset]['path']['train'] #this is used for weighted loss during training, thus we only need the train split
+    root = config[args.dataset]['path'] + '/train' # this is used for weighted loss during training, thus we only need the train split
     main(root, args.output)
