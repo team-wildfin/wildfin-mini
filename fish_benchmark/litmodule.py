@@ -12,6 +12,7 @@ import torch.nn.functional as F
 import lightning as L
 import json
 import wandb
+from fish_benchmark.types import Weight
 from torch.optim.lr_scheduler import LambdaLR
 
 from torchmetrics.functional.classification import (
@@ -24,12 +25,17 @@ class LitBinaryClassifierModule(L.LightningModule):
     '''
     trains a model multi-label classification task
     '''
-    def __init__(self, model, learning_rate=1e-4, optimizer = 'adam', weight_decay = 0.001):
+    def __init__(self, model, 
+                 learning_rate=1e-4, 
+                 optimizer = 'adam', 
+                 weight_decay = 0.001, 
+                 weight_method: Weight = 'uniform'):
         super().__init__()
         self.save_hyperparameters()  # Automatically saves learning_rate to self.hparams
         self.model = model
         self.prob_list = []
         self.target_list = []
+        self.weight_method = weight_method
 
     def log_additional_metrics(self, prefix, preds, y):
         """
@@ -80,6 +86,7 @@ class LitBinaryClassifierModule(L.LightningModule):
         x, y = batch
         logits = self.model(x)
         probs = torch.sigmoid(logits)
+        assert False, f"TODO: Implement weight handling for {self.weight_method}"
         loss = F.binary_cross_entropy(probs, y.float(), weight=None)
         self.log(f'{prefix}_loss', loss)
         preds = (probs > 0.5).float()

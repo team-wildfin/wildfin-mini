@@ -21,6 +21,7 @@ def get_args():
     parser.add_argument("--classifier", required=True)
     parser.add_argument("--pooling", required=True)
     parser.add_argument("--dataset", required=True)
+    parser.add_argument("--weight_method", default='uniform')
     parser.add_argument("--sliding_style", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--sampler", required=True)
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     VAL_SUBSET = args.val_subset 
     MIN_CTIME = float(args.min_ctime)
     SAMPLER = args.sampler # 'balanced' or 'random'
+    WEIGHT_METHOD = args.weight_method
     MAX_SAMPLES_PER_CLASS = 1000
     MONITOR = 'val_mAP' # 'val_mAP' or 'val_loss'
     consumed_ndim = model_config[MODEL]['input_ndim'] - model_config[MODEL]['output_ndim']
@@ -82,6 +84,7 @@ if __name__ == '__main__':
         "sampler": SAMPLER,
         "monitor": MONITOR,
         "fulltune": True, 
+        "weight_method": WEIGHT_METHOD,
         "max_samples_per_class": MAX_SAMPLES_PER_CLASS,
     }
     wandb_logger = WandbLogger(
@@ -89,7 +92,7 @@ if __name__ == '__main__':
         entity="fish-benchmark",
         save_dir="./logs",
         log_model="best", 
-        tags=[DATASET, SLIDING_STYLE, MODEL, POOLING,CLASSIFIER, SAMPLER, 'fulltune'],
+        tags=[DATASET, SLIDING_STYLE, MODEL, POOLING,CLASSIFIER, SAMPLER, 'fulltune', WEIGHT_METHOD],
         config=config_dict,
     )
     print("Loading train data...")
@@ -158,7 +161,8 @@ if __name__ == '__main__':
 
     lit_module = LitBinaryClassifierModule(model, 
                                            learning_rate = wandb_logger.experiment.config['learning_rate'], 
-                                           optimizer = wandb_logger.experiment.config['optimizer'])
+                                           optimizer = wandb_logger.experiment.config['optimizer'], 
+                                           weight_method=WEIGHT_METHOD)
     tqdm_disable = not sys.stdout.isatty()
     print(f"Are we in an interactive terminal? {not tqdm_disable}")
     trainer = L.Trainer(max_epochs=wandb_logger.experiment.config['epochs'], 

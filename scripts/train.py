@@ -3,6 +3,7 @@ import os
 import yaml
 from submission import get_slurm_submission_command
 from fish_benchmark.utils import setup_logger
+from fish_benchmark.types import Weight
 
 #arguments of the file to run
 # python training/head.py --classifier mlp --dataset abby --sliding_style frames --model dino
@@ -21,24 +22,30 @@ POOLINGS = [
 ]
 DATASETS = [
     'coralcam', 
-    # 'fishfollow'
+    'fishfollow'
 ]
 SLIDING_STYLES = [
     'frames', 
-    'frames_w_temp', 
+    # 'frames_w_temp', 
     # 'sliding_window', 
     # 'sliding_window_w_temp', 
     # 'sliding_window_w_stride', 
     # 'fix_patched_512',
 ]
 SAMPLERS = [
-    'random', 
+    # 'random', 
     'balanced'
+]
+
+WEIGHT_METHODS: Weight = [
+    'uniform', 
+    'inverse', 
+    # 'method3'
 ]
 OUTPUT_BASE = os.path.join('logs', 'train')
 os.makedirs(OUTPUT_BASE, exist_ok=True)
 PARALLEL = False
-FULLTUNE = False
+FULLTUNE = True
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 
@@ -49,15 +56,15 @@ logger = setup_logger(
     file=True
 )
 
-def get_wrap_cmd(model, classifier, pooling, dataset, sliding_style, sampler):
+def get_wrap_cmd(model, classifier, pooling, dataset, sliding_style, sampler, weight_method):
     return (
         f'python training/head.py '
         f'--classifier {classifier} --pooling {pooling} --dataset {dataset} --sliding_style {sliding_style} '
-        f'--model {model} --sampler {sampler} ' 
+        f'--model {model} --sampler {sampler} --weight_method {weight_method} ' 
     ) if not FULLTUNE else (
         f'python training/fulltune.py '
         f'--classifier {classifier} --pooling {pooling} --dataset {dataset} --sliding_style {sliding_style} '
-        f'--model {model} --sampler {sampler} '
+        f'--model {model} --sampler {sampler} --weight_method {weight_method} '
     )
 
 def main():
@@ -67,19 +74,20 @@ def main():
                 for POOLING in POOLINGS: 
                     for CLASSIFIER in CLASSIFIERS:
                         for SAMPLER in SAMPLERS: 
-                            if not SLIDING_STYLE in dataset_config[DATASET]['splits']['train']['sliding_styles']: continue
-                            if not SLIDING_STYLE in model_config[MODEL]['sliding_styles']: continue
-                            wrap_cmd = get_wrap_cmd(MODEL, CLASSIFIER, POOLING, DATASET, SLIDING_STYLE, SAMPLER)
-                            OUTPUT_DIR = os.path.join(OUTPUT_BASE, DATASET, SLIDING_STYLE, MODEL, POOLING, CLASSIFIER, SAMPLER)
-                            submission_name = f"{MODEL}_{CLASSIFIER}_{POOLING}_{DATASET}_{SLIDING_STYLE}"
-                            command = get_slurm_submission_command(
-                                submission_name,
-                                OUTPUT_DIR,
-                                wrap_cmd,
-                                gpu_count=1
-                            ) if PARALLEL else wrap_cmd
-                            logger.info(f"Running command for {submission_name} with command: {command}")
-                            subprocess.run(command, shell=True, check=True)
+                            for WEIGHT_METHOD in WEIGHT_METHODS:
+                                if not SLIDING_STYLE in dataset_config[DATASET]['splits']['train']['sliding_styles']: continue
+                                if not SLIDING_STYLE in model_config[MODEL]['sliding_styles']: continue
+                                wrap_cmd = get_wrap_cmd(MODEL, CLASSIFIER, POOLING, DATASET, SLIDING_STYLE, SAMPLER, WEIGHT_METHOD)
+                                OUTPUT_DIR = os.path.join(OUTPUT_BASE, DATASET, SLIDING_STYLE, MODEL, POOLING, CLASSIFIER, SAMPLER, WEIGHT_METHOD)
+                                submission_name = f"{MODEL}_{CLASSIFIER}_{POOLING}_{DATASET}_{SLIDING_STYLE}_{WEIGHT_METHOD}"
+                                command = get_slurm_submission_command(
+                                    submission_name,
+                                    OUTPUT_DIR,
+                                    wrap_cmd,
+                                    gpu_count=1
+                                ) if PARALLEL else wrap_cmd
+                                logger.info(f"Running command for {submission_name} with command: {command}")
+                                subprocess.run(command, shell=True, check=True)
         
 if __name__ == "__main__":
     main()
