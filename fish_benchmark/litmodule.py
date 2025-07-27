@@ -26,7 +26,6 @@ class LitBinaryClassifierModule(L.LightningModule):
     trains a model multi-label classification task
     '''
     def __init__(self, model, 
-                 root_path,
                  learning_rate=1e-4, 
                  optimizer = 'adam', 
                  weight_decay = 0.001, 
@@ -37,8 +36,13 @@ class LitBinaryClassifierModule(L.LightningModule):
         self.prob_list = []
         self.target_list = []
         self.weight_method = weight_method
+        self.root_path = None
+
+    def set_root_path(self, root_path): 
+        self.root_path = root_path
         self.statistics_path = root_path + '/train'
         self.pos_freq = torch.tensor(get_pos_freq(self.statistics_path))
+        
     def log_additional_metrics(self, prefix, preds, y):
         """
         Logs micro/macro precision, recall, F1, and mAP for multi-label classification.
@@ -85,6 +89,7 @@ class LitBinaryClassifierModule(L.LightningModule):
         self.log(f"{prefix}_acc", acc)
 
     def shared_step(self, batch, prefix):
+        assert self.root_path is not None, "Root path must be set before training"
         x, y = batch
         logits = self.model(x)
         probs = torch.sigmoid(logits)

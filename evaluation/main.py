@@ -72,7 +72,7 @@ if __name__ == "__main__":
         project=f'{config['dataset']}_eval',    
         entity="fish-benchmark",
         save_dir="./logs",
-        tags=[v for k, v in config.items() if k in tags_keys] + ['fulltune' if config.get('fulltune') else None],
+        tags = [v for k, v in config.items() if k in tags_keys] + (["fulltune"] if config.get("fulltune") else []), 
         config=config,
     )
 

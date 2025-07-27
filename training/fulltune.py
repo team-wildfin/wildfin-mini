@@ -160,10 +160,10 @@ if __name__ == '__main__':
     )
 
     lit_module = LitBinaryClassifierModule(model, 
-                                           root_path = dataset_config[DATASET]['path'],
                                            learning_rate = wandb_logger.experiment.config['learning_rate'], 
                                            optimizer = wandb_logger.experiment.config['optimizer'], 
                                            weight_method=WEIGHT_METHOD)
+    lit_module.set_root_path(dataset_config[DATASET]['path'])
     tqdm_disable = not sys.stdout.isatty()
     print(f"Are we in an interactive terminal? {not tqdm_disable}")
     trainer = L.Trainer(max_epochs=wandb_logger.experiment.config['epochs'], 

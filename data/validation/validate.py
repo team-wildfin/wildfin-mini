@@ -9,7 +9,12 @@ DATASETS = [
     'coralcam', 
     'fishfollow'
 ]
-FEATURE_EXTRACTORS = ['dino', 'dino_large', 'videomae']  # or 'clip', etc.
+FEATURE_EXTRACTORS = [
+    # 'dino', 
+    # 'dino_large', 
+    # 'videomae', 
+    'resnet50'
+]  # or 'clip', etc.
 SAVE_DIR = 'data/validation/reports'
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR, exist_ok=True)
@@ -62,7 +67,8 @@ def run(dataset, split, sliding_style, feature_extractor):
         logger.info(f"Validating {dataset} {sliding_style} {feature_extractor} for split {split}, subset {subset}")
         subset_path = os.path.join(split_path, subset) 
         video_path = os.path.join(subset_path, f'{subset}.mp4')
-        output_path = os.path.join(dset['precomputed_path'], sliding_style, split, subset, f'{feature_extractor}_features')
+        feature_type_name = feature_extractor if feature_extractor == 'inputs' else f'{feature_extractor}_features'
+        output_path = os.path.join(dset['precomputed_path'], sliding_style, split, subset, feature_type_name)
         label_path = os.path.join(dset['precomputed_path'], sliding_style, split, subset, 'labels', f'{subset}.tsv')
         expected_items = calculate_expected_files(video_path, sliding_style)
         feature_good, _, actual_files = validate_features(expected_items, output_path)
@@ -79,8 +85,8 @@ if __name__ == '__main__':
     for DATASET in DATASETS: 
         for SPLIT in dataset_config[DATASET]['splits'].keys():   
             for SLIDING_STYLE in dataset_config[DATASET]['splits'][SPLIT]['sliding_styles']: 
-                for FEATURE_EXTRACTOR in FEATURE_EXTRACTORS:
-                    if model_config[FEATURE_EXTRACTOR]['sliding_styles'] and SLIDING_STYLE not in model_config[FEATURE_EXTRACTOR]['sliding_styles']: continue
+                for FEATURE_EXTRACTOR in FEATURE_EXTRACTORS + ['inputs']:
+                    if FEATURE_EXTRACTOR != "inputs" and model_config[FEATURE_EXTRACTOR]['sliding_styles'] and SLIDING_STYLE not in model_config[FEATURE_EXTRACTOR]['sliding_styles']: continue
                     report = run(DATASET, SPLIT, SLIDING_STYLE, FEATURE_EXTRACTOR)
                     report_path = os.path.join(SAVE_DIR, DATASET, SPLIT, SLIDING_STYLE, f'{FEATURE_EXTRACTOR}_report.yml')
                     os.makedirs(os.path.dirname(report_path), exist_ok=True)

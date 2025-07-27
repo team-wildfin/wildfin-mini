@@ -11,12 +11,12 @@ TARGETS = [
 ]
 SLIDING_STYLES = [
     # "frames", 
-    "frames_w_temp", 
+    # "frames_w_temp", 
     # "sliding_window", 
     # "sliding_window_w_temp", 
     # "sliding_window_w_stride", 
     # "fix_patched_512", 
-    # "test_frames", 
+    "test_frames", 
     # "test_sliding_window", 
     # "test_fix_patched_512",
 ]

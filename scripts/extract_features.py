@@ -19,24 +19,24 @@ TARGET_MODELS = [
     'resnet50'
 ]
 TARGET_DATASETS = [
-    "coralcam", 
+    # "coralcam", 
     "fishfollow"
 ]
 SLIDING_STYLES = [
     "frames", 
-    "frames_w_temp", 
-    "sliding_window", 
-    "sliding_window_w_temp", 
-    "sliding_window_w_stride", 
+    # "frames_w_temp", 
+    # "sliding_window", 
+    # "sliding_window_w_temp", 
+    # "sliding_window_w_stride", 
     # "fix_patched_512", 
     "test_frames", 
-    "test_sliding_window", 
+    # "test_sliding_window", 
     # "test_fix_patched_512",
 ]
 
 PRECOMPUTED = False
 PARALLEL = False
-CHECK_REPORT = False
+CHECK_REPORT = True
 
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
