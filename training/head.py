@@ -7,7 +7,6 @@ from fish_benchmark.models import get_input_transform, ModelBuilder
 from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
-from data.statistics.pos_frequency import get_class_weights
 from pytorch_lightning.loggers import WandbLogger
 import wandb
 import yaml
@@ -23,11 +22,11 @@ def get_args():
     parser.add_argument("--classifier", required=True)
     parser.add_argument("--pooling", required=True)
     parser.add_argument("--dataset", required=True)
-    parser.add_argument("--weight_method", default='uniform')
+    parser.add_argument("--weight_config", default={'weight_method': 'uniform'}, type=json.loads)
     parser.add_argument("--sliding_style", required=True)
     parser.add_argument("--model", required=True)
     parser.add_argument("--sampler", required=True)
-    parser.add_argument("--epochs", default=40)
+    parser.add_argument("--epochs", default=100)
     parser.add_argument("--lr", default=.00005)
     parser.add_argument("--batch_size", default=32)
     parser.add_argument("--shuffle", default=False)
@@ -43,7 +42,7 @@ if __name__ == '__main__':
     sliding_style_config = yaml.safe_load(open('config/sliding_style.yml', 'r'))
     model_config = yaml.safe_load(open('config/models.yml', 'r'))
 
-    args = get_args()
+    args = get_args()       
     CLASSIFIER = args.classifier
     POOLING = args.pooling
     DATASET = args.dataset
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     VAL_SUBSET = args.val_subset 
     MIN_CTIME = float(args.min_ctime)
     SAMPLER = args.sampler # 'balanced' or 'random'
-    WEIGHT_METHOD = args.weight_method
+    WEIGHT_CONFIG = args.weight_config
     MAX_SAMPLES_PER_CLASS = 1000
     MONITOR = 'val_mAP' # 'val_mAP' or 'val_loss'
     consumed_ndim = model_config[MODEL]['input_ndim'] - model_config[MODEL]['output_ndim']
@@ -85,15 +84,18 @@ if __name__ == '__main__':
         "sampler": SAMPLER,
         "monitor": MONITOR,
         "fulltune": False, 
-        "weight_method": WEIGHT_METHOD,
+        "weight_config": WEIGHT_CONFIG,
         "max_samples_per_class": MAX_SAMPLES_PER_CLASS,
     }
+    tags = [DATASET, SLIDING_STYLE, MODEL, POOLING,CLASSIFIER, SAMPLER, WEIGHT_CONFIG['weight_method']]
+    if WEIGHT_CONFIG['weight_method'] == 'focal_loss':
+        tags.append(f"gamma_{WEIGHT_CONFIG['focal_loss_gamma']}_alpha_{WEIGHT_CONFIG['focal_loss_alpha']}")
     wandb_logger = WandbLogger(
         project=DATASET,    
         entity="fish-benchmark",
         save_dir="./logs",
         log_model="best", 
-        tags=[DATASET, SLIDING_STYLE, MODEL, POOLING,CLASSIFIER, SAMPLER, WEIGHT_METHOD],
+        tags=tags,
         config=config_dict,
     )
     print("Loading train data...")
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     lit_module = LitBinaryClassifierModule(classifier, 
                                            learning_rate = wandb_logger.experiment.config['learning_rate'], 
                                            optimizer = wandb_logger.experiment.config['optimizer'], 
-                                           weight_method=WEIGHT_METHOD)
+                                           weight_config=WEIGHT_CONFIG)
     lit_module.set_root_path(dataset_config[DATASET]['path'])
     tqdm_disable = not sys.stdout.isatty()
     print(f"Are we in an interactive terminal? {not tqdm_disable}")
