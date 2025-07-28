@@ -1,129 +1,73 @@
-import subprocess
 import os
-import json
+import subprocess
 import yaml
-from submission import get_slurm_submission_command
+import os 
+from configs import VIDEO_MAE_WEIGHTED_EXPS, DINO_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS
+from typing import List, Optional, Callable
+from fish_benchmark.types import TrainConfig
 from fish_benchmark.utils import setup_logger
-from fish_benchmark.types import Weight
+from submission import get_slurm_submission_command
 
-#arguments of the file to run
-# python training/head.py --classifier mlp --dataset abby --sliding_style frames --model dino
-MODELS = [
-    # 'dino', 
-    # 'dino_large',
-    # 'videomae', 
-    'resnet50'
-]
-CLASSIFIERS = [
-    'mlp'
-]
-POOLINGS = [
-    'mean', 
-    # 'attention'
-]
-DATASETS = [
-    'coralcam', 
-    # 'fishfollow'
-]
-SLIDING_STYLES = [
-    'frames', 
-    # 'frames_w_temp', 
-    # 'sliding_window', 
-    # 'sliding_window_w_temp', 
-    # 'sliding_window_w_stride', 
-    # 'fix_patched_512',
-]
-SAMPLERS = [
-    'random', 
-    'balanced'
-]
-
-WEIGHT_CONFIGS = [
-    {
-        'weight_method': 'uniform',
-    }
-    # {
-    #     'weight_method': 'inverse',
-    # },
-    # {
-    #     'weight_method': 'focal_loss',
-    #     'focal_loss_gamma': 1.0,
-    #     'focal_loss_alpha': 0.5
-    # },
-    # {
-    #     'weight_method': 'focal_loss',
-    #     'focal_loss_gamma': 5.0,
-    #     'focal_loss_alpha': 0.75
-    # },
-    # {
-    #     'weight_method': 'focal_loss',
-    #     'focal_loss_gamma': 2.0,
-    #     'focal_loss_alpha': 0.9
-    # },
-    # {
-    #     'weight_method': 'focal_loss',
-    #     'focal_loss_gamma': 10.0,
-    #     'focal_loss_alpha': 0.05
-    # },
-    # {
-    #     'weight_method': 'focal_loss',
-    #     'focal_loss_gamma': 5.0,
-    #     'focal_loss_alpha': 0.1
-    # },
-]
-
-
-OUTPUT_BASE = os.path.join('logs', 'train')
-os.makedirs(OUTPUT_BASE, exist_ok=True)
 PARALLEL = False
-FULLTUNE = True
-model_config = yaml.safe_load(open("config/models.yml", "r"))
-dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
+OUTPUT_BASE = os.path.join("logs", "train")
+CONFIG_OUT = "generated_configs"
+os.makedirs(CONFIG_OUT, exist_ok=True)
+os.makedirs(OUTPUT_BASE, exist_ok=True)
+logger = setup_logger("train", os.path.join(OUTPUT_BASE, "train.log"), console=True, file=True)
 
-logger = setup_logger(
-    'train', 
-    os.path.join(OUTPUT_BASE, 'train.log'), 
-    console=(not PARALLEL), 
-    file=True
-)
+def save_config_to_file(config: TrainConfig, out_dir: str) -> str:
+    out_path = os.path.join(out_dir, f"{config.id}.yml")
+    with open(out_path, "w") as f:
+        yaml.dump(config.model_dump(), f, sort_keys=False)
+    return out_path
 
-def get_wrap_cmd(model, classifier, pooling, dataset, sliding_style, sampler, weight_config):
-    weight_config_str = f"'{json.dumps(weight_config)}'"
-    print(f"Weight config: {weight_config_str}")
-    return (
-        f'python training/head.py '
-        f'--classifier {classifier} --pooling {pooling} --dataset {dataset} --sliding_style {sliding_style} '
-        f'--model {model} --sampler {sampler} --weight_config {weight_config_str} ' 
-    ) if not FULLTUNE else (
-        f'python training/fulltune.py '
-        f'--classifier {classifier} --pooling {pooling} --dataset {dataset} --sliding_style {sliding_style} '
-        f'--model {model} --sampler {sampler} --weight_config {weight_config_str} '
-    )
+def run_training(config_path: str, config_id: str):
+    if PARALLEL:
+        output_dir = os.path.join(OUTPUT_BASE, config_id)
+        submission_name = config_id
+        wrap_cmd = f"python training/main.py --config {config_path}"
+        command = get_slurm_submission_command(
+            submission_name=submission_name,
+            output_dir=output_dir,
+            wrap_command=wrap_cmd,
+            gpu_count=1
+        )
+    else:
+        command = f"python training/main.py --config {config_path}"
+
+    logger.info(f"Running training with config: {config_id}\nCommand: {command}")
+    subprocess.run(command, shell=True, check=True)
+
+def dataset_filter(config: TrainConfig) -> bool:
+    """
+    Filter function to select configurations based on dataset.
+    """
+    return config.dataset in ['fishfollow']
+
+def run(configs: List[TrainConfig], filter: Optional[Callable[[TrainConfig], bool]] = None):
+    """
+    Run training for a list of configurations, optionally filtering them.
+    """
+    for config in configs:
+        if filter and not filter(config):
+            continue
+        config_path = save_config_to_file(config, CONFIG_OUT)
+        run_training(config_path, config.id)
+
 
 def main():
-    for DATASET in DATASETS:
-        for SLIDING_STYLE in SLIDING_STYLES:
-            for MODEL in MODELS:
-                for POOLING in POOLINGS: 
-                    for CLASSIFIER in CLASSIFIERS:
-                        for SAMPLER in SAMPLERS: 
-                            for WEIGHT_CONFIG in WEIGHT_CONFIGS:
-                                if not SLIDING_STYLE in dataset_config[DATASET]['splits']['train']['sliding_styles']: continue
-                                if not SLIDING_STYLE in model_config[MODEL]['sliding_styles']: continue
-                                wrap_cmd = get_wrap_cmd(MODEL, CLASSIFIER, POOLING, DATASET, SLIDING_STYLE, SAMPLER, WEIGHT_CONFIG)
-                                weight_method = WEIGHT_CONFIG['weight_method']
-                                if weight_method == 'focal_loss':
-                                    weight_method += f"_gamma_{WEIGHT_CONFIG['focal_loss_gamma']}_alpha_{WEIGHT_CONFIG['focal_loss_alpha']}"
-                                OUTPUT_DIR = os.path.join(OUTPUT_BASE, DATASET, SLIDING_STYLE, MODEL, POOLING, CLASSIFIER, SAMPLER, weight_method)
-                                submission_name = f"{MODEL}_{CLASSIFIER}_{POOLING}_{DATASET}_{SLIDING_STYLE}_{weight_method}"
-                                command = get_slurm_submission_command(
-                                    submission_name,
-                                    OUTPUT_DIR,
-                                    wrap_cmd,
-                                    gpu_count=1
-                                ) if PARALLEL else wrap_cmd
-                                logger.info(f"Running command for {submission_name} with command: {command}")
-                                subprocess.run(command, shell=True, check=True)
-        
+    """
+    Main function to run training for predefined configurations.
+    """
+    logger.info("Starting training runs...")
+
+    run(VIDEO_MAE_WEIGHTED_EXPS, filter=dataset_filter)
+
+    run(DINO_WEIGHTED_EXPS, filter=dataset_filter)
+
+    run(RESNET50_WEIGHTED_EXPS, filter=dataset_filter)
+
+    logger.info("Training runs completed.")
+
 if __name__ == "__main__":
     main()

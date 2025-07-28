@@ -10,14 +10,14 @@ from datetime import datetime, timezone
 
 # ==== CONFIG ====
 ENTITY = "fish-benchmark"
-PROJECT = "fishfollow"
+PROJECT = "coralcam"
 PARALLEL = False
 # cutoff = datetime(2024, 5, 12, 17, 44, tzinfo=timezone.utc)
 #srun -p gpu -n 8 --mem=48g --time=24:00:00 --pty /bin/bash
 filt = {
     "dataset": "*",
     "sliding_style": "*", #"sliding_window_w_temp, sliding_window_w_stride",
-    "backbone": "resnet50", #dino, dino_large, videomae
+    "backbone": "videomae, dino_large, resnet50", #dino, dino_large, videomae
     "pooling": "mean",
     "classifier": "mlp",
     "sampler": "balanced",
