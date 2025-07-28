@@ -2,7 +2,7 @@ import os
 import subprocess
 import yaml
 import os 
-from configs import VIDEO_MAE_WEIGHTED_EXPS, DINO_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS
+from configs import *
 from typing import List, Optional, Callable
 from fish_benchmark.types import TrainConfig
 from fish_benchmark.utils import setup_logger
@@ -61,11 +61,17 @@ def main():
     """
     logger.info("Starting training runs...")
 
-    run(VIDEO_MAE_WEIGHTED_EXPS, filter=dataset_filter)
+    # run(VIDEOMAE_RANDOM_FOCAL, filter=dataset_filter)
+    # run(VIDEOMAE_RANDOM_INVERSE, filter=dataset_filter)
 
-    run(DINO_WEIGHTED_EXPS, filter=dataset_filter)
+    run(RESNET_RANDOM_UNIFORM)
+    run(RESNET_BALANCED_UNIFORM)
+    
+    # run(VIDEOMAE_WEIGHTED_EXPS, filter=dataset_filter)
 
-    run(RESNET50_WEIGHTED_EXPS, filter=dataset_filter)
+    # run(DINO_WEIGHTED_EXPS, filter=dataset_filter)
+
+    # run(RESNET50_WEIGHTED_EXPS, filter=dataset_filter)
 
     logger.info("Training runs completed.")
 

@@ -46,26 +46,6 @@ def main():
         else None
     )
 
-    # Match WandB logging to existing runs
-    config_dict = {
-        "dataset": config.dataset,
-        "sliding_style": config.sliding_style,
-        "backbone": config.backbone,
-        "pooling": config.pooling,
-        "classifier": config.classifier,
-        "aggregator": aggregator,
-        "epochs": config.epochs,
-        "learning_rate": config.learning_rate,
-        "batch_size": config.batch_size,
-        "optimizer": config.optimizer,
-        "shuffle": config.shuffle,
-        "sampler": config.sampler,
-        "monitor": config.monitor,
-        "fulltune": config.fulltune,
-        "weight_config": config.weight_config.model_dump(),
-        "max_samples_per_class": config.max_samples_per_class,
-    }
-
     tags = [
         config.dataset,
         config.sliding_style,
@@ -87,7 +67,7 @@ def main():
         save_dir="./logs",
         log_model="best",
         tags=tags,
-        config=config_dict,
+        config=config.model_dump(),  # Use model_dump to get a dict representation
     )
 
     print("Loading train data...")

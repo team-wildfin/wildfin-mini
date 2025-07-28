@@ -1,15 +1,12 @@
 import argparse
-print("Importing wandb")
 import wandb
 from fish_benchmark.litmodule import LitBinaryClassifierModule
 from fish_benchmark.data.dataset import DatasetBuilder
 import os
 import yaml
-print("importing torch")
 import torch
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
-print("Importing lightning")
 import lightning as L
 import json
 import glob

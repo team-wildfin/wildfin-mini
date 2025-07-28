@@ -13,13 +13,51 @@ DEFAULT_FIELDS = {
     'monitor': 'val_mAP',
     'learning_rate': 0.00005,
     'batch_size': 32,
-    'weight_decay': 0.0001,
+    'weight_decay': 0.001,
     'shuffle': False,
     'monitor': 'val_mAP',
     'optimizer': 'adam',
     'label_type': 'onehot',
     'max_samples_per_class': 1000,
 }
+
+RESNET_BALANCED_UNIFORM = [
+    TrainConfig(
+        **dict(
+            id=f"resnet_uniform_{dataset}_{sliding_style}",
+            dataset=dataset,
+            sliding_style=sliding_style,
+            backbone="resnet50",
+            sampler="balanced",
+            weight_config=UniformConfig(),
+            epochs=40,
+            fulltune = fulltune, 
+            **DEFAULT_FIELDS,
+        )
+    )
+    for sliding_style in ["frames"]
+    for dataset in ["coralcam", "fishfollow"]
+    for fulltune in [True, False]
+]
+
+RESNET_RANDOM_UNIFORM = [
+    TrainConfig(
+        **dict(
+            id=f"resnet_random_uniform_{dataset}_{sliding_style}",
+            dataset=dataset,
+            sliding_style=sliding_style,
+            backbone="resnet50",
+            sampler="random",
+            weight_config=UniformConfig(),
+            epochs=100,
+            fulltune = fulltune, 
+            **DEFAULT_FIELDS,
+        )
+    )
+    for sliding_style in ["frames"]
+    for dataset in ["coralcam", "fishfollow"]
+    for fulltune in [True, False]
+]
 
 VIDEOMAE_BALANCED_FOCAL = [
     TrainConfig(
@@ -94,7 +132,7 @@ VIDEOMAE_RANDOM_INVERSE = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
-VIDEO_MAE_WEIGHTED_EXPS: List[TrainConfig] = (
+VIDEOMAE_WEIGHTED_EXPS: List[TrainConfig] = (
     VIDEOMAE_BALANCED_FOCAL
     + VIDEOMAE_BALANCED_FOCAL_2
     + VIDEOMAE_RANDOM_FOCAL
