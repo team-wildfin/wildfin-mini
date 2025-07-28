@@ -44,12 +44,19 @@ def dataset_filter(config: TrainConfig) -> bool:
     """
     return config.dataset in ['fishfollow']
 
-def run(configs: List[TrainConfig], filter: Optional[Callable[[TrainConfig], bool]] = None):
+def fulltune_filter(config: TrainConfig) -> bool:
     """
-    Run training for a list of configurations, optionally filtering them.
+    Filter function to select configurations based on full fine-tuning.
+    """
+    return config.fulltune
+
+
+def run(configs: List[TrainConfig], *filters: Callable[[TrainConfig], bool]):
+    """
+    Run training for a list of configurations, applying all provided filters.
     """
     for config in configs:
-        if filter and not filter(config):
+        if any(f is not None and not f(config) for f in filters):
             continue
         config_path = save_config_to_file(config, CONFIG_OUT)
         run_training(config_path, config.id)
@@ -64,14 +71,14 @@ def main():
     # run(VIDEOMAE_RANDOM_FOCAL, filter=dataset_filter)
     # run(VIDEOMAE_RANDOM_INVERSE, filter=dataset_filter)
 
-    run(RESNET_RANDOM_UNIFORM)
-    run(RESNET_BALANCED_UNIFORM)
-    
-    # run(VIDEOMAE_WEIGHTED_EXPS, filter=dataset_filter)
+    # run(RESNET_RANDOM_UNIFORM)
+    # run(RESNET_BALANCED_UNIFORM)
 
-    # run(DINO_WEIGHTED_EXPS, filter=dataset_filter)
+    run(VIDEOMAE_WEIGHTED_EXPS, dataset_filter, fulltune_filter)
 
-    # run(RESNET50_WEIGHTED_EXPS, filter=dataset_filter)
+    run(DINO_WEIGHTED_EXPS, dataset_filter, fulltune_filter)
+
+    run(RESNET50_WEIGHTED_EXPS, dataset_filter, fulltune_filter)
 
     logger.info("Training runs completed.")
 

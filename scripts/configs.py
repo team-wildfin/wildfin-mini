@@ -24,7 +24,7 @@ DEFAULT_FIELDS = {
 RESNET_BALANCED_UNIFORM = [
     TrainConfig(
         **dict(
-            id=f"resnet_uniform_{dataset}_{sliding_style}",
+            id=f"resnet_uniform_{dataset}_{sliding_style}_{fulltune}",
             dataset=dataset,
             sliding_style=sliding_style,
             backbone="resnet50",
@@ -43,7 +43,7 @@ RESNET_BALANCED_UNIFORM = [
 RESNET_RANDOM_UNIFORM = [
     TrainConfig(
         **dict(
-            id=f"resnet_random_uniform_{dataset}_{sliding_style}",
+            id=f"resnet_random_uniform_{dataset}_{sliding_style}_{fulltune}",
             dataset=dataset,
             sliding_style=sliding_style,
             backbone="resnet50",
@@ -201,7 +201,7 @@ DINO_WEIGHTED_EXPS: List[TrainConfig] = (
 RESNET_RANDOM_INVERSE = [
     TrainConfig(
         **dict(
-            id=f"resnet_random_inverse_{dataset}_{sliding_style}",
+            id=f"resnet_random_inverse_{dataset}_{sliding_style}_{fulltune}",
             **DEFAULT_FIELDS,
             dataset=dataset,
             sliding_style=sliding_style,
@@ -220,7 +220,7 @@ RESNET_RANDOM_INVERSE = [
 RESNET_RANDOM_FOCAL = [
     TrainConfig(
         **dict(
-            id=f"resnet_random_focal_{dataset}_{sliding_style}",
+            id=f"resnet_random_focal_{dataset}_{sliding_style}_{fulltune}",
             **DEFAULT_FIELDS,
             dataset=dataset,
             sliding_style=sliding_style,
@@ -239,7 +239,7 @@ RESNET_RANDOM_FOCAL = [
 RESNET_BALANCED_FOCAL = [
     TrainConfig(
         **dict(
-            id=f"resnet_balanced_focal_{dataset}_{sliding_style}",
+            id=f"resnet_balanced_focal_{dataset}_{sliding_style}_{fulltune}",
             **DEFAULT_FIELDS,
             dataset=dataset,
             sliding_style=sliding_style,
