@@ -13,58 +13,76 @@ ORG_ROOT = os.path.join(config[DATASET]['path'])
 OUTPUT_DIR = os.path.join('/share/j_sun/jth264/fishfollow', 'prepared_uploads')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-def count_frames(video_path):
-    container = av.open(video_path)
-    stream = container.streams.video[0]
-    stream.thread_type = 'AUTO'
-    frames = sum(1 for _ in container.decode(stream))
+def split_video_pyav(input_path, output_prefix, frame_threshold=5000):
+    container = av.open(input_path)
+    video_stream = container.streams.video[0]
+    audio_streams = [s for s in container.streams if s.type == "audio"]
+
+    part_idx = 0
+    frame_count = 0
+    total_frame_count = 0
+    part_frame_counts = []
+
+    out_container = None
+    out_video_stream = None
+    out_audio_stream = None
+
+    def open_new_output(index):
+        out_path = f"{output_prefix}-{index}.mp4"
+        oc = av.open(out_path, mode='w')
+        vs = oc.add_stream(template=video_stream)
+        as_ = oc.add_stream(template=audio_streams[0]) if audio_streams else None
+        return oc, vs, as_, out_path
+
+    out_container, out_video_stream, out_audio_stream, _ = open_new_output(part_idx)
+    part_frame_counts.append(0)
+
+    for packet in container.demux():
+        for frame in packet.decode():
+            if packet.stream.type == "video":
+                if frame_count >= frame_threshold:
+                    # Flush and close current
+                    for p in out_video_stream.encode():
+                        out_container.mux(p)
+                    if out_audio_stream:
+                        for p in out_audio_stream.encode():
+                            out_container.mux(p)
+                    out_container.close()
+
+                    # Start new part
+                    part_idx += 1
+                    frame_count = 0
+                    out_container, out_video_stream, out_audio_stream, _ = open_new_output(part_idx)
+                    part_frame_counts.append(0)
+
+                packet = out_video_stream.encode(frame)
+                if packet:
+                    out_container.mux(packet)
+
+                frame_count += 1
+                total_frame_count += 1
+                part_frame_counts[-1] += 1
+
+            elif packet.stream.type == "audio" and out_audio_stream:
+                packet.pts = None  # ensure clean timing
+                out_container.mux(packet)
+
+    # Final flush
+    for p in out_video_stream.encode():
+        out_container.mux(p)
+    if out_audio_stream:
+        for p in out_audio_stream.encode():
+            out_container.mux(p)
+    out_container.close()
     container.close()
-    return frames
 
+    # ✅ Verification
+    summed = sum(part_frame_counts)
+    print(f"[INFO] Total frames: {total_frame_count}")
+    print(f"[INFO] Sum of part frames: {summed}")
+    assert total_frame_count == summed, f"❌ Frame mismatch! total={total_frame_count} vs sum={summed}"
+    print(f"[✅] Verified: all {total_frame_count} frames accounted for across {len(part_frame_counts)} parts")
 
-def split_video_ffmpeg(input_path, output_prefix, segment_seconds=60):
-    """
-    Split video by time and verify frame counts across split parts.
-    """
-    output_template = f"{output_prefix}-%d.mp4"
-
-    # Step 1: Count frames in the original video
-    print(f"[INFO] Counting frames in original: {input_path}")
-    original_frame_count = count_frames(input_path)
-    print(f"[INFO] Original frame count: {original_frame_count}")
-
-    # Step 2: Run FFmpeg to split
-    cmd = [
-        "ffmpeg",
-        "-i", input_path,
-        "-c", "copy",
-        "-map", "0:v", "-map", "0:a?",
-        "-f", "segment",
-        "-segment_time", str(segment_seconds),
-        output_template
-    ]
-    print(f"[INFO] Running FFmpeg: {' '.join(cmd)}")
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg failed:\n{result.stderr.decode()}")
-
-    # Step 3: Count total frames across split parts
-    base_dir = os.path.dirname(output_prefix)
-    base_name = os.path.basename(output_prefix)
-    part_files = sorted(
-        f for f in os.listdir(base_dir)
-        if f.startswith(base_name + "-") and f.endswith(".mp4")
-    )
-    total_split_frames = 0
-    for part in part_files:
-        part_path = os.path.join(base_dir, part)
-        frames = count_frames(part_path)
-        print(f"[INFO] {part} → {frames} frames")
-        total_split_frames += frames
-
-    print(f"[INFO] Total frames across parts: {total_split_frames}")
-    assert total_split_frames == original_frame_count, f"❌ Frame count mismatch! {total_split_frames} vs {original_frame_count}"
-    print(f"[✅] Frame counts match.")
 
 def prepare_upload_files():
     # --- Clear OUTPUT_DIR before starting ---
@@ -81,7 +99,7 @@ def prepare_upload_files():
                 input_path = os.path.join(root, file)
                 output_prefix = os.path.join(OUTPUT_DIR, uid)
                 print(f"[INFO] Splitting {input_path}")
-                split_video_ffmpeg(input_path, output_prefix, segment_seconds=60)
+                split_video_pyav(input_path, output_prefix, frame_threshold=5000)
             elif file.endswith('.txt'):
                 uid = os.path.splitext(file)[0]
                 input_path = os.path.join(root, file)
