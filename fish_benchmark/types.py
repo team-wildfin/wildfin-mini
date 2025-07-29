@@ -38,7 +38,7 @@ class UniformConfig(BaseModel):
 
 WeightConfig = UniformConfig | InverseConfig | FocalLossConfig
 
-class TrainConfig(BaseModel): 
+class Experiment(BaseModel): 
     #id of the train config
     id: str
 

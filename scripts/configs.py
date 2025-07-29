@@ -1,5 +1,5 @@
 from fish_benchmark.types import (
-    TrainConfig,
+    Experiment,
     WeightConfig,
     InverseConfig,
     UniformConfig,
@@ -22,7 +22,7 @@ DEFAULT_FIELDS = {
 }
 
 RESNET_BALANCED_UNIFORM = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"resnet_uniform_{dataset}_{sliding_style}_{fulltune}",
             dataset=dataset,
@@ -41,7 +41,7 @@ RESNET_BALANCED_UNIFORM = [
 ]
 
 RESNET_RANDOM_UNIFORM = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"resnet_random_uniform_{dataset}_{sliding_style}_{fulltune}",
             dataset=dataset,
@@ -60,7 +60,7 @@ RESNET_RANDOM_UNIFORM = [
 ]
 
 VIDEOMAE_BALANCED_FOCAL = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"videomae_balanced_focal_{dataset}_{sliding_style}",
             dataset=dataset,
@@ -73,12 +73,12 @@ VIDEOMAE_BALANCED_FOCAL = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["sliding_window_w_stride"]
+    for sliding_style in ["sliding_window_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
 VIDEOMAE_BALANCED_FOCAL_2 = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"videomae_balanced_focal_2_{dataset}_{sliding_style}",
             **DEFAULT_FIELDS,
@@ -97,7 +97,7 @@ VIDEOMAE_BALANCED_FOCAL_2 = [
 ]
 
 VIDEOMAE_RANDOM_FOCAL = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"videomae_random_focal_{dataset}_{sliding_style}",
             **DEFAULT_FIELDS,
@@ -115,7 +115,7 @@ VIDEOMAE_RANDOM_FOCAL = [
 ]
 
 VIDEOMAE_RANDOM_INVERSE = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"videomae_random_inverse_{dataset}_{sliding_style}",
             **DEFAULT_FIELDS,
@@ -132,7 +132,7 @@ VIDEOMAE_RANDOM_INVERSE = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
-VIDEOMAE_WEIGHTED_EXPS: List[TrainConfig] = (
+VIDEOMAE_WEIGHTED_EXPS: List[Experiment] = (
     VIDEOMAE_BALANCED_FOCAL
     + VIDEOMAE_BALANCED_FOCAL_2
     + VIDEOMAE_RANDOM_FOCAL
@@ -140,7 +140,7 @@ VIDEOMAE_WEIGHTED_EXPS: List[TrainConfig] = (
 )
 
 DINO_BALANCED_FOCAL = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"dino_balanced_focal_{dataset}_{sliding_style}",
             **DEFAULT_FIELDS,
@@ -158,7 +158,7 @@ DINO_BALANCED_FOCAL = [
 ]
 
 DINO_RANDOM_FOCAL = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"dino_random_focal_{dataset}_{sliding_style}",
             **DEFAULT_FIELDS,
@@ -176,7 +176,7 @@ DINO_RANDOM_FOCAL = [
 ]
 
 DINO_RANDOM_INVERSE = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"dino_random_inverse_{dataset}_{sliding_style}",
             **DEFAULT_FIELDS,
@@ -193,13 +193,12 @@ DINO_RANDOM_INVERSE = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
-DINO_WEIGHTED_EXPS: List[TrainConfig] = (
+DINO_WEIGHTED_EXPS: List[Experiment] = (
     DINO_BALANCED_FOCAL + DINO_RANDOM_FOCAL + DINO_RANDOM_INVERSE
 )
 
-
 RESNET_RANDOM_INVERSE = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"resnet_random_inverse_{dataset}_{sliding_style}_{fulltune}",
             **DEFAULT_FIELDS,
@@ -218,7 +217,7 @@ RESNET_RANDOM_INVERSE = [
 ]
 
 RESNET_RANDOM_FOCAL = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"resnet_random_focal_{dataset}_{sliding_style}_{fulltune}",
             **DEFAULT_FIELDS,
@@ -237,7 +236,7 @@ RESNET_RANDOM_FOCAL = [
 ]
 
 RESNET_BALANCED_FOCAL = [
-    TrainConfig(
+    Experiment(
         **dict(
             id=f"resnet_balanced_focal_{dataset}_{sliding_style}_{fulltune}",
             **DEFAULT_FIELDS,
@@ -255,6 +254,6 @@ RESNET_BALANCED_FOCAL = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
-RESNET50_WEIGHTED_EXPS: List[TrainConfig] = (
+RESNET50_WEIGHTED_EXPS: List[Experiment] = (
     RESNET_RANDOM_FOCAL + RESNET_BALANCED_FOCAL + RESNET_RANDOM_INVERSE
 )

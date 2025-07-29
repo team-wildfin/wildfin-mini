@@ -15,15 +15,15 @@ from fish_benchmark.models import get_input_transform, ModelBuilder
 from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
-from fish_benchmark.types import TrainConfig  # Your TrainConfig class
+from fish_benchmark.types import Experiment  # Your TrainConfig class
 
 from artifact import log_best_model, log_latest_model
 
 
-def load_config(path: Union[str, Path]) -> TrainConfig:
+def load_config(path: Union[str, Path]) -> Experiment:
     with open(path, "r") as f:
         raw = yaml.safe_load(f) if str(path).endswith((".yml", ".yaml")) else json.load(f)
-    return TrainConfig(**raw)
+    return Experiment(**raw)
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--min_ctime", type=float, default=1746331200.0)
     args = parser.parse_args()
 
-    config: TrainConfig = load_config(args.config)
+    config: Experiment = load_config(args.config)
     min_ctime = args.min_ctime
 
     dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))

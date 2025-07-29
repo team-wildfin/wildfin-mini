@@ -1,9 +1,10 @@
-#https://wandb.ai/fish-benchmark/abby_eval/runs/1w3vt7yx
+#https://wandb.ai/fish-benchmark/coralcam_eval/runs/1w3vt7yx
 
 '''
 run oriented evaluation
 '''
-import os 
+import os
+from unittest import runner 
 import yaml
 import wandb
 import csv
@@ -13,6 +14,9 @@ import numpy as np
 from functools import partial
 from typing import Callable, Dict, List, Union
 from dataclasses import dataclass
+from runner import WandbRunner
+from configs import VIDEOMAE_BALANCED_FOCAL
+import logging
 from torchmetrics.functional.classification import (
     multilabel_precision,
     multilabel_recall,
@@ -20,22 +24,24 @@ from torchmetrics.functional.classification import (
     multilabel_average_precision
 )
 from functools import reduce
-
+from fish_benchmark.utils import setup_logger
+logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
 ENTITY = "fish-benchmark"
-DATASET = 'mike'
+DATASET = 'coralcam'
 PROJECT = f"{DATASET}_eval"
 LABEL_TOLERANCES = [0, 1, 3, 5, 7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
+OUTPUT_PATH = 'results'
 
 subgroup_mappings = {
-    "abby": {
+    "coralcam": {
         'biting': [0, 1], 
         'aggression': [3, 4]
     }, 
-    "mike":{
+    "fishfollow":{
         'habitat': [16, 17, 19], 
         'biting': [1, 2, 6, 9], 
         'movement': [3, 4], 
@@ -44,25 +50,6 @@ subgroup_mappings = {
         'other': [0, 10, 12, 15, 18]
     }
 }
-# cutoff = datetime(2024, 5, 12, 17, 44, tzinfo=timezone.utc)
-
-filt = {
-    "dataset": "*",
-    "sliding_style": "*",
-    "backbone": "*",
-    "pooling": "mean",
-    "classifier": "mlp",
-    "sampler": "*",
-}
-def match_config(config, filt):
-    return all(config.get(k) == v or (v == '*' and k in config) for k, v in filt.items())
-
-def get_group_key(config):
-    '''
-    assumes config contains the keys in filt, otherwise it would've been filtered out
-    '''
-    return tuple(config.get(k) for k in filt.keys())
-
 @dataclass
 class Metric:
     name: str
@@ -102,11 +89,11 @@ class MetricCalculator:
         results = {}
         probs = self.probs if column_subset is None else self.probs[:, column_subset]
         targets = self.targets if column_subset is None else self.targets[:, column_subset]
-        #print(f"flooding with label tolerance {label_tolerance} on {targets.shape[0]} samples and {targets.shape[1]} classes")
+        #logger.info(f"flooding with label tolerance {label_tolerance} on {targets.shape[0]} samples and {targets.shape[1]} classes")
         transformed_targets = torch.from_numpy(self.flood_all_columns(targets.cpu().numpy(), label_tolerance)) 
         assert probs.shape == transformed_targets.shape, f"probs shape {probs.shape} and targets shape {transformed_targets.shape} should match"
         num_classes = probs.shape[1]
-        #print(f"calculating {len(metrics)} metrics")
+        #logger.info(f"calculating {len(metrics)} metrics")
         for metric in metrics: 
             if "num_labels" in metric.kwargs.keys(): metric.kwargs["num_labels"] = num_classes
             output = metric.fn(probs, transformed_targets, **metric.kwargs)
@@ -115,28 +102,26 @@ class MetricCalculator:
             results[result_name] = output.tolist() if output.ndim > 0 else output.item()            
         return results
     
-def get_results(runs):
+def get_results(entity: str, project: str, run_ids: List[str]) -> Dict[str, dict]:
     results = {}
     api = wandb.Api()
-    for run in runs: 
-        try: 
-            with open(f'logs/test_metrics/{run.id}.json', "r") as f:
+    for run_id in run_ids:
+        try:
+            with open(f'logs/test_metrics/{run_id}.json', "r") as f:
                 data = json.load(f)
-                print(f"Loaded locally {run.id}: config = {run.config}")
+                logger.info(f"Loaded locally {run_id}")
         except Exception as e:
-            print(f"Failed to find local file {run.id}: {e}")
-            print(f"Downloading artifact for {run.id}")
-            artifact_name = f"test_metrics_{run.id}.json"
-            artifact_path = f"{ENTITY}/{PROJECT}/{artifact_name}:v0"
+            logger.info(f"Failed to find local file {run_id}: {e}")
+            logger.info(f"Downloading artifact for {run_id}")
+            artifact_name = f"test_metrics_{run_id}.json"
+            artifact_path = f"{entity}/{project}/{artifact_name}:v0"
             artifact = api.artifact(artifact_path)
             file_path = artifact.download(root=DOWNLOAD_DIR)
-            #download artifact named artifact_name would give us a file named aftifact_file_name
-            artifact_file_name = f"{run.id}.json"
-            local_path = os.path.join(file_path, artifact_file_name)
+            local_path = os.path.join(file_path, run_id + ".json")
             with open(local_path, "r") as f:
-                data = json.load(f)  # <== Loaded into dictionary here
-                print(f"Loaded JSON for {run.id}: config = {run.config}")
-        results[run.id] = data
+                data = json.load(f)
+                logger.info(f"Loaded JSON for {run_id}")
+        results[run_id] = data
     return results
 
 def compute_with_label_tolerance(results, label_tolerance, output_path):
@@ -185,25 +170,16 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
-    print(f"Wrote {len(rows)} rows to {output_path}")
+    logger.info(f"Wrote {len(rows)} rows to {output_path}")
 
 def main():
-    api = wandb.Api()
-    print(f"Fetching runs for {ENTITY}/{PROJECT}")
-    runs = api.runs(f'{ENTITY}/{PROJECT}', filters={"state": "finished"})
-    filtered_runs = filter(lambda run: match_config(run.config, filt), runs)
-    latest_runs_by_group = {}
-    for run in filtered_runs:
-        key = get_group_key(run.config)
-        if key not in latest_runs_by_group or run.created_at > latest_runs_by_group[key].created_at:
-            latest_runs_by_group[key] = run
-    #sort by jey alphabetical order
-    latest_runs_by_group = dict(sorted(latest_runs_by_group.items()))
-    print("fetching data")
-    results = get_results(latest_runs_by_group.values())
+    runner = WandbRunner(ENTITY, PROJECT, None)
+    matched_run_ids = runner.get_matched_run_ids(VIDEOMAE_BALANCED_FOCAL, non_duplicate=False)
+    results = get_results(ENTITY, PROJECT, matched_run_ids.values())
     for label_tolerance in LABEL_TOLERANCES:
-        output_path = os.path.join('results', f"{PROJECT}_tol={label_tolerance}_w_subgroup_metrics.csv")
+        output_path = os.path.join(OUTPUT_PATH, f"{DATASET}_results_label_tolerance_{label_tolerance}.csv")
+        logger.info(f"Computing results with label tolerance {label_tolerance} and writing to {output_path}")
         compute_with_label_tolerance(results, label_tolerance, output_path)
-    print("Done")
+
 if __name__ == "__main__":
     main()
