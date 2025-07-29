@@ -73,7 +73,7 @@ VIDEOMAE_BALANCED_FOCAL = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["sliding_window_w_temp"]
+    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 

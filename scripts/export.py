@@ -25,6 +25,7 @@ from torchmetrics.functional.classification import (
 )
 from functools import reduce
 from fish_benchmark.utils import setup_logger
+from utils import *
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
@@ -162,15 +163,12 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
                                                  for k in subgroup_mappings[DATASET].keys()]) 
         row = run.config | {"run_id": run.id} | aggregate_results | per_group_results
         rows.append(row)
-            
-    #write to csv
-    with open(output_path, "w", newline='') as csvfile:
-        fieldnames = rows[0].keys()
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
-    logger.info(f"Wrote {len(rows)} rows to {output_path}")
+
+    existing_rows = load_existing_csv(output_path)
+    all_rows = existing_rows + rows  
+    fieldnames = get_all_fieldnames(all_rows)
+    fill_missing_fields(all_rows, fieldnames)
+    write_csv(output_path, all_rows, fieldnames)
 
 def main():
     runner = WandbRunner(ENTITY, PROJECT, None)
