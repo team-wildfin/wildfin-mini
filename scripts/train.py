@@ -12,11 +12,11 @@ from submission import get_slurm_submission_command
 PARALLEL = False
 OUTPUT_BASE = os.path.join("logs", "train")
 ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "fishfollow"
+TRAINING_PROJECT = "coralcam"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,
-        VIDEOMAE_WEIGHTED_EXPS,
+        DINO_WEIGHTED_EXPS + VIDEOMAE_WEIGHTED_EXPS + RESNET50_WEIGHTED_EXPS
     )
 )
 CONFIG_OUT = "generated_configs"

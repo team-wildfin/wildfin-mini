@@ -18,7 +18,7 @@ from fish_benchmark.utils import setup_logger
 logger = setup_logger("evaluate", "logs/evaluate.log", console=True, file=True, level=logging.INFO)
 
 ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "fishfollow"
+TRAINING_PROJECT = "coralcam"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,

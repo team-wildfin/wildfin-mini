@@ -161,7 +161,7 @@ DINO_RANDOM_UNIFORM = [
 DINO_BALANCED_UNIFORM = [
     Experiment(
         **dict(
-            id=f"dino_uniform_{dataset}_{sliding_style}_{fulltune}",
+            id=f"dino_balanced_uniform_{dataset}_{sliding_style}_{fulltune}",
             **DEFAULT_FIELDS,
             dataset=dataset,
             sliding_style=sliding_style,

@@ -13,6 +13,16 @@ class WandbRunMatcher:
         self.source_project = project
         self.api = wandb.Api()
 
+    def _has_any_artifact(self, run) -> bool:
+        """
+        Returns True if the run has at least one logged artifact.
+        """
+        try:
+            return len(run.logged_artifacts()) > 0
+        except Exception as e:
+            logger.debug(f"Error checking artifacts for run {run.id}: {e}")
+            return False
+
     def match(self, experiments: List[Experiment]) -> Dict[str, str]:
         """
         Get matched run IDs for the given experiments.
@@ -21,6 +31,8 @@ class WandbRunMatcher:
         matched_runs = {}
         source_runs = self.api.runs(f"{self.entity}/{self.source_project}", filters={"state": "finished"})
         for run in source_runs:
+            if not self._has_any_artifact(run):
+                continue
             for exp in experiments:
                 if self.match_config(run.config, exp):
                     if exp.id not in matched_runs or run.created_at > matched_runs[exp.id].created_at:
