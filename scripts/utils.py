@@ -35,3 +35,19 @@ def write_csv(path: str, rows: List[Dict[str, Any]], fieldnames: List[str]) -> N
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
+def deduplicate_rows_by_union(rows: List[Dict[str, Any]], key: str = "run_id") -> List[Dict[str, Any]]:
+    """
+    Deduplicate rows based on a unique key (e.g., 'run_id'), merging entries by taking the union of keys.
+    For duplicate keys, later rows override only if earlier value is empty or missing.
+    """
+    merged: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        run_key = row[key]
+        if run_key not in merged:
+            merged[run_key] = row.copy()
+        else:
+            for k, v in row.items():
+                if k not in merged[run_key] or not merged[run_key][k]:  # prefer existing non-empty
+                    merged[run_key][k] = v
+    return list(merged.values())

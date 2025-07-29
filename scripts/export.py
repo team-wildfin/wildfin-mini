@@ -166,9 +166,10 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
 
     existing_rows = load_existing_csv(output_path)
     all_rows = existing_rows + rows  
-    fieldnames = get_all_fieldnames(all_rows)
-    fill_missing_fields(all_rows, fieldnames)
-    write_csv(output_path, all_rows, fieldnames)
+    deduped_rows = deduplicate_rows_by_union(all_rows)
+    fieldnames = get_all_fieldnames(deduped_rows)
+    fill_missing_fields(deduped_rows, fieldnames)
+    write_csv(output_path, deduped_rows, fieldnames)
 
 def main():
     runner = WandbRunner(ENTITY, PROJECT, None)
