@@ -14,7 +14,7 @@ import numpy as np
 from functools import partial
 from typing import Callable, Dict, List, Union
 from dataclasses import dataclass
-from runner import WandbRunner
+from scripts.matcher import WandbRunMatcher
 from configs import VIDEOMAE_BALANCED_FOCAL
 import logging
 from torchmetrics.functional.classification import (
@@ -172,8 +172,8 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
     write_csv(output_path, deduped_rows, fieldnames)
 
 def main():
-    runner = WandbRunner(ENTITY, PROJECT, None)
-    matched_run_ids = runner.get_matched_run_ids(VIDEOMAE_BALANCED_FOCAL, non_duplicate=False)
+    runner = WandbRunMatcher(ENTITY, PROJECT, None)
+    matched_run_ids = runner.match(VIDEOMAE_BALANCED_FOCAL, exclude_dest_exist=False)
     results = get_results(ENTITY, PROJECT, matched_run_ids.values())
     for label_tolerance in LABEL_TOLERANCES:
         output_path = os.path.join(OUTPUT_PATH, f"{DATASET}_results_label_tolerance_{label_tolerance}.csv")
