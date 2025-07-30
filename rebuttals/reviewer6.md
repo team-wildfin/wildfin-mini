@@ -44,6 +44,10 @@ Thanks to the reviewer's suggestions, we will add these additional results to th
 - What makes this and other datasets complex? (Abby)
 - Tracking performance (Abby)
 
+### Want to include something like this: 
+Also based on per-class performance (add some numbers here), some behaviors are very sparse naturally, and focusing on more efficient adaptation techniques could help improve the performance on our benchmark in the future. We want to note that sparse behaviors is a natural cause of studying fish in the wild, and these behaviors are expert labelled by domain experts as part of their ecological data analysis, so reflects real-world conditions. (Even if general-purpose approaches don't work, it's important for us to work towards finding a solution), Our work highlights this gap.
+
+
 > How informative are sliding windows of 16 frames at 60FPS video, especially for T.I. = 1? My intuition would be that many behaviors need more context to classify complex behaviors. Is there a reason to not use larger windows / higher T.I.s?
 
 A sliding window of 16 frames at 60 fps is indeed informative and sufficient for this dataset. The majority of behaviors in this context occur extremely quickly (e.g biting and aggression takes XXms) which is why we use a small window and temporal interval. 
