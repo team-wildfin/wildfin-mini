@@ -3,16 +3,9 @@ import yaml
 import os
 
 
-DATASETS = ['fishfollow', 'coralcam'] 
-config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
-dataverse = yaml.safe_load(open('config/actual/dataverse.yml', 'r'))
-DATAVERSE_URL = dataverse['url']
-API_KEY = dataverse['api_key']
-HEADERS = {"X-Dataverse-key": API_KEY}
-
-def get_dataset_files(doi):
-    url = f"{DATAVERSE_URL}/api/datasets/:persistentId/?persistentId={doi}"
-    response = requests.get(url, headers=HEADERS)
+def get_dataset_files(dataverse_url, doi, headers=None):
+    url = f"{dataverse_url}/api/datasets/:persistentId/?persistentId={doi}"
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
     data = response.json()
     files = data['data']['latestVersion']['files']
@@ -24,9 +17,9 @@ def get_dataset_files(doi):
         for f in files
     ]
 
-def download_file_by_id(file_id, save_path):
-    url = f"{DATAVERSE_URL}/api/access/datafile/{file_id}"
-    with requests.get(url, headers=HEADERS, stream=True) as response:
+def download_file_by_id(dataverse_url, file_id, save_path, headers=None):
+    url = f"{dataverse_url}/api/access/datafile/{file_id}"
+    with requests.get(url, headers=headers, stream=True) as response:
         print("Request Body:", response.request.url)
         if response.status_code == 200:
             with open(save_path, 'wb') as f:
@@ -39,15 +32,22 @@ def download_file_by_id(file_id, save_path):
             print(f"Failed to download file: {response.status_code} {response.text}")
 
 if __name__ == "__main__":
+    DATASETS = ['fishfollow', 'coralcam'] 
+    config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
+    dataverse = yaml.safe_load(open('config/actual/dataverse.yml', 'r'))
+    DATAVERSE_URL = dataverse['url']
+    API_KEY = dataverse['api_key']
+    HEADERS = {"X-Dataverse-key": API_KEY}
+
     for DATASET in DATASETS:
         print(f"Processing dataset: {DATASET}")
         ROOT = config[DATASET]['path']
         RAW_DIR = os.path.join(ROOT, "raw")
         os.makedirs(RAW_DIR, exist_ok=True)
-        files = get_dataset_files(config[DATASET]['doi'])
+        files = get_dataset_files(DATAVERSE_URL, config[DATASET]['doi'], HEADERS)
         print(f"Found {len(files)} files in dataset.")
         for f in files:
             dest_path = os.path.join(RAW_DIR, f['filename'])
             print(f"Downloading {f['filename']}...")
-            download_file_by_id(f['file_id'], dest_path)
+            download_file_by_id(DATAVERSE_URL, f['file_id'], dest_path, HEADERS)
     print("✅ All downloads complete.")

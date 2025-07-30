@@ -16,3 +16,6 @@ _build/
 /docs/build/
 /generated_configs/
 archive/
+*.mp4
+*.MP4
+*.pkl
