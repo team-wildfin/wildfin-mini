@@ -7,13 +7,13 @@ dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 model_config =yaml.safe_load(open("config/models.yml", "r"))
 DATASETS = [
     'coralcam', 
-    'fishfollow'
+    # 'fishfollow'
 ]
 FEATURE_EXTRACTORS = [
     # 'dino', 
     # 'dino_large', 
-    # 'videomae', 
-    'resnet50'
+    'videomae', 
+    # 'resnet50'
 ]  # or 'clip', etc.
 SAVE_DIR = 'data/validation/reports'
 if not os.path.exists(SAVE_DIR):

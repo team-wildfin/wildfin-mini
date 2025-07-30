@@ -18,7 +18,8 @@ SlidingStyle = Literal[
     'sliding_window', 
     'sliding_window_w_temp', 
     'sliding_window_w_stride', 
-    'fix_patched_512'
+    'fix_patched_512', 
+    'sliding_window_ti8',
 ]
 
 Backbone = Literal['dino', 'dino_large', 'videomae', 'resnet50']

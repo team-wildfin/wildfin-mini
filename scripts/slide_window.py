@@ -7,7 +7,7 @@ from submission import get_slurm_submission_command
 # Example config values (replace with loading from a file if needed)
 TARGETS = [
     "coralcam", 
-    "fishfollow"
+    # "fishfollow"
 ]
 SLIDING_STYLES = [
     # "frames", 
@@ -15,13 +15,15 @@ SLIDING_STYLES = [
     # "sliding_window", 
     # "sliding_window_w_temp", 
     # "sliding_window_w_stride", 
+    "sliding_window_ti8",
     # "fix_patched_512", 
-    "test_frames", 
+    # "test_frames", 
     # "test_sliding_window", 
+    "test_sliding_window_ti8",
     # "test_fix_patched_512",
 ]
 PARALLEL = False
-SAVE_INPUT = True
+SAVE_INPUT = False
 
 config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 logger = setup_logger(
