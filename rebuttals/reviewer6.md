@@ -52,7 +52,7 @@ Also based on per-class performance (add some numbers here), some behaviors are 
 
 A sliding window of 16 frames at 60 fps is indeed informative and sufficient for this dataset. The majority of behaviors in this context occur extremely quickly (e.g biting and aggression takes XXms) which is why we use a small window and temporal interval. 
 
-- Try to get more diverse T.I Results.
+- Try to get more diverse T.I Results. to-do: put the ti8 results in. 
 
 > Stereo videos were collected but seem to have played no significant role in the evaluation. It makes sense to me that stereo information might not be particularly useful for behavior classification, but motivating why stereo video was collected in the first place or highlighting the potential of stereo video for future work would go a long way.
 

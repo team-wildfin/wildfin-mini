@@ -4,9 +4,10 @@ We thank the reviewer for their comments and suggestions and their acknowledgmen
 
 > 1. The benchmarking results show modest performance, e.g., mAP < 0.2 for many behaviors, suggesting the dataset is highly challenging. However, the paper does not deeply analyze why certain models fail, or propose targeted improvements.
 
-We thank the reviewer for pointing this out. To address this, we test an additional backbone (ResNet50) and also test different finetuning methods to try and make targeted improvements. We find that ResNet50, DINO-v2, VideoMAE are all relatively comparable under the frozen backbone setting. However, we found that the biggest improvement comes from fine-tuning the entire model, which suggests that the MLP classifier head adapter may be the limiting factor in our original baseline evaluation. While we could not fully finetune VideoMAE in time during the rebuttal period, we will be sure to include those results in the camera-ready version. (Should we mention using attention head as a targeted improvement?)
+We thank the reviewer for pointing this out. To address this, we test an additional backbone (ResNet50) and also test different finetuning methods to try and make targeted improvements. We find that ResNet50, DINO-v2, VideoMAE are all relatively comparable under the frozen backbone setting. However, we found that the biggest improvement comes from fine-tuning the entire model, which suggests that the MLP classifier head adapter may be the limiting factor in our original baseline evaluation. While we could not fully finetune VideoMAE in time during the rebuttal period, we will be sure to include those results in the camera-ready version. (Should we mention using attention head as a targeted improvement? JH: This requires a lot of computation and refactor, so if we can avoid it's good, but it's still feasible.)
 
 ### To-Do: If it makes more sense I'm debating changing the common configuration to be: balanced, uniform. I think this probably makes more sense because we would be directly comparing with the original paper. We can then have a separate table for the different loss metrics. 
+JH: I think a section should be comparable to the origianl paper, and have an independent section for showing class imbalance handling methods. However, we can also argue that since we found focal loss to be the best way to address imbalance, we now use it as the representative method. 
 ### CoralCam
 | Backbone  | Sampler  | Tuning Method | Weight Config                         | F1 Macro |   mAP   |
 |-----------|----------|----------|----------------------------------------|----------|---------|
@@ -29,7 +30,7 @@ We thank the reviewer for pointing this out. To address this, we test an additio
 > 2. The dataset exhibits severe class imbalance, yet the proposed mitigation is not evaluated against alternatives.
 
 We thank the reviewer for bringing up this point. Based on this feedback, we evaluate weighted loss methods as another avenue for addressing severe class imbalance. Specifically we evaluate focal loss and inverse frequency weighted BCE. Below we show results for each approach on CoralCam with ResNet50. We ran these experiments on all datasets and backbones and will include them in the final version of the paper and are happy to share them with the reviewer upon request. In general, the best configuration is **To-Do**.
-## To-Do: Replace with DINOv2 Results?
+## To-Do: Replace with DINOv2 Results? JH: If there's full tuning results for DINO (Not sure if it's complete) we can put? 
 ### CoralCam
 | Backbone  | Sampler  | Tuning Method | Weight Config                         | F1 Macro |   mAP   |
 |-----------|----------|----------|----------------------------------------|----------|---------|
