@@ -7,7 +7,7 @@ import torch
 print("importing fish_benchmark")
 from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
-from fish_benchmark.utils import setup_logger 
+from fish_benchmark.utils.general import setup_logger 
 from fish_benchmark.models import get_input_transform
 print("importing utilities")
 import yaml

@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 from typing import List, Optional
 import pandas as pd
-from fish_benchmark.utils import PriorityQueue
+from fish_benchmark.utils.general import PriorityQueue
 import av
 import os
 import numpy as np
-from fish_benchmark.utils import PriorityQueue
+from fish_benchmark.utils.general import PriorityQueue
 from fish_benchmark.data.schemas import Behavior, Event, Metadata
 from fish_benchmark.data.dataset import onehot, load_from_cur_dir
 

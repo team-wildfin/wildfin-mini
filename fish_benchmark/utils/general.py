@@ -18,6 +18,7 @@ import logging
 import time
 from contextlib import contextmanager
 import av
+from typing import Any, Callable, List, Union
 
 def read_video_pyav(container, indices):
     '''
@@ -184,3 +185,4 @@ def get_last_frame(path):
     for frame in container.decode(video=0):
         last_frame = frame
     return last_frame
+

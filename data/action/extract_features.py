@@ -7,7 +7,7 @@ import torch
 from concurrent.futures import ThreadPoolExecutor
 import os
 from tqdm import tqdm
-from fish_benchmark.utils import frame_id_with_padding
+from fish_benchmark.utils.general import frame_id_with_padding
 from fish_benchmark.debug import step_timer
 import numpy as np
 import shutil

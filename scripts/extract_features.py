@@ -5,7 +5,7 @@ extracts features from precomputed inputs
 import yaml
 import os 
 import torch
-from fish_benchmark.utils import setup_logger
+from fish_benchmark.utils.general import setup_logger
 import subprocess
 import argparse
 import shutil

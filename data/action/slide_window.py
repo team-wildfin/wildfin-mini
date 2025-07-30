@@ -3,7 +3,7 @@ import os
 import yaml
 import torch
 from fish_benchmark.data.dataset import DatasetBuilder
-from fish_benchmark.utils import frame_id_with_padding, setup_logger
+from fish_benchmark.utils.general import frame_id_with_padding, setup_logger
 from tqdm import tqdm
 import numpy as np
 import shutil

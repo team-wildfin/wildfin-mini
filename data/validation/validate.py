@@ -1,7 +1,7 @@
 import av
 import yaml
 import os
-from fish_benchmark.utils import setup_logger
+from fish_benchmark.utils.general import setup_logger
 config = yaml.safe_load(open("config/sliding_style.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 model_config =yaml.safe_load(open("config/models.yml", "r"))

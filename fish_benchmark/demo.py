@@ -6,7 +6,7 @@ a video and visulize the classification results continuously.
 '''
 #import abstractmethod
 import cv2
-from fish_benchmark.utils import read_video_pyav
+from fish_benchmark.utils.general import read_video_pyav
 import torch
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader

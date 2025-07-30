@@ -1,7 +1,7 @@
 import os
 import subprocess
 import yaml
-from fish_benchmark.utils import setup_logger
+from fish_benchmark.utils.general import setup_logger
 from submission import get_slurm_submission_command
 
 # Example config values (replace with loading from a file if needed)

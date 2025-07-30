@@ -6,7 +6,7 @@ from configs import *
 from typing import List, Optional, Callable
 from fish_benchmark.types import Experiment
 from scripts.matcher import WandbRunMatcher
-from fish_benchmark.utils import setup_logger
+from fish_benchmark.utils.general import setup_logger
 from submission import get_slurm_submission_command
 
 PARALLEL = False

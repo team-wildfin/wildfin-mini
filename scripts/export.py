@@ -11,21 +11,19 @@ import csv
 import json
 import torch 
 import numpy as np
-from functools import partial
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Optional, Union
 from dataclasses import dataclass
 from scripts.matcher import WandbRunMatcher
-from configs import VIDEOMAE_BALANCED_FOCAL
-import logging
-from torchmetrics.functional.classification import (
-    multilabel_precision,
-    multilabel_recall,
-    multilabel_f1_score,
-    multilabel_average_precision
+from configs import (
+    VIDEOMAE_WEIGHTED_EXPS,
+    DINO_WEIGHTED_EXPS, 
+    RESNET50_WEIGHTED_EXPS,
 )
+import logging
 from functools import reduce
-from fish_benchmark.utils import setup_logger
-from utils import *
+from fish_benchmark.utils.general import setup_logger
+from fish_benchmark.utils.export import *
+import yaml
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
@@ -36,6 +34,14 @@ LABEL_TOLERANCES = [0, 1, 3, 5, 7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
 OUTPUT_PATH = 'results'
+ALL_EXPS = (
+    VIDEOMAE_WEIGHTED_EXPS +
+    DINO_WEIGHTED_EXPS +
+    RESNET50_WEIGHTED_EXPS
+)
+
+config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
+column_names = config[DATASET]['categories']
 
 subgroup_mappings = {
     "coralcam": {
@@ -51,57 +57,28 @@ subgroup_mappings = {
         'other': [0, 10, 12, 15, 18]
     }
 }
-@dataclass
-class Metric:
-    name: str
-    fn: Callable  # should accept (preds, targets, **kwargs)
-    kwargs: Dict  # fixed args like average='micro'
 
-class MetricCalculator: 
-    def __init__(self, probs: torch.Tensor, targets: torch.Tensor):
-        '''
-        probs and targets should have the same shape of (n, d), where n is the number of samples and d is the number of classes 
-        '''
-        self.probs = probs
-        self.targets = targets
+from typing import Callable, Dict, List, Union
+import torch
+import numpy as np
+from functools import partial
 
-    def flood_1d(self, bits, dis):
-        res = np.zeros_like(bits)
-        last = None
-        for i in range(len(bits)):
-            if bits[i] == 1:
-                last = i
-                res[i] = 1
-            elif last is not None and i - last <= dis:
-                res[i] = 1
-        return res
+def compute(
+    probs: torch.Tensor, 
+    targets: torch.Tensor, 
+    metrics: Dict[str, Metric],
+    prefix: str = None,
+    device: Optional[torch.device] = None,
+) -> Dict[str, Union[float, List]]:
+    results = {}
+    for name, metric_fn in metrics.items():
+        key = name
+        if prefix:
+            key = f"{prefix}_{key}"
+        value = metric_fn(probs, targets)
+        results[key] = value.tolist() if isinstance(value, torch.Tensor) else value
+    return results
 
-    def flood(self, bits, dis):
-        left = self.flood_1d(bits, dis)
-        right = self.flood_1d(bits[::-1], dis)[::-1]
-        return np.logical_or(left, right)
-
-    def flood_all_columns(self, targets, dis):
-        # targets: (n, d), apply flood along axis 0 per column
-        flood_func = partial(self.flood, dis=dis)
-        return np.apply_along_axis(flood_func, axis=0, arr=targets)
-    
-    def compute(self, metrics: List[Metric], label_tolerance = 0, column_subset = None, prefix = None) -> Dict[str, Union[float, List[float]]]:
-        results = {}
-        probs = self.probs if column_subset is None else self.probs[:, column_subset]
-        targets = self.targets if column_subset is None else self.targets[:, column_subset]
-        #logger.info(f"flooding with label tolerance {label_tolerance} on {targets.shape[0]} samples and {targets.shape[1]} classes")
-        transformed_targets = torch.from_numpy(self.flood_all_columns(targets.cpu().numpy(), label_tolerance)) 
-        assert probs.shape == transformed_targets.shape, f"probs shape {probs.shape} and targets shape {transformed_targets.shape} should match"
-        num_classes = probs.shape[1]
-        #logger.info(f"calculating {len(metrics)} metrics")
-        for metric in metrics: 
-            if "num_labels" in metric.kwargs.keys(): metric.kwargs["num_labels"] = num_classes
-            output = metric.fn(probs, transformed_targets, **metric.kwargs)
-            assert isinstance(output, torch.Tensor), f"Output of {metric.name} should be a tensor, but got {type(output)}"
-            result_name = f'{prefix}_{metric.name}' if prefix else metric.name
-            results[result_name] = output.tolist() if output.ndim > 0 else output.item()            
-        return results
     
 def get_results(entity: str, project: str, run_ids: List[str]) -> Dict[str, dict]:
     results = {}
@@ -125,6 +102,18 @@ def get_results(entity: str, project: str, run_ids: List[str]) -> Dict[str, dict
         results[run_id] = data
     return results
 
+def expand_confusion_matrices(matrices: torch.Tensor, names: List[str]) -> Dict[str, List[List[int]]]:
+    """
+    Expand confusion matrices to a dictionary with names as keys.
+    Requires: tensor has shape [num_classes, 2, 2] where num_classes is the number of classes.
+    """
+    assert matrices.ndim == 3 and matrices.shape[1] == 2 and matrices.shape[2] == 2, \
+        "Confusion matrix tensor must have shape [num_classes, 2, 2]"
+    expanded = {}
+    for i, name in enumerate(names):
+        expanded[name] = matrices[i].cpu().numpy().tolist()
+    return expanded
+
 def compute_with_label_tolerance(results, label_tolerance, output_path):
     api = wandb.Api()
     rows = []
@@ -132,48 +121,58 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
         run = api.run(f"{ENTITY}/{PROJECT}/{run_id}")
         probs = torch.tensor(data["probs"])
         targets = torch.tensor(data["targets"])
-        calc = MetricCalculator(
-            probs=probs,
-            targets=targets
-        )
-        num_classes = probs.shape[1]
-        metrics = [
-            #num_labels would be dynamically determined by the shape of probs
-            Metric("f1_micro", multilabel_f1_score, {"num_labels": None, "average": "micro"}),
-            Metric("f1_macro", multilabel_f1_score, {"num_labels": None, "average": "macro"}),
-            Metric("precision_micro", multilabel_precision, {"num_labels": None, "average": "micro"}),
-            Metric("precision_macro", multilabel_precision, {"num_labels": None, "average": "macro"}),
-            Metric("recall_micro", multilabel_recall, {"num_labels": None, "average": "micro"}),
-            Metric("recall_macro", multilabel_recall, {"num_labels": None, "average": "macro"}),
-            Metric("mAP", multilabel_average_precision, {"num_labels": None, "average": "macro"}),
-            Metric("acc", lambda x,y: ((x > 0.5) == y).float().mean(), {}),
-            Metric("f1_per_class", multilabel_f1_score, {"num_labels": None, "average": None}),
-            Metric("mAP_per_class", multilabel_average_precision, {"num_labels": None, "average": None}),
-            Metric("precision_per_class", multilabel_precision, {"num_labels": None, "average": None}),
-            Metric("recall_per_class", multilabel_recall, {"num_labels": None, "average": None}),
-            Metric("positive_per_class", lambda _,y: (y.sum(dim=0)).float(), {}),
-        ]
-        
-        aggregate_results = calc.compute(metrics, label_tolerance=label_tolerance)
-        per_group_results = reduce(lambda a, b: a | b, 
-                                   [calc.compute(metrics, 
-                                                 label_tolerance=label_tolerance, 
-                                                 column_subset=subgroup_mappings[DATASET][k], 
-                                                 prefix=k) 
-                                                 for k in subgroup_mappings[DATASET].keys()]) 
-        row = run.config | {"run_id": run.id} | aggregate_results | per_group_results
+        targets = torch.from_numpy(flood_all_columns(targets.cpu().numpy(), label_tolerance)).to(torch.device('cpu'))
+
+        aggregate_metrics = {
+            #average metrics
+            "f1_micro": f1_micro,
+            "f1_macro": f1_macro,
+            "precision_micro": precision_micro,
+            "precision_macro": precision_macro,
+            "recall_micro": recall_micro,
+            "recall_macro": recall_macro,
+            "mAP": mAP,
+            "acc": acc,
+        }
+        per_class_metrics = {
+            #per-class metrics
+            "f1_per_class": f1_per_class,
+            "precision_per_class": precision_per_class,
+            "recall_per_class": recall_per_class,
+            "mAP_per_class": mAP_per_class,
+            "positive_per_class": positive_per_class,
+        }
+        results = compute(probs, targets, aggregate_metrics | per_class_metrics, device=torch.device('cpu'))
+        per_group_results = union(
+                            [compute(probs[:, subgroup_mappings[DATASET][k]], 
+                                     targets[:, subgroup_mappings[DATASET][k]], 
+                                     aggregate_metrics, 
+                                     prefix=k) 
+                                    for k in subgroup_mappings[DATASET].keys()]) 
+        confusion_matrix = binary_confusion_matrix(probs, targets)
+        per_group_confusion = expand_confusion_matrices(confusion_matrix, column_names)
+        per_habitat_confusion = union([
+            expand_confusion_matrices(
+                binary_confusion_matrix(
+                    probs[mask := (targets[:, habitat_idx] == 1)], 
+                    targets[mask]),
+                [name + f"__{column_names[habitat_idx]}_habitat" for name in column_names]
+            ) for habitat_idx in subgroup_mappings[DATASET]['habitat']
+        ]) if 'habitat' in subgroup_mappings[DATASET] else {}
+
+
+        row = run.config | {"run_id": run.id} | results | per_group_results | per_group_confusion | per_habitat_confusion
         rows.append(row)
 
     existing_rows = load_existing_csv(output_path)
-    all_rows = existing_rows + rows  
-    deduped_rows = deduplicate_rows_by_union(all_rows)
-    fieldnames = get_all_fieldnames(deduped_rows)
-    fill_missing_fields(deduped_rows, fieldnames)
-    write_csv(output_path, deduped_rows, fieldnames)
+    updated_rows = update(existing_rows, rows, key="run_id")
+    fieldnames = get_all_fieldnames(updated_rows)
+    fill_missing_fields(updated_rows, fieldnames)
+    write_csv(output_path, updated_rows, fieldnames)
 
 def main():
-    runner = WandbRunMatcher(ENTITY, PROJECT, None)
-    matched_run_ids = runner.match(VIDEOMAE_BALANCED_FOCAL, exclude_dest_exist=False)
+    runner = WandbRunMatcher(ENTITY, PROJECT)
+    matched_run_ids = runner.match(ALL_EXPS)
     results = get_results(ENTITY, PROJECT, matched_run_ids.values())
     for label_tolerance in LABEL_TOLERANCES:
         output_path = os.path.join(OUTPUT_PATH, f"{DATASET}_results_label_tolerance_{label_tolerance}.csv")
