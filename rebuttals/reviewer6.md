@@ -3,9 +3,9 @@ We appreciate the reviewers comments and recommendations. We especially apprecia
 
 > Overall, the behavior classification seems to perform relatively badly (e.g. mAP is mostly below 0.2). It makes sense to me that this is a challenging dataset, though I am not convinced that the baseline results given in the paper are (close to) optimal. Did you try fine-tuning (potentially lightweight CNN) behavior classifiers?
 
-Thank you for the suggestion! We chose to focus on the frozen backbone + MLP classifier setting to align with the capabilities of vision foundation models following work like VideoGLUE (Yuan et al.) and VideoPrism (Zhao et al.). These models are supposed to generate general-purpose features that are cheaply adaptable to different tasks. 
+Thank you for the suggestion! We chose to focus on the frozen backbone + MLP classifier setting to align with the capabilities of vision foundation models following work like VideoGLUE (Yuan et al.) and VideoPrism (Zhao et al.). These models generate general-purpose features that are cheaply adaptable to different tasks which makes an interesting lightweight baseline for behavior classification. 
 
-Based on your feedback, we performed the following additional experiments:
+We agree with your assessment that we can improve our evaluation method and results, based on your feedback, we performed the following additional experiments:
 1. We trained a lightweight classification head on a ResNet50 backbone. 
 2. We fully fine-tuned ResNet50 and DINOv2.
 3. We ran several new experiments on all backbones using different loss functions (to address class imbalance). 
@@ -40,7 +40,7 @@ Thanks to the reviewer's suggestions, we will add these additional results to th
 
 ## To-Do
 - Get confusion matrices for relevant class groups (Jerome)
-- Frequency vs. Performance Table
+- Frequency vs. Performance Table (Ethan tomorrow)
 - What makes this and other datasets complex? (Abby)
 - Tracking performance (Abby)
 
