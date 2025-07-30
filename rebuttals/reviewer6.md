@@ -72,6 +72,10 @@ A sliding window of 16 frames at 60 fps is indeed informative and sufficient for
 |VideoMAE | 1   | 0.06569  | 0.05743 |
 |VideoMAE | 8   | 0.06716  | 0.04925 |
 
+<<<<<<< HEAD
+=======
+- Try to get more diverse T.I Results. to-do: put the ti8 results in. 
+>>>>>>> d7fadeee42e2180e369d8b8c789fd0982b0ccbd3
 
 > Stereo videos were collected but seem to have played no significant role in the evaluation. It makes sense to me that stereo information might not be particularly useful for behavior classification, but motivating why stereo video was collected in the first place or highlighting the potential of stereo video for future work would go a long way.
 
