@@ -16,7 +16,7 @@ TRAINING_PROJECT = "coralcam"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,
-        VIDEOMAE_WEIGHTED_EXPS
+        DINO_BALANCED_FOCAL_FINETUNE
     )
 )
 CONFIG_OUT = "generated_configs"

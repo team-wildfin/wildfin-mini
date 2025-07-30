@@ -13,3 +13,24 @@ Our annotation approach was designed to facilitate scientific analysis of wild a
 > The comparative methods selected in the experimental section are not sufficiently comprehensive, as only DINO-v2 and VideoMAE are included. It is recommended that the authors evaluate the performance of additional backbone models.
 
 Thank you for the suggestion. We use DINOv2 and VideoMAE as backbones for our baseline results because they represent two diverse classes of (at the time) SOTA foundation models, image and video. **TO-Do: Find Relevant NeurIPs papers that don't have that many backbones**. Given the reviewer's recommendations, we run experiments on ResNet50 to establish baseline results on CNN backbones. While we are unable to perform experiments on other large backbones during the rebuttal period as we are limited by computation, we plan to establish baselines on the newly released SOTA VideoPrism. We are also happy to run baselines on any other backbones that the reviewer suggests. Additionally, we perform further experiments with other loss functions that are designed to handle the class imbalance present in the dataset. Because there are many combinations of these hyperparameters (backbone, sampling method, loss function, tuning method), we only show a subset of them in this response but we are happy to share more results upon request.
+
+### CoralCam
+| Backbone  | Sampler  | Tuning Method | Loss Config                         | F1 Macro |   mAP   |
+|-----------|----------|----------|----------------------------------------|----------|---------|
+| DINOv2 ViT-L | balanced | Frozen + MLP   | Uniform BCE              | 0.1152   | 0.08887  |
+| DINOv2 ViT-L | balanced | Full   | Uniform BCE              | 0.1728   | 0.1819  |
+| VideoMAE     | balanced   | Frozen + MLP    | Uniform            | 0.06569   | 0.05743  |
+| ResNet50     | balanced   | Frozen + MLP    | Uniform            | 0.0970   | 0.0779  |
+| ResNet50     | balanced   | Full    | Uniform           | 0.1873  | 0.1890  |
+| ResNet50     | random   | Full    | Focal Loss (α=0.75, γ=5.0)             | **0.2214**  | **0.21925**  |
+#### Note: Ecologists initially defined 5 behavior classes, but one never appeared in the videos. Our original evaluation included this unused "null" class, reducing average scores by 20%. The updated evaluation uses only the 4 classes described in the paper.
+
+### FishFollow
+| Backbone  | Sampler  | Tuning Method | Loss Config                         | F1 Macro |   mAP   |
+|-----------|----------|----------|----------------------------------------|----------|---------|
+| DINOv2 ViT-L | balanced | Frozen + MLP     | Uniform             | 0.1610 | 0.1890   |
+| DINOv2 ViT-L | balanced | Full     | Uniform             | 0.1751  | 0.1870  |
+| VideoMAE     | balanced   | Frozen + MLP     | Uniform          | 0.1680   | 0.1920  |
+| ResNet50     | balanced   | Frozen + MLP     | Uniform            | 0.1550   | 0.1742  |
+| ResNet50     | balanced   | Full     | Uniform            | 0.1765  | 0.1860  |
+| ResNet50     | random   | Full     | Focal Loss (α=0.75, γ=5.0)            | **0.2044**   | **0.2013** |

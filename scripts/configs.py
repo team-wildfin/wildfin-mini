@@ -214,6 +214,25 @@ DINO_BALANCED_FOCAL = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
+DINO_BALANCED_FOCAL_FINETUNE = [
+    Experiment(
+        **dict(
+            id=f"dino_balanced_focal_{dataset}_{sliding_style}_{fulltune}",
+            **DEFAULT_FIELDS,
+            dataset=dataset,
+            sliding_style=sliding_style,
+            backbone="dino_large",
+            sampler="balanced",
+            weight_config=FocalLossConfig(focal_loss_gamma=5.0, focal_loss_alpha=0.75),
+            epochs=100,
+            fulltune=fulltune,
+        )
+    )
+    for fulltune in [True]
+    for sliding_style in ["frames"]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
 DINO_RANDOM_FOCAL = [
     Experiment(
         **dict(
