@@ -13,30 +13,32 @@ from typing import Dict
 from submission import get_slurm_submission_command
 
 TARGET_MODELS = [
-    # 'videomae', 
+    'videomae', 
     # 'dino', 
     # 'dino_large', 
-    'resnet50'
+    # 'resnet50'
 ]
 TARGET_DATASETS = [
-    # "coralcam", 
-    "fishfollow"
+    "coralcam", 
+    # "fishfollow"
 ]
 SLIDING_STYLES = [
-    "frames", 
+    # "frames", 
     # "frames_w_temp", 
     # "sliding_window", 
     # "sliding_window_w_temp", 
     # "sliding_window_w_stride", 
+    "sliding_window_ti8",
     # "fix_patched_512", 
-    "test_frames", 
+    # "test_frames", 
     # "test_sliding_window", 
     # "test_fix_patched_512",
+    # "test_sliding_window_ti8"
 ]
 
 PRECOMPUTED = False
 PARALLEL = False
-CHECK_REPORT = True
+CHECK_REPORT = False
 
 model_config = yaml.safe_load(open("config/models.yml", "r"))
 dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
@@ -112,8 +114,12 @@ def main():
         for SLIDING_STYLE in SLIDING_STYLES:
             for MODEL in TARGET_MODELS:
                 for SPLIT in list(dataset_config[DATASET]['splits'].keys()):
-                    if SLIDING_STYLE not in dataset_config[DATASET]['splits'][SPLIT]['sliding_styles']: continue
-                    if SLIDING_STYLE not in model_config[MODEL]['sliding_styles']: continue
+                    if SLIDING_STYLE not in dataset_config[DATASET]['splits'][SPLIT]['sliding_styles']:
+                        logger.info(f"Skipping {DATASET} {SPLIT} {SLIDING_STYLE} for {MODEL} as it is not in the config")
+                        continue
+                    if SLIDING_STYLE not in model_config[MODEL]['sliding_styles']:
+                        logger.info(f"Skipping {DATASET} {SPLIT} {SLIDING_STYLE} for {MODEL} as it is not in the model config")
+                        continue
 
                     SOURCE_PATH = (os.path.join(dataset_config[DATASET]['precomputed_path'], SLIDING_STYLE, SPLIT) 
                             if PRECOMPUTED 

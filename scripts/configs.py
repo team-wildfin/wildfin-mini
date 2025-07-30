@@ -15,7 +15,6 @@ DEFAULT_FIELDS = {
     'batch_size': 32,
     'weight_decay': 0.001,
     'shuffle': False,
-    'monitor': 'val_mAP',
     'optimizer': 'adam',
     'label_type': 'onehot',
     'max_samples_per_class': 1000,
@@ -35,7 +34,7 @@ VIDEOMAE_BALANCED_UNIFORM = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride"]
+    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride", "sliding_window_ti8"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -53,7 +52,7 @@ VIDEOMAE_RANDOM_UNIFORM = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride"]
+    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride", "sliding_window_ti8"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -71,7 +70,7 @@ VIDEOMAE_BALANCED_FOCAL = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride"]
+    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride", "sliding_window_ti8"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -89,7 +88,7 @@ VIDEOMAE_BALANCED_FOCAL_2 = [
             fulltune=False,
         )
     )
-    for sliding_style in ["sliding_window_w_stride", "sliding_window_w_temp"]
+    for sliding_style in ["sliding_window_w_stride", "sliding_window_w_temp", "sliding_window_ti8"]
     for dataset in ["coralcam", "fishfollow"]
     # Best f1 score
 ]
@@ -108,7 +107,7 @@ VIDEOMAE_RANDOM_FOCAL = [
             fulltune=False,
         )
     )
-    for sliding_style in ["sliding_window_w_stride", 'sliding_window_w_temp']
+    for sliding_style in ["sliding_window_w_stride", 'sliding_window_w_temp', 'sliding_window_ti8']
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -126,7 +125,7 @@ VIDEOMAE_RANDOM_INVERSE = [
             fulltune=False,
         )
     )
-    for sliding_style in ["sliding_window_w_stride", 'sliding_window_w_temp']
+    for sliding_style in ["sliding_window_w_stride", 'sliding_window_w_temp', 'sliding_window_ti8']
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -174,7 +173,26 @@ DINO_BALANCED_UNIFORM = [
     )
     for sliding_style in ["frames"]
     for dataset in ["coralcam", "fishfollow"]
-    for fulltune in [True, False]
+    for fulltune in [False]
+]
+
+DINO_BALANCED_UNIFORM_FINETUNE = [
+    Experiment(
+        **dict(
+            id=f"dino_balanced_uniform_{dataset}_{sliding_style}_{fulltune}",
+            **DEFAULT_FIELDS,
+            dataset=dataset,
+            sliding_style=sliding_style,
+            backbone="dino_large",
+            sampler="balanced",
+            weight_config=UniformConfig(),
+            epochs=100,
+            fulltune=fulltune,
+        )
+    )
+    for sliding_style in ["frames"]
+    for dataset in ["coralcam", "fishfollow"]
+    for fulltune in [True]
 ]
 
 DINO_BALANCED_FOCAL = [
@@ -236,6 +254,7 @@ DINO_RANDOM_INVERSE = [
 
 DINO_WEIGHTED_EXPS: List[Experiment] = (
     DINO_BALANCED_FOCAL 
+    + DINO_BALANCED_UNIFORM_FINETUNE
     + DINO_RANDOM_FOCAL 
     + DINO_RANDOM_INVERSE 
     + DINO_BALANCED_UNIFORM 

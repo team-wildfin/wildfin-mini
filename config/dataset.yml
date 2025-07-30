@@ -16,6 +16,7 @@ fishfollow:
         - sliding_window
         - sliding_window_w_temp
         - sliding_window_w_stride
+        - sliding_window_ti8
         - fix_patched_512
     val:
       sliding_styles:
@@ -24,12 +25,14 @@ fishfollow:
         - sliding_window
         - sliding_window_w_temp
         - sliding_window_w_stride
+        - sliding_window_ti8
         - fix_patched_512
     test:
       sliding_styles:
         - test_frames
         - test_sliding_window
         - test_fix_patched_512
+        - test_sliding_window_ti8
 
 coralcam: 
   path: 'you_path'
@@ -65,6 +68,7 @@ coralcam:
         - sliding_window
         - sliding_window_w_temp
         - sliding_window_w_stride
+        - sliding_window_ti8
     val:
       sliding_styles:
         - frames
@@ -72,11 +76,13 @@ coralcam:
         - sliding_window
         - sliding_window_w_temp
         - sliding_window_w_stride
+        - sliding_window_ti8
     test:
       sliding_styles:
         - test_frames
         - test_sliding_window
         - test_fix_patched_512
+        - test_sliding_window_ti8
 
 ucf101: 
   path: 'you_path'
