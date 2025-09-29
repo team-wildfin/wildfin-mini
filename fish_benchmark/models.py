@@ -18,6 +18,7 @@ import torch
 from fish_benchmark.data.preprocessors import TorchVisionPreprocessor
 from transformers import AutoConfig
 import yaml
+from contextlib import nullcontext
 from abc import ABC, abstractmethod
 
 class HasInputNDims(ABC):
@@ -129,35 +130,61 @@ class Linear(BaseClassifier, nn.Module):
     def forward(self, x):
         return self.linear(x)
 
-
-class ResNet50(nn.Module):
-    def __init__(self):
+class FreezableBackbone(nn.Module, ABC):
+    def __init__(self, *, freeze: bool = False):
         super().__init__()
+        self._frozen = False
+        if freeze:
+            self.freeze()
+
+    @property
+    def is_frozen(self) -> bool:
+        return self._frozen
+
+    def freeze(self):
+        for p in self.parameters():
+            p.requires_grad = False
+        self._frozen = True
+
+    def unfreeze(self):
+        for p in self.parameters():
+            p.requires_grad = True
+        self._frozen = False
+
+    def forward(self, *args, **kwargs):
+        ctx = torch.no_grad() if self._frozen else nullcontext()
+        with ctx:
+            return self.run(*args, **kwargs)
+
+    @abstractmethod
+    def run(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class ResNet50(FreezableBackbone):
+    def __init__(self, *, freeze: bool = False):
+        super().__init__(freeze=freeze)
         self.model = ResNetModel.from_pretrained("microsoft/resnet-50")
         self.ioconfig = yaml.safe_load(open("config/models.yml", "r"))['resnet50']
         self.input_ndim = self.ioconfig['input_ndim']
         self.config = self.model.config
-        self.config.hidden_size = self.model.config.hidden_sizes[-1]  # = 2048
+        self.config.hidden_size = self.model.config.hidden_sizes[-1]  # 2048
+
+    def run(self, x: torch.Tensor) -> torch.Tensor:
+        feats = self.model(x).last_hidden_state  # (B, C, H, W)
+        B, C, H, W = feats.shape
+        return feats.flatten(2).transpose(1, 2)  # (B, H*W, C)
 
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        features = self.model(x).last_hidden_state  # shape: (B, C, H, W)
-        B, C, H, W = features.shape
-        return features.flatten(2).transpose(1, 2)  # → (B, H*W, C)
-    
-'''
-Backbone classes
-'''
-
-class TransformerModel(nn.Module, HasInputNDims):
-    def __init__(self, model_name):
-        super().__init__()
-        self.model = self.get_pretrained_model(model_name)
+class TransformerModel(FreezableBackbone):
+    def __init__(self, model_name: str, *, freeze: bool = False):
+        super().__init__(freeze=freeze)
+        self.model = self._get_pretrained_model(model_name)
         self.config = self.model.config
         self.ioconfig = yaml.safe_load(open("config/models.yml", "r"))[model_name]
         self.input_ndim = self.ioconfig['input_ndim']
-    
-    def get_pretrained_model(self, model_name):
+
+    def _get_pretrained_model(self, model_name):
         if model_name == 'clip':
             return CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
         elif model_name == 'dino':
@@ -172,17 +199,17 @@ class TransformerModel(nn.Module, HasInputNDims):
             return Swinv2Model.from_pretrained("microsoft/swinv2-tiny-patch4-window8-256")
         else:
             raise ValueError(f"Unknown model name: {model_name}")
-        
-    def forward(self, x):
-        out = self.model(x).last_hidden_state
-        return out
 
-def get_backbone(model_name):
+    def run(self, x: torch.Tensor) -> torch.Tensor:
+        return self.model(x).last_hidden_state  # (B, L, H)
+
+
+def get_backbone(model_name: str, *, freeze: bool = False):
     if model_name == 'resnet50':
-        return ResNet50()
+        return ResNet50(freeze=freeze)
     else:
-        return TransformerModel(model_name)
-    
+        return TransformerModel(model_name, freeze=freeze)
+        
 class PoolerFactory:
     def __init__(self, pooler_type, dim, hidden_size=None):
         self.pooler_type = pooler_type
@@ -294,8 +321,14 @@ class ComposedModel(nn.Module):
 
 
 class ModelBuilder():
-    def __init__(self, backbone: str = None, pooling: str = None, classifier: str = None, hidden_size: int = None, aggregator: str = None):
+    def __init__(self, backbone: str = None, 
+                 pooling: str = None, 
+                 classifier: str = None, 
+                 hidden_size: int = None, 
+                 aggregator: str = None, 
+                 freeze_backbone: bool = False):
         self.backbone = backbone
+        self.freeze_backbone = freeze_backbone
         self.pooling = pooling
         self.classifier = classifier
         self.hidden_size = hidden_size
@@ -312,7 +345,7 @@ class ModelBuilder():
     
     def set_backbone(self, backbone):
         self.backbone = backbone
-        self.hidden_size = get_backbone(backbone).config.hidden_size
+        self.hidden_size = get_backbone(backbone, freeze=self.freeze_backbone).config.hidden_size
         return self
     
     def set_pooling(self, pooling):
@@ -342,7 +375,7 @@ class ModelBuilder():
     def build(self):
         #dimension check
         if self.classifier and self.backbone: assert self.classifier_input_dim == self.hidden_size, f"Classifier input dimension {self.classifier_input_dim} does not match backbone hidden size {self.hidden_size}"
-        BACKBONE = BroadcastableModule(get_backbone(self.backbone)) if self.backbone else nn.Identity()
+        BACKBONE = BroadcastableModule(get_backbone(self.backbone, freeze=self.freeze_backbone)) if self.backbone else nn.Identity()
         POOLING = BroadcastableModule(PoolerFactory(self.pooling, dim=1, hidden_size=self.hidden_size).build()) if self.pooling else nn.Identity()
         CLASSIFIER = BroadcastableModule(ClassifierFactory(self.classifier, self.classifier_input_dim, self.classifier_output_dim).build()) if self.classifier else nn.Identity()
         AGGREGATOR = BroadcastableModule(PoolerFactory(self.aggregator, dim=1).build()) if self.aggregator else nn.Identity()

@@ -24,7 +24,7 @@ SlidingStyle = Literal[
 
 Backbone = Literal['dino', 'dino_large', 'videomae', 'resnet50']
 Classifier = Literal['mlp']
-Pooling = Literal['mean']
+Pooling = Literal['mean', 'attention']
 
 class FocalLossConfig(BaseModel): 
     weight_method: Literal['focal_loss'] = 'focal_loss'
@@ -57,6 +57,7 @@ class Experiment(BaseModel):
     weight_decay: float
     sampler: Sampler
     fulltune: bool
+    freeze_backbone: bool
     epochs: int
     learning_rate: float
     batch_size: int

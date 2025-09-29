@@ -125,9 +125,9 @@ def main():
 
     if config.fulltune:
         print("Building full fine-tuning model...")
-        hidden_size = ModelBuilder().set_backbone(config.backbone).get_hidden_size()
+        hidden_size = ModelBuilder(freeze_backbone=config.freeze_backbone).set_backbone(config.backbone).get_hidden_size()
         model = (
-            ModelBuilder()
+            ModelBuilder(freeze_backbone=config.freeze_backbone)
             .set_backbone(config.backbone)
             .set_pooling(config.pooling)
             .set_classifier(config.classifier, input_dim=hidden_size, output_dim=len(train_dataset.categories))

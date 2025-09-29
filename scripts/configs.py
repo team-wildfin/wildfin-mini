@@ -18,11 +18,33 @@ DEFAULT_FIELDS = {
     'optimizer': 'adam',
     'label_type': 'onehot',
     'max_samples_per_class': 1000,
+    'freeze_backbone': False
 }
+
+DINO_ATTENTION_BALANCED_UNIFORM = [
+    Experiment(
+        **{
+            **DEFAULT_FIELDS,
+            'id': f"dino_attention_uniform_{dataset}_{sliding_style}",
+            'dataset': dataset,
+            'sliding_style': sliding_style,
+            'backbone': "dino_large",
+            'pooling': 'attention',        # overrides DEFAULT_FIELDS
+            'sampler': "balanced",
+            'weight_config': UniformConfig(),
+            'epochs': 40,
+            'fulltune': True,
+            'freeze_backbone': True        # overrides DEFAULT_FIELDS
+        }
+    )
+    for sliding_style in ["frames"]
+    for dataset in ["coralcam", "fishfollow"]
+]
 
 VIDEOMAE_BALANCED_UNIFORM = [
     Experiment(
         **dict(
+            **DEFAULT_FIELDS,
             id=f"videomae_balanced_uniform_{dataset}_{sliding_style}",
             dataset=dataset,
             sliding_style=sliding_style,
@@ -31,7 +53,6 @@ VIDEOMAE_BALANCED_UNIFORM = [
             weight_config=UniformConfig(),
             epochs=40,
             fulltune=False,
-            **DEFAULT_FIELDS,
         )
     )
     for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride", "sliding_window_ti8"]
