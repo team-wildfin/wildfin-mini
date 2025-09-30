@@ -11,7 +11,7 @@ While our dataset is not the size of the largest behvaioral datasets that exist,
 > (2) In terms of evaluation, the paper only reports classification results and lacks visualization or qualitative analysis, especially on unseen cases. This makes it difficult to assess the model’s generalization ability and whether the dataset is sufficiently comprehensive.
 
 We thank the reviewer for this suggestion. Unfortunately, we are unable to show visualizations and qualitative results in the rebuttal, but we will be sure to include this in the revised paper. 
-## Maybe?
+## Maybe... Not sure if we should explicitly tell them that we can't learn sparse behaviors?
 Regarding generalization, our classification results show that baseline models achieve reasonable F1 and mAP scores on frequent behaviors but consistently struggle with sparse, ecologically important behaviors. These behaviors naturally occur infrequently in the wild and are labeled by domain experts as part of an ecology analysis pipeline that is used by actual ecologists. Their rarity reflects genuine challenges in real-world data, and the poor performance on these classes highlights a key gap in the ability of general-purpose models to handle fine-grained, low-frequency events. We hope this motivates future work on more effective adaptation techniques.
 
 (Even if general-purpose approaches don't work, it's important for us to work towards finding a solution), Our work highlights this gap.

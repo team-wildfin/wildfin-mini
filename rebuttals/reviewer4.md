@@ -6,42 +6,41 @@ We thank the reviewer for their comments and suggestions and their acknowledgmen
 
 We thank the reviewer for pointing this out. To address this, we test an additional backbone (ResNet50) and also test different finetuning methods to try and make targeted improvements. We find that ResNet50, DINO-v2, VideoMAE are all relatively comparable under the frozen backbone setting. However, we found that the biggest improvement comes from fine-tuning the entire model, which suggests that the MLP classifier head adapter may be the limiting factor in our original baseline evaluation. While we could not fully finetune VideoMAE in time during the rebuttal period, we will be sure to include those results in the camera-ready version. (Should we mention using attention head as a targeted improvement? JH: This requires a lot of computation and refactor, so if we can avoid it's good, but it's still feasible.)
 
-### To-Do: If it makes more sense I'm debating changing the common configuration to be: balanced, uniform. I think this probably makes more sense because we would be directly comparing with the original paper. We can then have a separate table for the different loss metrics. 
-JH: I think a section should be comparable to the origianl paper, and have an independent section for showing class imbalance handling methods. However, we can also argue that since we found focal loss to be the best way to address imbalance, we now use it as the representative method. 
 ### CoralCam
-| Backbone  | Sampler  | Tuning Method | Weight Config                         | F1 Macro |   mAP   |
+| Backbone  | Sampler  | Tuning Method | Loss Config                         | F1 Macro |   mAP   |
 |-----------|----------|----------|----------------------------------------|----------|---------|
-| DINOv2 ViT-L | balanced | Frozen + MLP   | Focal Loss (α=0.5, γ=1)               | 0.1224   | 0.0933  |
-| DINOv2 ViT-L | balanced | Full   | Focal Loss (α=0.5, γ=1)               | **To-Do**   | **To-DO**  |
-| VideoMAE     | balanced   | Frozen + MLP    | Focal Loss (α=0.75, γ=5)            | 0.0777   | 0.0703  |
-| ResNet50     | balanced   | Frozen + MLP    | Focal Loss (α=0.5,γ=1)            | 0.1043   | 0.0874  |
-| ResNet50     | balanced   | Full    | Focal Loss (α=0.5,γ=1)            | **0.2089**  | **0.1906**  |
-#### Note: Ecologists initially defined 5 behavior classes, but one never appeared in the videos. Our original evaluation included this unused "null" class, reducing average scores by ~20%. The updated evaluation uses only the 4 classes described in the paper.
+| DINOv2 ViT-L | balanced | Frozen + MLP   | Uniform BCE              | 0.1152   | 0.08887  |
+| DINOv2 ViT-L | balanced | Full   | Uniform BCE              | 0.1728   | 0.1819  |
+| VideoMAE     | balanced   | Frozen + MLP    | Uniform            | 0.06569   | 0.05743  |
+| ResNet50     | balanced   | Frozen + MLP    | Uniform            | 0.0970   | 0.0779  |
+| ResNet50     | balanced   | Full    | Uniform           | 0.1873  | 0.1890  |
+| ResNet50     | random   | Full    | Focal Loss (α=0.75, γ=5.0)             | **0.2214**  | **0.21925**  |
+#### Note: Ecologists initially defined 5 behavior classes, but one never appeared in the videos. Our original evaluation included this unused "null" class, reducing average scores by 20%. The updated evaluation uses only the 4 classes described in the paper.
 
 ### FishFollow
-| Backbone  | Sampler  | Tuning Method | Weight Config                         | F1 Macro |   mAP   |
+| Backbone  | Sampler  | Tuning Method | Loss Config                         | F1 Macro |   mAP   |
 |-----------|----------|----------|----------------------------------------|----------|---------|
-| DINOv2 ViT-L | balanced | Frozen + MLP     | Focal Loss (α=0.5, γ=1)             | 0.1785  | **0.1976**  |
-| DINOv2 ViT-L | balanced | Full     | Focal Loss (α=0.5, γ=1)             | **To-Do**  | **To-Do**  |
-| VideoMAE     | balanced   | Frozen + MLP     | Focal Loss (α=0.75, γ=5)          | **0.1904**   | 0.1824  |
-| ResNet50     | balanced   | Frozen + MLP     | Focal Loss (α=0.5,γ=1)            | 0.155   | 0.1742  |
-| ResNet50     | balanced   | Full     | Focal Loss (α=0.5,γ=1)            | 0.1765   | 0.186  |
+| DINOv2 ViT-L | balanced | Frozen + MLP     | Uniform             | 0.1610 | 0.1890   |
+| DINOv2 ViT-L | balanced | Full     | Uniform             | 0.1751  | 0.1870  |
+| VideoMAE     | balanced   | Frozen + MLP     | Uniform          | 0.1680   | 0.1920  |
+| ResNet50     | balanced   | Frozen + MLP     | Uniform            | 0.1550   | 0.1742  |
+| ResNet50     | balanced   | Full     | Uniform            | 0.1765  | 0.1860  |
+| ResNet50     | random   | Full     | Focal Loss (α=0.75, γ=5.0)            | **0.2044**   | **0.2013** |
 
 > 2. The dataset exhibits severe class imbalance, yet the proposed mitigation is not evaluated against alternatives.
 
-We thank the reviewer for bringing up this point. Based on this feedback, we evaluate weighted loss methods as another avenue for addressing severe class imbalance. Specifically we evaluate focal loss and inverse frequency weighted BCE. Below we show results for each approach on CoralCam with ResNet50. We ran these experiments on all datasets and backbones and will include them in the final version of the paper and are happy to share them with the reviewer upon request. In general, the best configuration is **To-Do**.
-## To-Do: Replace with DINOv2 Results? JH: If there's full tuning results for DINO (Not sure if it's complete) we can put? 
-### CoralCam
-| Backbone  | Sampler  | Tuning Method | Weight Config                         | F1 Macro |   mAP   |
-|-----------|----------|----------|----------------------------------------|----------|---------|
-| ResNet50  | balanced | Frozen + MLP    | Focal Loss (α=0.5,γ=1)            | 0.1043   | 0.0874  |
-| ResNet50     | balanced   | Full    | Focal Loss (α=0.5,γ=1)            | **0.2089**  | **0.1906**  |
-| ResNet50  | random   | Frozen + MLP    | Inverse            | 0.1594   | 0.0874  |
-| ResNet50     | random   | Full    | Inverse               | 0.0309  | 0.0859  |
-| ResNet50  | random   | Frozen + MLP    | Inverse            | 0.1594   | 0.0874  |
-| ResNet50     | random   | Full    | Inverse               | 0.0309  | 0.0859  |
+We thank the reviewer for bringing up this point. Based on this feedback, we evaluate weighted loss methods as another avenue for addressing severe class imbalance. Specifically we evaluate focal loss and inverse frequency weighted BCE. Below we show results for each approach on CoralCam with ResNet50. We ran these experiments on all datasets and backbones and will include them in the final version of the paper and are happy to share them with the reviewer upon request. While different class imbalance mitigation approaches achieve notably different performance on the first two classes, none of the approaches are able to get non-zero scores on the most sparse classes. This suggests that common class imbalance mitigation techniques are insufficient for the problem of severe class imbalance and motivates new methods. 
+### Do we need to come up with a proposal for this?
 
-## To-Do: Class Imbalance Results and Explanation. 
+### CoralCam
+| Backbone  | Sampler  | Tuning Method | Weight Config                 | F1 Macro |   mAP   | "Feeding" F1 |
+|-----------|----------|----------|------------------------------------|----------|---------|--------------|
+| ResNet50     | balanced   | Full    | Focal Loss (α=0.5,γ=1)            | 0.2089  | 0.1906  | 0.3080     |
+| ResNet50  | balanced | Frozen + MLP    | Focal Loss (α=0.5,γ=1)         | 0.1043   | 0.0874 | 0.0647     |
+| ResNet50     | random   | Full    | Focal Loss (α=0.75, γ=5.0)          | **0.2214**  | **0.21925**  | 0.2979|
+| ResNet50     | random   | Frozen + MLP     | Focal Loss (α=0.75, γ=5.0) | 0.0979  | 0.1066  | 0.0062 |
+| ResNet50  | random   |   Full  | Inverse            | 0.1594   | 0.1500  | 0.2010|
+| ResNet50     | random   | Frozen + MLP    |  Inverse           | 0.0309  | 0.0859  | 0.0122 |
 
 > 3. While the annotation effort is substantial, the paper does not discuss inter-annotator agreement or potential label noise, which is critical for behavioral datasets.
 
