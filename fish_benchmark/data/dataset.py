@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset, IterableDataset, TensorDataset, Sampler
 import os
 import av
+from fish_benchmark.types import SlidingStyle, LocalDataset
 from fish_benchmark.utils.general import read_video_pyav, sample_frame_indices, get_first_frame, get_last_frame
 from torchvision.datasets import Caltech101
 from torch.utils.data import Subset
@@ -30,7 +31,6 @@ to_tensor = ToTensor()
 PROFILE = False
 PROFILE_LOADING = True
 logger = logging.getLogger(__name__)
-dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 
 def onehot(num_total_classes, active_classes):
     """
@@ -123,29 +123,14 @@ class BaseSlidingWindowDataset(IterableDataset):
     The labels are one-hot encoded.
     '''
     input_transform: Callable=None, 
-    label_type: str= "onehot", 
-    window_size: int=16,  
-    tolerance_region: int = 16, 
-    samples_per_window: int= 16, 
-    step_size: int = 1, 
-    categories: list = None, 
-    data_ndim: int = None, 
-    shuffle: bool = False,
-    patch_type: str = 'relative', 
-    patch_h: int = 1, 
-    patch_w: int = 1,
-    temporal_sample_interval: int = 1,
-    MAX_BUFFER_SIZE: int = 100
+    ds: LocalDataset
+    ss: SlidingStyle
     total_frames: int = None
     def __post_init__(self):
-        assert self.window_size % self.samples_per_window == 0, f"window_size {self.window_size} should be a factor of samples_per_window {self.samples_per_window}"
-        assert self.temporal_sample_interval > 0, f"temporal_sample_interval {self.temporal_sample_interval} should be greater than 0"
-        assert self.tolerance_region <= (self.window_size - 1)//2, f"tolerance_region {self.tolerance_region} should be less than or equal to window_size {self.window_size//2}"
-        assert self.label_type == "onehot", 'currently only onehot is supported'
-        if self.data_ndim == 3: assert self.samples_per_window ==1, "samples per window should be 1 for image datasets"
-        self.image_window_queue = deque([], maxlen=self.window_size)
-        self.labels_window_queue = deque([], maxlen=self.window_size)
-        self.patcher = Patcher(self.patch_type, self.patch_h, self.patch_w)
+        self.image_window_queue = deque([], maxlen=self.ss.window_size)
+        self.labels_window_queue = deque([], maxlen=self.ss.window_size)
+        self.MAX_BUFFER_SIZE = 100
+        self.patcher = Patcher(self.ss.patch_type, self.ss.patch_h, self.ss.patch_w)
         self.only_labels = False
         self.clips = []
         self.labels = []
@@ -164,8 +149,8 @@ class BaseSlidingWindowDataset(IterableDataset):
         return self.downsampled_length(self.total_frames) if self.total_frames else None
 
     def clear_window_queue(self):
-        self.image_window_queue = deque([], maxlen=self.window_size)
-        self.labels_window_queue = deque([], maxlen=self.window_size)
+        self.image_window_queue = deque([], maxlen=self.ss.window_size)
+        self.labels_window_queue = deque([], maxlen=self.ss.window_size)
 
     def clear_buffer(self):
         self.clips = []
@@ -179,7 +164,7 @@ class BaseSlidingWindowDataset(IterableDataset):
         if not self.only_labels: 
             clips = torch.stack(self.clips)
             labels = torch.stack(self.labels)
-            if self.shuffle: 
+            if self.ss.shuffle: 
                 perm = torch.randperm(len(clips))
                 clips = clips[perm]
                 labels = labels[perm]
@@ -188,7 +173,7 @@ class BaseSlidingWindowDataset(IterableDataset):
                 yield image, label
         else: 
             labels = torch.stack(self.labels)
-            if self.shuffle:
+            if self.ss.shuffle:
                 perm = torch.randperm(len(labels))
                 labels = labels[perm]
             for label in labels: 
@@ -197,19 +182,19 @@ class BaseSlidingWindowDataset(IterableDataset):
         self.clear_buffer()
 
     def is_yielding_idx(self, idx):
-        if idx - (self.window_size - 1) < 0: return False
-        return (idx - (self.window_size - 1)) % self.step_size == 0
-    
+        if idx - (self.ss.window_size - 1) < 0: return False
+        return (idx - (self.ss.window_size - 1)) % self.ss.step_size == 0
+
     def next_yielding_idx(self, idx):
-        nearest_kth_yield = ceil((idx - (self.window_size - 1)) / self.step_size) #0 indexed 
-        return nearest_kth_yield * self.step_size + (self.window_size - 1)
+        nearest_kth_yield = ceil((idx - (self.ss.window_size - 1)) / self.ss.step_size) #0 indexed 
+        return nearest_kth_yield * self.ss.step_size + (self.ss.window_size - 1)
 
     def handle_item(self, ith_sample, image, label):
         '''
         depending on the context of the current seen images, this may return a clip or None
         '''
-        
-        if self.next_yielding_idx(ith_sample) - ith_sample > (self.window_size - 1):
+
+        if self.next_yielding_idx(ith_sample) - ith_sample > (self.ss.window_size - 1):
             #if the next yielding index is more than window size away, then this frame would not be used
             return
         
@@ -220,7 +205,7 @@ class BaseSlidingWindowDataset(IterableDataset):
     
         if self.is_yielding_idx(ith_sample):
             #if the calculation of yielding index is correct, then we should have enough images in the window queue
-            assert len(self.labels_window_queue) >= self.window_size, f"image buffer should be at least {self.window_size} long"
+            assert len(self.labels_window_queue) >= self.ss.window_size, f"image buffer should be at least {self.ss.window_size} long"
 
             with step_timer("getting latest clip", verbose=PROFILE):
                 if not self.only_labels: self.clips.append(self.get_latest_clip())
@@ -232,9 +217,9 @@ class BaseSlidingWindowDataset(IterableDataset):
 
     def get_latest_label(self):
         last_idx = len(self.labels_window_queue) - 1
-        mid_idx = last_idx - int(self.window_size/2)
-        relevant_labels = torch.stack(list(self.labels_window_queue)[mid_idx - self.tolerance_region: mid_idx + self.tolerance_region + 1]) 
-        relevant_labels = relevant_labels[:, :len(self.categories)] #drop extra incomplete labels
+        mid_idx = last_idx - int(self.ss.window_size/2)
+        relevant_labels = torch.stack(list(self.labels_window_queue)[mid_idx - self.ss.tolerance_region: mid_idx + self.ss.tolerance_region + 1]) 
+        relevant_labels = relevant_labels[:, :len(self.ds.categories)] #drop extra incomplete labels
         unioned_labels = torch.any(relevant_labels.bool(), dim=0)
         return unioned_labels
     
@@ -246,10 +231,10 @@ class BaseSlidingWindowDataset(IterableDataset):
         return clip
 
     def get_latest_clip(self):
-        interval = int(self.window_size/self.samples_per_window)
+        interval = int(self.ss.window_size/self.ss.samples_per_window)
         with step_timer("stacking patches", verbose=PROFILE):
             clip = np.stack([patch 
-                            for img in list(self.image_window_queue)[-self.window_size::interval] 
+                            for img in list(self.image_window_queue)[-self.ss.window_size::interval] 
                             for patch in self.patcher(img)])
         with step_timer("converting to tensor", verbose=PROFILE):
             tensor_clip = self.numpy_to_tensor(clip)
@@ -257,7 +242,7 @@ class BaseSlidingWindowDataset(IterableDataset):
             if self.input_transform:
                 tensor_clip = self.input_transform(tensor_clip)
 
-        if self.data_ndim == 3: tensor_clip = tensor_clip.squeeze() # image dataset remove additional dimension
+        if self.ss.data_ndim == 3: tensor_clip = tensor_clip.squeeze() # image dataset remove additional dimension
         return tensor_clip
 
     def scan(self, annotated_video_frames: Iterator):
@@ -269,17 +254,15 @@ class BaseSlidingWindowDataset(IterableDataset):
         self.clear_buffer()
         self.clear_window_queue()
         for i, (image, label) in enumerate(annotated_video_frames):
-            if i % self.temporal_sample_interval == 0: 
-                sample_idx = i // self.temporal_sample_interval
-                yield from self.handle_item(sample_idx, image, label)
+            yield from self.handle_item(i, image, label)
 
     def downsampled_length(self, video_frames_count):
         '''
         Returns give this configuration of sliding window, how many items will be generated given one video with 
         video_frames_count frames
         '''
-        sampled_frames= video_frames_count // self.temporal_sample_interval
-        items_count = max(0, (sampled_frames - self.window_size) // self.step_size)
+        sampled_frames= video_frames_count
+        items_count = max(0, (sampled_frames - self.ss.window_size) // self.ss.step_size)
         return items_count
 
     def __iter__(self):
@@ -290,9 +273,9 @@ class BaseSlidingWindowDataset(IterableDataset):
     def get_summary(self):
         summary = {}
         summary['metadata'] = asdict(self)
-        label_count = torch.zeros(len(self.categories))
+        label_count = torch.zeros(len(self.ds.categories))
         for label in tqdm(self.source.stream(only_labels=True)): 
-            assert label.shape == (len(self.categories),), f"label shape {label.shape} does not match categories {self.categories}"
+            assert label.shape == (len(self.ds.categories),), f"label shape {label.shape} does not match categories {self.ds.categories}"
             label_count += label
         summary['label_count'] = label_count.tolist()
         #summary['dataset_size'] = len(self)
@@ -501,13 +484,8 @@ class SourceFactory:
         
     @classmethod
     def from_default(cls, path, dataset_name):
-        if dataset_name == 'ucf101':
-            return cls(
-                path=path,
-                source_type='video_annotated',
-                n_classes=len(get_categories('ucf101'))
-            )
-        elif dataset_name == 'fishfollow':
+        
+        if dataset_name == 'fishfollow':
             return cls(
                 path=path,
                 source_type='frame_annotated',
@@ -590,30 +568,24 @@ class PrecomputedDataset(Dataset):
         summary['dataset_size'] = len(self)
         return summary
 
-class SlidingWindowConfig(BaseModel):
-    window_size: int
-    tolerance_region: int 
-    samples_per_window: int
-    step_size: int
-    data_ndim: int  
-    shuffle:  bool
-    patch_type: str
-    patch_h: int
-    patch_w: int
-    temporal_sample_interval: int
-    MAX_BUFFER_SIZE: int
-
 class DatasetConfig(BaseModel):
     categories: list
     label_type: str
     model_config = ConfigDict(extra="ignore")
 
 class DatasetBuilder():
-    def __init__(self, path, dataset_name, style, transform=None, precomputed=False, feature_model=None, min_ctime=None, only_labels=False):
+    def __init__(self, path, 
+                 dataset: LocalDataset, 
+                 sliding_style: SlidingStyle, 
+                 transform=None, 
+                 precomputed=False, 
+                 feature_model=None, 
+                 min_ctime=None, 
+                 only_labels=False
+        ):
         self.path = path
-        self.dataset_name = dataset_name
-        self.set_sliding_window_config(yaml.safe_load(open("config/sliding_style.yml", "r"))[style])
-        self.set_dataset_config(dataset_config[dataset_name])
+        self.dataset = dataset
+        self.sliding_style = sliding_style
         self.input_transform = None
         self.transform = transform
         self.precomputed = precomputed
@@ -623,50 +595,33 @@ class DatasetBuilder():
         if self.min_ctime: assert precomputed, "min_ctime only works with precomputed datasets"
         self.only_labels = only_labels
 
-    def set_sliding_window_config(self, config_dict):
-        self.swconfig = SlidingWindowConfig(**config_dict)
-
     def set_transform(self, transform):
         self.transform = transform
 
     def set_only_labels(self, only_labels):
         self.only_labels = only_labels
 
-    def set_dataset_config(self, config_dict):
-        self.dsconfig = DatasetConfig(**config_dict)
-
-    def set_dsconfig_attr(self, attr_name, value):
-        if not hasattr(self.dsconfig, attr_name):
-            raise AttributeError(f"Config has no attribute '{attr_name}'")
-        setattr(self.dsconfig, attr_name, value)
-
-    def set_swconfig_attr(self, attr_name, value):
-        if not hasattr(self.swconfig, attr_name):
-            raise AttributeError(f"Config has no attribute '{attr_name}'")
-        setattr(self.swconfig, attr_name, value)
-
     def build(self):
         if self.precomputed: 
             #if precomputed is true, then the sliding style information should be contained in the path
             return PrecomputedDataset(
                 self.path, 
-                self.dsconfig.categories, 
+                self.dataset.categories, 
                 self.transform, 
                 self.feature_model,
                 self.min_ctime
             )
         else: 
-            source = (SourceFactory.from_default(self.path, self.dataset_name)
-                      .set_front_padding((self.swconfig.window_size - 1) // 2)
-                      .set_back_padding((self.swconfig.window_size) // 2) 
+            source = (SourceFactory.from_default(self.path, self.dataset.name)
+                      .set_front_padding((self.sliding_style.window_size - 1) // 2)
+                      .set_back_padding((self.sliding_style.window_size) // 2) 
                     ).build() 
-            config = {
-                **self.swconfig.model_dump(), 
-                **self.dsconfig.model_dump(), 
-                'total_frames': source.total_frames, 
-                'input_transform': self.transform,
-            }
-            dataset = BaseSlidingWindowDataset(**config)
+            dataset = BaseSlidingWindowDataset(
+                ds = self.dataset, 
+                ss = self.sliding_style, 
+                input_transform = self.transform,
+                total_frames=source.total_frames
+            )
             # if the window size is 3, then front and back padding should both be 1 so the number frames equals the number of sliding windows
             # if the window size is 4, then front padding should be 1 and back padding should be 2 so the number of frames equals the number of sliding windows
             dataset.set_source(source)
@@ -719,8 +674,3 @@ class MultiLabelBalancedSampler(Sampler):
 
     def __len__(self):
         return self.max_samples_per_class * self.non_zero.sum().item()
-
-# 30576
-#AssertionError: Number of frames in /share/j_sun/jth264/fishfollow/organized/train/GH010249/GH010249.mp4: 30839 does not match number of annotations in /share/j_sun/jth264/fishfollow/organized/train/GH010249/GH010249.txt: 30720
-#AssertionError: Number of frames in /share/j_sun/jth264/fishfollow/organized/train/GH013724/GH013724.mp4: 31186 does not match number of annotations in /share/j_sun/jth264/fishfollow/organized/train/GH013724/GH013724.txt: 31140
-#AssertionError: Number of frames in /share/j_sun/jth264/fishfollow/organized/train/GH010118/GH010118.mp4: 30576 does not match number of annotations in /share/j_sun/jth264/fishfollow/organized/train/GH010118/GH010118.txt: 30360

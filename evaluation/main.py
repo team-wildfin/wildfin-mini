@@ -9,9 +9,9 @@ from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
 import lightning as L
 import json
+from config.sliding_styles import SLIDING_STYLES    
 import glob
 
-dataset_config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
 eval_config = yaml.safe_load(open('config/eval.yml', 'r'))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
@@ -49,8 +49,8 @@ if __name__ == "__main__":
         
     training_run = wandb.Api().run(f"{args.entity}/{args.project}/{args.run}")
     config = training_run.config
-    
-    config['test_sliding_style'] = eval_config[config['sliding_style']]
+    test_sliding_style = eval_config[config['sliding_style']['name']] # name of the test sliding style
+    config['test_sliding_style'] = test_sliding_style
     config['training_run_id'] = args.run
     config['training_entity'] = args.entity
     config['training_project'] = args.project
@@ -72,12 +72,12 @@ if __name__ == "__main__":
         tags = [v for k, v in config.items() if k in tags_keys] + (["fulltune"] if config.get("fulltune") else []), 
         config=config,
     )
-
-    test_data_dir = os.path.join(dataset_config[config['dataset']]['precomputed_path'], config['test_sliding_style'], 'test')
+    test_data_dir = os.path.join(
+        config.dataset.precomputed_path, config['test_sliding_style'], 'test')
     test_dataset = DatasetBuilder(
         path=test_data_dir, 
-        dataset_name=config['dataset'],
-        style=config['test_sliding_style'],
+        dataset=config.dataset,
+        style=SLIDING_STYLES[config['test_sliding_style']],
         transform=None,
         precomputed=True,
         feature_model=config['backbone'] if not config.get('fulltune') else None

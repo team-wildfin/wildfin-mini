@@ -3,13 +3,14 @@ import av
 import shutil
 import yaml
 import subprocess
+from config.datasets import DATASETS
 
 # --- Constants ---
-DATASET = 'fishfollow'
+DATASET_NAME = 'fishfollow'
+DATASET = DATASETS[DATASET_NAME]
 FRAME_THRESHOLD = 5000  # max frames per part
-config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
 
-ORG_ROOT = os.path.join(config[DATASET]['path'])
+ORG_ROOT = os.path.join(DATASET.path)
 OUTPUT_DIR = os.path.join('/share/j_sun/jth264/fishfollow', 'prepared_uploads')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

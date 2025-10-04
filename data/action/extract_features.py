@@ -8,6 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from tqdm import tqdm
 from fish_benchmark.utils.general import frame_id_with_padding
+from config.datasets import DATASETS 
+from config.sliding_styles import SLIDING_STYLES
 from fish_benchmark.debug import step_timer
 import numpy as np
 import shutil
@@ -52,8 +54,8 @@ def parallel_save_features(outputs, dest_path, video_id, start_frame_id):
 if __name__ == '__main__':
     args = get_args()
     SOURCE = args.source
-    DATASET = args.dataset
-    SLIDING_STYLE = args.sliding_style
+    DATASET = DATASETS[args.dataset]
+    SLIDING_STYLE = SLIDING_STYLES[args.sliding_style]
     DEST_PATH = args.dest_path
     VIDEO_ID = args.id
     MODEL = args.model
@@ -67,8 +69,8 @@ if __name__ == '__main__':
 
     dataset = DatasetBuilder(
         path=SOURCE,
-        dataset_name=DATASET,
-        style=SLIDING_STYLE, 
+        dataset=DATASET,
+        sliding_style=SLIDING_STYLE, 
         transform=input_transform,
         precomputed=PRECOMPUTED
     ).build()

@@ -35,8 +35,6 @@ def main():
     config: Experiment = load_config(args.config)
     min_ctime = args.min_ctime
 
-    dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
-    sliding_style_config = yaml.safe_load(open("config/sliding_style.yml", "r"))
     model_config = yaml.safe_load(open("config/models.yml", "r"))
 
     consumed_ndim = model_config[config.backbone]["input_ndim"] - model_config[config.backbone]["output_ndim"]
@@ -47,8 +45,8 @@ def main():
     )
 
     tags = [
-        config.dataset,
-        config.sliding_style,
+        config.dataset.name,
+        config.sliding_style.name,
         config.backbone,
         config.pooling,
         config.classifier,
@@ -73,12 +71,12 @@ def main():
     print("Loading train data...")
     train_dataset = DatasetBuilder(
         path=os.path.join(
-            dataset_config[config.dataset]["precomputed_path"],
-            config.sliding_style,
+            config.dataset.precomputed_path,
+            config.sliding_style.name,
             "train",
             config.train_subset or "",
         ),
-        dataset_name=config.dataset,
+        dataset=config.dataset,
         style=config.sliding_style,
         transform=None,
         precomputed=True,
@@ -89,12 +87,12 @@ def main():
     print("Loading val data...")
     val_dataset = DatasetBuilder(
         path=os.path.join(
-            dataset_config[config.dataset]["precomputed_path"],
-            config.sliding_style,
+            config.dataset.precomputed_path,
+            config.sliding_style.name,
             "val",
             config.val_subset or "",
         ),
-        dataset_name=config.dataset,
+        dataset=config.dataset,
         style=config.sliding_style,
         transform=None,
         precomputed=True,
@@ -166,7 +164,7 @@ def main():
         optimizer=config.optimizer,
         weight_config=config.weight_config.model_dump(),
     )
-    lit_module.set_root_path(dataset_config[config.dataset]["path"])
+    lit_module.set_root_path(config.dataset.path)
 
     tqdm_disable = not sys.stdout.isatty()
     print(f"Are we in an interactive terminal? {not tqdm_disable}")

@@ -9,6 +9,7 @@ from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.utils.general import setup_logger 
 from fish_benchmark.models import get_input_transform
+from config.datasets import DATASETS
 print("importing utilities")
 import yaml
 import argparse
@@ -33,14 +34,13 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    DATASET = args.dataset
+    DATASET = DATASETS[args.dataset]
     STYLE = args.style
     MODEL = args.model  # nullable
     PRECOMPUTED = True if args.precomputed == 'True' else False
     SPLIT = 'train'
 
-    config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
-    PATH = os.path.join(config[DATASET]['precomputed_path'], STYLE, SPLIT) if PRECOMPUTED else os.path.join(config[DATASET]['path'], SPLIT)
+    PATH = os.path.join(DATASET.precomputed_path, STYLE, SPLIT) if PRECOMPUTED else os.path.join(DATASET.path, SPLIT)
     print("initializing builder")
     builder = DatasetBuilder(
         path=PATH,

@@ -2,7 +2,7 @@ import os
 import numpy as np
 import json
 import yaml
-config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
+from config.datasets import DATASETS
 
 def is_txt_or_tsv(filename):
     return filename.endswith(".txt") or filename.endswith(".tsv")
@@ -67,5 +67,6 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", help="Root directory to search for text files", required=True)
     parser.add_argument("--output", default="positive_counts.json", help="Output JSON filename")
     args = parser.parse_args()
-    root = config[args.dataset]['path'] + '/train' # this is used for weighted loss during training, thus we only need the train split
+    dataset = DATASETS[args.dataset]
+    root = dataset.path + '/train' # this is used for weighted loss during training, thus we only need the train split
     main(root, args.output)

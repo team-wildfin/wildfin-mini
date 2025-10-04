@@ -1,6 +1,7 @@
 import requests
 import yaml
 import os
+from config.datasets import DATASETS
 
 
 def get_dataset_files(dataverse_url, doi, headers=None):
@@ -32,19 +33,18 @@ def download_file_by_id(dataverse_url, file_id, save_path, headers=None):
             print(f"Failed to download file: {response.status_code} {response.text}")
 
 if __name__ == "__main__":
-    DATASETS = ['fishfollow', 'coralcam'] 
-    config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
+    DATASET_NAMES = ['fishfollow', 'coralcam'] 
     dataverse = yaml.safe_load(open('config/actual/dataverse.yml', 'r'))
     DATAVERSE_URL = dataverse['url']
     API_KEY = dataverse['api_key']
     HEADERS = {"X-Dataverse-key": API_KEY}
 
-    for DATASET in DATASETS:
-        print(f"Processing dataset: {DATASET}")
-        ROOT = config[DATASET]['path']
+    for DATASET_NAME in DATASET_NAMES:
+        print(f"Processing dataset: {DATASET_NAME}")
+        ROOT = DATASETS[DATASET_NAME].path
         RAW_DIR = os.path.join(ROOT, "raw")
         os.makedirs(RAW_DIR, exist_ok=True)
-        files = get_dataset_files(DATAVERSE_URL, config[DATASET]['doi'], HEADERS)
+        files = get_dataset_files(DATAVERSE_URL, DATASETS[DATASET_NAME].doi, HEADERS)
         print(f"Found {len(files)} files in dataset.")
         for f in files:
             dest_path = os.path.join(RAW_DIR, f['filename'])

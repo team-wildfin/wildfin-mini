@@ -7,14 +7,15 @@ import subprocess
 from collections import defaultdict
 from fish_benchmark.utils.general import get_files_of_type
 import av  # PyAV for video processing
+from config.datasets import DATASETS
 
-DATASET = 'fishfollow'
-config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
-split_dict = json.load(open(f'data/organization/splits/{DATASET}.json', 'r'))
+DATASET_NAME = 'fishfollow'
+DATASET = DATASETS[DATASET_NAME]
+split_dict = json.load(open(f'data/organization/splits/{DATASET_NAME}.json', 'r'))
 
-RAW_PATH = os.path.join(os.path.dirname(config[DATASET]['path']), 'raw')
-DEST = os.path.join(config[DATASET]['path'])
-TMP_PATH = os.path.join(config[DATASET]['path'], 'tmp_concat')
+RAW_PATH = os.path.join(os.path.dirname(DATASET.path), 'raw')
+DEST = os.path.join(DATASET.path)
+TMP_PATH = os.path.join(DATASET.path, 'tmp_concat')
 os.makedirs(TMP_PATH, exist_ok=True)
 
 def group_video_parts(video_files):

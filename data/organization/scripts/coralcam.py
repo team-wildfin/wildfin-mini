@@ -4,12 +4,13 @@ from fish_benchmark.utils.general import get_files_of_type
 import re
 import shutil
 import json
+from config.datasets import DATASETS
 
-DATASET = 'coralcam'
-config = yaml.safe_load(open('config/actual/dataset.yml', 'r'))
-split_dict = json.load(open(f'data/organization/splits/{DATASET}.json', 'r'))
-RAW_PATH = os.path.join(config[DATASET]['path'], 'raw')
-DEST = os.path.join(config[DATASET]['path'], 'organized')
+DATASET_NAME = 'coralcam'
+DATASET = DATASETS[DATASET_NAME]
+split_dict = json.load(open(f'data/organization/splits/{DATASET_NAME}.json', 'r'))
+RAW_PATH = os.path.join(DATASET.path, 'raw')
+DEST = os.path.join(DATASET.path, 'organized')
 
 def get_track_id(line):
     '''

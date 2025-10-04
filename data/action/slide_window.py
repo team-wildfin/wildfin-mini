@@ -3,6 +3,8 @@ import os
 import yaml
 import torch
 from fish_benchmark.data.dataset import DatasetBuilder
+from config.datasets import DATASETS
+from config.sliding_styles import SLIDING_STYLES
 from fish_benchmark.utils.general import frame_id_with_padding, setup_logger
 from tqdm import tqdm
 import numpy as np
@@ -28,13 +30,12 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     args = get_args()
     SOURCE = args.source
-    DATASET = args.dataset
+    DATASET = DATASETS[args.dataset]
     INPUT_DEST = args.input_dest
     LABEL_DEST = args.label_dest
-    SLIDING_STYLE = args.sliding_style
+    SLIDING_STYLE = SLIDING_STYLES[args.sliding_style]
     SAVE_INPUT = True if args.save_input == 'True' else False
     ID = args.id
-    dataset_config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
     
     # Delete old folders if they exist
     if SAVE_INPUT and os.path.exists(INPUT_DEST): shutil.rmtree(INPUT_DEST)
@@ -44,14 +45,10 @@ if __name__ == '__main__':
     if not os.path.exists(SOURCE):
         raise FileNotFoundError(f"The specified path does not exist: {SOURCE}")
     
-    # Check if the dataset is valid
-    if DATASET not in dataset_config:
-        raise ValueError(f"The specified dataset is not valid: {DATASET}")
-    
     dataset = DatasetBuilder(
         path = SOURCE, 
-        dataset_name = DATASET,
-        style= SLIDING_STYLE, 
+        dataset = DATASET,
+        sliding_style = SLIDING_STYLE, 
         precomputed = False, 
         transform = TorchVisionPreprocessor(), 
         only_labels = False if SAVE_INPUT else True

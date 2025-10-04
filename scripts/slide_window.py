@@ -3,12 +3,9 @@ import subprocess
 import yaml
 from fish_benchmark.utils.general import setup_logger
 from submission import get_slurm_submission_command
-
+from config.datasets import CORALCAM, FISHFOLLOW
 # Example config values (replace with loading from a file if needed)
-TARGETS = [
-    "coralcam", 
-    # "fishfollow"
-]
+
 SLIDING_STYLES = [
     # "frames", 
     # "frames_w_temp", 
@@ -25,7 +22,6 @@ SLIDING_STYLES = [
 PARALLEL = False
 SAVE_INPUT = False
 
-config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
 logger = setup_logger(
     name = 'slide_window',
     log_file = 'logs/slide_window.log', 
@@ -41,25 +37,24 @@ def get_wrap_cmd(source, input_dest, label_dest, subset, dataset, sliding_style)
     )
 
 def main():
-    for DATASET in TARGETS:
-        for SLIDING_STYLE in SLIDING_STYLES:
-            for SPLIT in list(config[DATASET]['splits'].keys()):
-                if SLIDING_STYLE not in config[DATASET]['splits'][SPLIT]['sliding_styles']: continue
-                root_dir = os.path.join(config[DATASET]['path'], SPLIT)
-                dest_root_dir = os.path.join(config[DATASET]['precomputed_path'], SLIDING_STYLE, SPLIT)
-                for SUBSET in os.listdir(root_dir):
-                    assert(os.path.isdir(os.path.join(root_dir, SUBSET))), f"Subset path {SUBSET} is not a directory"
-                    SOURCE = os.path.join(root_dir, SUBSET)
-                    INPUT_DEST = os.path.join(dest_root_dir, SUBSET, 'inputs')
-                    LABEL_DEST = os.path.join(dest_root_dir, SUBSET, 'labels')
-                    output_dir = os.path.join('logs', 'slide_window', DATASET, SLIDING_STYLE, SPLIT, SUBSET)
+    for dataset in [CORALCAM, FISHFOLLOW]:
+        for split in dataset.splits: 
+            for ss_name in set(SLIDING_STYLES).intersection(set(split.get_sliding_style_names())):
+                root_dir = os.path.join(dataset.path, split)
+                dest_root_dir = os.path.join(dataset.precomputed_path, ss_name, split)
+                for subset in os.listdir(root_dir):
+                    assert(os.path.isdir(os.path.join(root_dir, subset))), f"Subset path {subset} is not a directory"
+                    source = os.path.join(root_dir, subset)
+                    input_dest = os.path.join(dest_root_dir, subset, 'inputs')
+                    label_dest = os.path.join(dest_root_dir, subset, 'labels')
+                    output_dir = os.path.join('logs', 'slide_window', dataset, ss_name, split, subset)
                     os.makedirs(output_dir, exist_ok=True)
-                    wrap_cmd = get_wrap_cmd(SOURCE, INPUT_DEST, LABEL_DEST, SUBSET, DATASET, SLIDING_STYLE)
-                    submission_name = f"{DATASET}_{SLIDING_STYLE}_{SPLIT}_{SUBSET}"
+                    wrap_cmd = get_wrap_cmd(source, input_dest, label_dest, subset, dataset, ss_name)
+                    submission_name = f"{dataset}_{ss_name}_{split}_{subset}"
                     command = get_slurm_submission_command(
                             submission_name, output_dir, wrap_cmd, gpu_count=0
                         ) if PARALLEL else wrap_cmd
-                    logger.info(f"Running command for {DATASET}_{SLIDING_STYLE}_{SPLIT}_{SUBSET} with command: {command}")
+                    logger.info(f"Running command for {dataset}_{ss_name}_{split}_{subset} with command: {command}")
                     try: 
                         subprocess.run(command, shell=True, check=True)
                     except subprocess.CalledProcessError as e:

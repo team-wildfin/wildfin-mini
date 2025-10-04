@@ -7,6 +7,8 @@ import torch
 print("importing fish_benchmark")
 from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
+from config.datasets import DATASETS
+from config.sliding_styles import SLIDING_STYLES
 from fish_benchmark.utils.general import setup_logger 
 from fish_benchmark.models import get_input_transform
 print("importing utilities")
@@ -33,8 +35,8 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    DATASET = args.dataset
-    STYLE = args.style
+    DATASET = DATASETS[args.dataset]
+    STYLE = SLIDING_STYLES[args.style]
     MODEL = args.model  # nullable
     PRECOMPUTED = True if args.precomputed == 'True' else False
     SPLIT = 'train'
@@ -44,8 +46,8 @@ if __name__ == '__main__':
     print("initializing builder")
     builder = DatasetBuilder(
         path=PATH,
-        dataset_name=DATASET,
-        style=STYLE,
+        dataset=DATASET,
+        sliding_style=STYLE,
         precomputed=PRECOMPUTED, 
         feature_model=MODEL,
         only_labels=False 

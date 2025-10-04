@@ -24,12 +24,14 @@ from functools import reduce
 from fish_benchmark.utils.general import setup_logger
 from fish_benchmark.utils.export import *
 import yaml
+from config.datasets import DATASETS
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
 ENTITY = "fish-benchmark"
-DATASET = 'coralcam'
-PROJECT = f"{DATASET}_eval"
+DATASET_NAME = 'coralcam'
+PROJECT = f"{DATASET_NAME}_eval"
+dataset = DATASETS[DATASET_NAME]
 LABEL_TOLERANCES = [0, 1, 3, 5, 7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
@@ -39,9 +41,6 @@ ALL_EXPS = (
     DINO_WEIGHTED_EXPS +
     RESNET50_WEIGHTED_EXPS
 )
-
-config = yaml.safe_load(open("config/actual/dataset.yml", "r"))
-column_names = config[DATASET]['categories']
 
 subgroup_mappings = {
     "coralcam": {
@@ -144,24 +143,24 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
         }
         results = compute(probs, targets, aggregate_metrics | per_class_metrics, device=torch.device('cpu'))
         per_group_results = union(
-                            [compute(probs[:, subgroup_mappings[DATASET][k]], 
-                                     targets[:, subgroup_mappings[DATASET][k]], 
+                            [compute(probs[:, subgroup_mappings[DATASET_NAME][k]], 
+                                     targets[:, subgroup_mappings[DATASET_NAME][k]], 
                                      aggregate_metrics, 
                                      prefix=k) 
-                                    for k in subgroup_mappings[DATASET].keys()]) 
+                                    for k in subgroup_mappings[DATASET_NAME].keys()]) 
         confusion_matrix = binary_confusion_matrix(probs, targets)
-        per_group_confusion = expand_confusion_matrices(confusion_matrix, column_names)
+        per_col_confusion = expand_confusion_matrices(confusion_matrix, dataset.categories)
         per_habitat_confusion = union([
             expand_confusion_matrices(
                 binary_confusion_matrix(
                     probs[mask := (targets[:, habitat_idx] == 1)], 
                     targets[mask]),
-                [name + f"__{column_names[habitat_idx]}_habitat" for name in column_names]
-            ) for habitat_idx in subgroup_mappings[DATASET]['habitat']
-        ]) if 'habitat' in subgroup_mappings[DATASET] else {}
+                [name + f"__{dataset.categories[habitat_idx]}_habitat" for name in dataset.categories]
+            ) for habitat_idx in subgroup_mappings[DATASET_NAME]['habitat']
+        ]) if 'habitat' in subgroup_mappings[DATASET_NAME] else {}
 
 
-        row = run.config | {"run_id": run.id} | results | per_group_results | per_group_confusion | per_habitat_confusion
+        row = run.config | {"run_id": run.id} | results | per_group_results | per_col_confusion | per_habitat_confusion
         rows.append(row)
 
     existing_rows = load_existing_csv(output_path)
@@ -175,7 +174,7 @@ def main():
     matched_run_ids = runner.match(ALL_EXPS)
     results = get_results(ENTITY, PROJECT, matched_run_ids.values())
     for label_tolerance in LABEL_TOLERANCES:
-        output_path = os.path.join(OUTPUT_PATH, f"{DATASET}_results_label_tolerance_{label_tolerance}.csv")
+        output_path = os.path.join(OUTPUT_PATH, f"{DATASET_NAME}_results_label_tolerance_{label_tolerance}.csv")
         logger.info(f"Computing results with label tolerance {label_tolerance} and writing to {output_path}")
         compute_with_label_tolerance(results, label_tolerance, output_path)
 
