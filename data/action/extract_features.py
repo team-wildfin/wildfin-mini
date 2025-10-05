@@ -62,9 +62,11 @@ if __name__ == '__main__':
     PRECOMPUTED = True if args.precomputed == 'True' else False
     if os.path.exists(DEST_PATH): shutil.rmtree(DEST_PATH)
     
-    builder = ModelBuilder()
-    model = builder.set_backbone(MODEL).set_pooling('mean').build()
-    model = model.to(device)
+    builder = ModelBuilder(
+        backbone = MODEL, 
+        pooling = 'mean'
+    ).build()
+    model = builder.to(device)
     input_transform = get_input_transform(MODEL)
 
     dataset = DatasetBuilder(

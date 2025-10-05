@@ -5,7 +5,7 @@ extracts features from precomputed inputs
 import yaml
 import os
 import torch
-from config.models import MODEL_SLIDING_STYLES
+from config.models.models import MODEL_SLIDING_STYLES
 from fish_benchmark.utils.general import setup_logger
 import subprocess
 import argparse

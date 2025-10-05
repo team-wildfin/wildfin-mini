@@ -17,6 +17,7 @@ from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
 from fish_benchmark.types import Experiment  # Your TrainConfig class
 from config.datasets import DATASETS
+from config.models.backbones import BACKBONE_CONFIGS
 
 from artifact import log_best_model, log_latest_model
 
@@ -125,23 +126,26 @@ def main():
 
     if config.fulltune:
         print("Building full fine-tuning model...")
-        hidden_size = ModelBuilder(freeze_backbone=config.freeze_backbone).set_backbone(config.backbone).get_hidden_size()
         model = (
-            ModelBuilder(freeze_backbone=config.freeze_backbone)
-            .set_backbone(config.backbone)
-            .set_pooling(config.pooling)
-            .set_classifier(config.classifier, input_dim=hidden_size, output_dim=len(train_dataset.categories))
-            .set_aggregator(aggregator)
-            .build()
+            ModelBuilder(
+            output_dim=len(train_dataset.categories),
+            backbone=config.backbone,
+            pooling=config.pooling,
+            classifier=config.classifier,
+            aggregator=aggregator,
+            freeze_backbone=config.freeze_backbone).build()
         )
     else:
         print("Building classifier head on frozen features...")
-        hidden_size = ModelBuilder().set_backbone(config.backbone).get_hidden_size()
+        hidden_size = BACKBONE_CONFIGS[config.backbone].hidden_size
         model = (
-            ModelBuilder()
-            .set_classifier(config.classifier, input_dim=hidden_size, output_dim=len(train_dataset.categories))
-            .set_aggregator(aggregator)
-            .build()
+            ModelBuilder(
+                output_dim=len(train_dataset.categories),
+                backbone=None,
+                pooling=config.pooling,
+                classifier=config.classifier,
+                aggregator=aggregator,
+            ).set_hidden_size(hidden_size).build()
         )
 
     best_ckpt = ModelCheckpoint(

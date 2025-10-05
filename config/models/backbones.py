@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from config.models.models import ModelConfig, BackBoneConfig
+from typing import Dict
 from fish_benchmark.types import SlidingStyle
 from sliding_styles import *
 from typing import List, Dict, Callable, Literal
@@ -8,57 +9,59 @@ import torch
 from fish_benchmark.data.preprocessors import TorchVisionPreprocessor
 from transformers import VideoMAEModel, ResNetModel
 
-class ModelConfig(BaseModel):
-    name: str
-    category: Literal['cnn', 'transformer']
-    input_ndim: int
-    output_ndim: int
 
-VIDEOMAE = ModelConfig(
+VIDEOMAE = BackBoneConfig(
     name="videomae",
-    category="transformer",
+    architecture="transformer",
+    hidden_size=768,
     input_ndim=4,
     output_ndim=2,
 ) 
-DINO = ModelConfig(
+DINO = BackBoneConfig(
     name="dino",
-    category="transformer",
+    architecture="transformer",
+    hidden_size=768,
     input_ndim=3,
     output_ndim=2
 )
-DINO_LARGE = ModelConfig(
+DINO_LARGE = BackBoneConfig(
     name="dino_large",
-    category="transformer",
+    architecture="transformer",
+    hidden_size=768,
     input_ndim=3,
     output_ndim=2,
 )
-DINO_V3 = ModelConfig(
+DINO_V3 = BackBoneConfig(
     name="dinov3",
-    category="transformer",
+    architecture="transformer",
+    hidden_size=1024,
     input_ndim=3,
     output_ndim=2
 )
-DINO_V3_LARGE = ModelConfig(
+DINO_V3_LARGE = BackBoneConfig(
     name="dinov3_large",
-    category="transformer",
+    architecture="transformer",
+    hidden_size=1024,
     input_ndim=3,
     output_ndim=2
 )
-RESNET50 = ModelConfig(
+RESNET50 = BackBoneConfig(
     name="resnet50",
-    category="cnn",
+    architecture="cnn",
+    hidden_size=2048,
     input_ndim=3,
     output_ndim=2,
 )
 
-VJEPA2 = ModelConfig(
+VJEPA2 = BackBoneConfig(
     name="vjepa2",
-    category="transformer",
+    architecture="transformer",
+    hidden_size=1024,
     input_ndim=3,
     output_ndim=2,
 )
 
-MODEL_CONFIGS: Dict[str, ModelConfig] = {
+BACKBONE_CONFIGS: Dict[str, BackBoneConfig] = {
     "videomae": VIDEOMAE,
     "dino": DINO,
     "dino_large": DINO_LARGE,
@@ -68,7 +71,7 @@ MODEL_CONFIGS: Dict[str, ModelConfig] = {
     "vjepa2": VJEPA2,
 }
 
-MODULES: Dict[str, nn.Module] = {
+BACKBONE_MODULES: Dict[str, nn.Module] = {
     "vjepa2": AutoModel.from_pretrained(
         "facebook/vjepa2-vitl-fpc64-256",
         dtype=torch.float16,

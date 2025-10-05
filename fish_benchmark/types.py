@@ -1,7 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel, model_validator
 from typing import Optional, List
-from config.models import ModelConfig
+from config.models.models import ModelConfig
 import yaml
 
 config = yaml.safe_load(open("config/models.yml", "r"))
