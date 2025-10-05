@@ -20,6 +20,7 @@ from transformers import AutoConfig
 import yaml
 from contextlib import nullcontext
 from abc import ABC, abstractmethod
+from config.models import MODEL_CONFIGS, MODULES, PREPROCESSORS, ModelConfig
 
 class HasInputNDims(ABC):
     def get_input_ndim(self):
@@ -161,13 +162,12 @@ class FreezableBackbone(nn.Module, ABC):
         raise NotImplementedError
 
 
-class ResNet50(FreezableBackbone):
-    def __init__(self, *, freeze: bool = False):
+class CNN(FreezableBackbone):
+    def __init__(self, model_name, freeze: bool = False):
         super().__init__(freeze=freeze)
-        self.model = ResNetModel.from_pretrained("microsoft/resnet-50")
-        self.ioconfig = yaml.safe_load(open("config/models.yml", "r"))['resnet50']
-        self.input_ndim = self.ioconfig['input_ndim']
-        self.config = self.model.config
+        self.config = MODEL_CONFIGS[model_name]
+        self.model = MODULES[model_name]
+        self.input_ndim = self.config.input_ndim
         self.config.hidden_size = self.model.config.hidden_sizes[-1]  # 2048
 
     def run(self, x: torch.Tensor) -> torch.Tensor:
@@ -179,37 +179,13 @@ class ResNet50(FreezableBackbone):
 class TransformerModel(FreezableBackbone):
     def __init__(self, model_name: str, *, freeze: bool = False):
         super().__init__(freeze=freeze)
-        self.model = self._get_pretrained_model(model_name)
-        self.config = self.model.config
-        self.ioconfig = yaml.safe_load(open("config/models.yml", "r"))[model_name]
-        self.input_ndim = self.ioconfig['input_ndim']
-
-    def _get_pretrained_model(self, model_name):
-        if model_name == 'clip':
-            return CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
-        elif model_name == 'dino':
-            return AutoModel.from_pretrained('facebook/dinov2-base')
-        elif model_name == 'dino_large':
-            return AutoModel.from_pretrained('facebook/dinov2-large')
-        elif model_name == 'videomae':
-            return VideoMAEModel.from_pretrained("MCG-NJU/videomae-base")
-        elif model_name == 'timesformer':
-            return TimesformerModel.from_pretrained("facebook/timesformer-base-finetuned-k400")
-        elif model_name == 'swinv2':
-            return Swinv2Model.from_pretrained("microsoft/swinv2-tiny-patch4-window8-256")
-        else:
-            raise ValueError(f"Unknown model name: {model_name}")
+        self.model = MODULES[model_name]
+        self.config = MODEL_CONFIGS[model_name]
+        self.input_ndim = self.config.input_ndim
 
     def run(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x).last_hidden_state  # (B, L, H)
 
-
-def get_backbone(model_name: str, *, freeze: bool = False):
-    if model_name == 'resnet50':
-        return ResNet50(freeze=freeze)
-    else:
-        return TransformerModel(model_name, freeze=freeze)
-        
 class PoolerFactory:
     def __init__(self, pooler_type, dim, hidden_size=None):
         self.pooler_type = pooler_type
@@ -273,27 +249,6 @@ class BroadcastableModule(nn.Module):
         out = out.view(*batch_shape, *out_shape)
         return out
 
-def get_input_transform(model_name, do_resize = None):
-    if model_name == 'dino':
-        processor = TorchVisionPreprocessor()
-        return processor
-
-    elif model_name == 'dino_large':
-        processor = TorchVisionPreprocessor()
-        return processor
-    
-    elif model_name == 'videomae':
-        processor = TorchVisionPreprocessor()
-        return processor
-    
-    elif model_name == 'resnet50': 
-        processor = TorchVisionPreprocessor()
-        return processor
-    
-    else:
-        raise ValueError(f"Unknown model name: {model_name}")
-
-
 class ComposedModel(nn.Module):
     def __init__(self, backbone, pooling, classifier):
         super().__init__()
@@ -321,12 +276,14 @@ class ComposedModel(nn.Module):
 
 
 class ModelBuilder():
-    def __init__(self, backbone: str = None, 
-                 pooling: str = None, 
-                 classifier: str = None, 
-                 hidden_size: int = None, 
-                 aggregator: str = None, 
-                 freeze_backbone: bool = False):
+    def __init__(self, 
+                backbone: ModelConfig = None, 
+                pooling: str = None, 
+                classifier: str = None, 
+                hidden_size: int = None, 
+                aggregator: str = None, 
+                freeze_backbone: bool = False
+        ):
         self.backbone = backbone
         self.freeze_backbone = freeze_backbone
         self.pooling = pooling
@@ -343,9 +300,14 @@ class ModelBuilder():
     def get_hidden_size(self):
         return self.hidden_size
     
-    def set_backbone(self, backbone):
+    def get_backbone(self, backbone: ModelConfig):
+        return (TransformerModel(backbone.name, freeze=self.freeze_backbone) 
+                if backbone.category == 'transformer' 
+                else CNN(backbone.name, freeze=self.freeze_backbone))
+    
+    def set_backbone(self, backbone: ModelConfig):
         self.backbone = backbone
-        self.hidden_size = get_backbone(backbone, freeze=self.freeze_backbone).config.hidden_size
+        self.hidden_size = self.get_backbone(backbone).config.hidden_size
         return self
     
     def set_pooling(self, pooling):
@@ -375,7 +337,7 @@ class ModelBuilder():
     def build(self):
         #dimension check
         if self.classifier and self.backbone: assert self.classifier_input_dim == self.hidden_size, f"Classifier input dimension {self.classifier_input_dim} does not match backbone hidden size {self.hidden_size}"
-        BACKBONE = BroadcastableModule(get_backbone(self.backbone, freeze=self.freeze_backbone)) if self.backbone else nn.Identity()
+        BACKBONE = BroadcastableModule(self.get_backbone(self.backbone)) if self.backbone else nn.Identity()
         POOLING = BroadcastableModule(PoolerFactory(self.pooling, dim=1, hidden_size=self.hidden_size).build()) if self.pooling else nn.Identity()
         CLASSIFIER = BroadcastableModule(ClassifierFactory(self.classifier, self.classifier_input_dim, self.classifier_output_dim).build()) if self.classifier else nn.Identity()
         AGGREGATOR = BroadcastableModule(PoolerFactory(self.aggregator, dim=1).build()) if self.aggregator else nn.Identity()

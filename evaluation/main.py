@@ -11,6 +11,8 @@ import lightning as L
 import json
 from config.sliding_styles import SLIDING_STYLES    
 import glob
+from fish_benchmark.types import Experiment, Evaluation
+from config.datasets import DATASETS
 
 eval_config = yaml.safe_load(open('config/eval.yml', 'r'))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,12 +50,17 @@ if __name__ == "__main__":
         print(f"Loaded checkpoint from {ckpt_file}")
         
     training_run = wandb.Api().run(f"{args.entity}/{args.project}/{args.run}")
-    config = training_run.config
-    test_sliding_style = eval_config[config['sliding_style']['name']] # name of the test sliding style
-    config['test_sliding_style'] = test_sliding_style
-    config['training_run_id'] = args.run
-    config['training_entity'] = args.entity
-    config['training_project'] = args.project
+    train_config = dict(training_run.config)
+    test_sliding_style = eval_config[train_config['sliding_style']] # name of the test sliding style
+    config = Evaluation(
+        **train_config, 
+        **{
+        "test_sliding_style": test_sliding_style,
+        "training_run_id": args.run,
+        "training_entity": args.entity,
+        "training_project": args.project
+        }
+    )
     #define testing config
     tags_keys = [
         'dataset', 
@@ -72,11 +79,12 @@ if __name__ == "__main__":
         tags = [v for k, v in config.items() if k in tags_keys] + (["fulltune"] if config.get("fulltune") else []), 
         config=config,
     )
+    dataset = DATASETS[config['dataset']]
     test_data_dir = os.path.join(
-        config.dataset.precomputed_path, config['test_sliding_style'], 'test')
+        dataset.precomputed_path, config['test_sliding_style'], 'test')
     test_dataset = DatasetBuilder(
         path=test_data_dir, 
-        dataset=config.dataset,
+        dataset=dataset,
         style=SLIDING_STYLES[config['test_sliding_style']],
         transform=None,
         precomputed=True,

@@ -1,6 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel, model_validator
 from typing import Optional, List
+from config.models import ModelConfig
 import yaml
 
 config = yaml.safe_load(open("config/models.yml", "r"))
@@ -76,15 +77,18 @@ class UniformConfig(BaseModel):
 WeightConfig = UniformConfig | InverseConfig | FocalLossConfig
 
 class Experiment(BaseModel): 
+    '''
+    The configuration for a training experiment. Purpose to be displayed on wandb. 
+    '''
     #id of the train config
     id: str
 
     #data configs
-    dataset: LocalDataset
-    sliding_style: SlidingStyle
+    dataset: str
+    sliding_style: str
 
     #model configs
-    backbone: Backbone
+    backbone: str
     pooling: Pooling
     classifier: Classifier
     
@@ -113,3 +117,10 @@ class Experiment(BaseModel):
             raise ValueError(f"Sliding style {self.sliding_style} is not supported for model {self.backbone}. "
                              f"Supported styles: {config[self.backbone]['sliding_styles']}")
         return self
+
+
+class Evaluation(Experiment):
+    test_sliding_style: str
+    training_run_id: str
+    training_entity: str
+    training_project: str

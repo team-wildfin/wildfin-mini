@@ -16,6 +16,7 @@ from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
 from fish_benchmark.types import Experiment  # Your TrainConfig class
+from config.datasets import DATASETS
 
 from artifact import log_best_model, log_latest_model
 
@@ -40,13 +41,13 @@ def main():
     consumed_ndim = model_config[config.backbone]["input_ndim"] - model_config[config.backbone]["output_ndim"]
     aggregator = (
         "max"
-        if sliding_style_config[config.sliding_style]["data_ndim"] - consumed_ndim - 1 > 1
+        if config.sliding_style.data_ndim - consumed_ndim - 1 > 1
         else None
     )
 
     tags = [
-        config.dataset.name,
-        config.sliding_style.name,
+        config.dataset,
+        config.sliding_style,
         config.backbone,
         config.pooling,
         config.classifier,
@@ -69,10 +70,11 @@ def main():
     )
 
     print("Loading train data...")
+    dataset = DATASETS[config.dataset]
     train_dataset = DatasetBuilder(
         path=os.path.join(
-            config.dataset.precomputed_path,
-            config.sliding_style.name,
+            dataset.precomputed_path,
+            config.sliding_style,
             "train",
             config.train_subset or "",
         ),
@@ -87,8 +89,8 @@ def main():
     print("Loading val data...")
     val_dataset = DatasetBuilder(
         path=os.path.join(
-            config.dataset.precomputed_path,
-            config.sliding_style.name,
+            dataset.precomputed_path,
+            config.sliding_style,
             "val",
             config.val_subset or "",
         ),

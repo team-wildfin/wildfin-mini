@@ -5,6 +5,7 @@ extracts features from precomputed inputs
 import yaml
 import os
 import torch
+from config.models import MODEL_SLIDING_STYLES
 from fish_benchmark.utils.general import setup_logger
 import subprocess
 import argparse
@@ -131,14 +132,8 @@ def run(
 def main():
     for dataset in [CORALCAM, FISHFOLLOW]:
         for split in dataset.splits:
-            for ss_name in split.get_sliding_style_names():
-                for model in TARGET_MODELS:
-                    if ss_name not in model_config[model]["sliding_styles"]:
-                        logger.info(
-                            f"Skipping {dataset} {split} {ss_name} for {model} as it is not in the model config"
-                        )
-                        continue
-
+            for model in TARGET_MODELS:
+                for ss_name in set(split.get_sliding_style_names()) & set(MODEL_SLIDING_STYLES[model]):
                     SOURCE_PATH = (
                         os.path.join(dataset.precomputed_path, ss_name, split)
                         if PRECOMPUTED
