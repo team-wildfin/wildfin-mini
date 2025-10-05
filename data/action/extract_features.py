@@ -1,4 +1,5 @@
-from fish_benchmark.models import get_input_transform, ModelBuilder
+from fish_benchmark.models import ModelBuilder
+from config.models.backbones import PREPROCESSORS
 from fish_benchmark.data.dataset import DatasetBuilder
 import yaml 
 import argparse
@@ -62,12 +63,12 @@ if __name__ == '__main__':
     PRECOMPUTED = True if args.precomputed == 'True' else False
     if os.path.exists(DEST_PATH): shutil.rmtree(DEST_PATH)
     
-    builder = ModelBuilder(
-        backbone = MODEL, 
-        pooling = 'mean'
-    ).build()
-    model = builder.to(device)
-    input_transform = get_input_transform(MODEL)
+    model = ModelBuilder.build(
+        backbone_name=MODEL,
+        pooler_name='mean',
+        freeze_backbone=True
+    ).to(device)
+    input_transform = PREPROCESSORS[MODEL]
 
     dataset = DatasetBuilder(
         path=SOURCE,

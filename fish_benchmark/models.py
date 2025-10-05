@@ -118,28 +118,8 @@ class BroadcastableModule(nn.Module):
 
 
 class ModelBuilder():
-    def __init__(self, 
-                output_dim: int = None,
-                backbone: str = None, 
-                pooling: str = None, 
-                classifier: str = None, 
-                aggregator: str = None, 
-                freeze_backbone: bool = False
-        ):
-        self.output_dim = output_dim
-        self.backbone = backbone
-        self.freeze_backbone = freeze_backbone
-        self.pooling = pooling
-        self.classifier = classifier
-        self.aggregator = aggregator
-        self.classifier_input_dim = None
-        self.classifier_output_dim = None
-
-    def set_hidden_size(self, hidden_size: int):
-        self.hidden_size = hidden_size
-        return self
-
-    def build_backbone(self, backbone_name, freeze_backbone) -> nn.Module:
+    @staticmethod
+    def build_backbone(backbone_name, freeze_backbone) -> Union[CNN, TransformerModel]:
         '''
         Builds the backbone model. Side Effect: Updates self.hidden_size.
         '''
@@ -149,8 +129,7 @@ class ModelBuilder():
         backbone = (TransformerModel(backbone_config.name, freeze=freeze_backbone)      
                 if backbone_config.architecture == 'transformer' 
                 else CNN(backbone_config.name, freeze=freeze_backbone))
-        self.hidden_size = backbone.config.hidden_size
-        return BroadcastableModule(backbone)
+        return backbone
 
     @staticmethod
     def build_pooling(pooler, hidden_size) -> nn.Module:
@@ -166,7 +145,7 @@ class ModelBuilder():
             }.items() 
                 if k in inspect.signature(module_cls).parameters
         }
-        return BroadcastableModule(module_cls(**args))
+        return module_cls(**args)
     
     @staticmethod
     def build_classifier(classifier: str, in_features: str, out_features: str) -> nn.Module:
@@ -180,12 +159,32 @@ class ModelBuilder():
             }.items() 
                 if k in inspect.signature(module_cls).parameters
         }
-        return BroadcastableModule(module_cls(**args))
+        return module_cls(**args)
 
-    def build(self):
+    @staticmethod
+    def build(backbone_name: Optional[str], 
+              pooler_name: Optional[str], 
+              classifier_name: Optional[str], 
+              aggregator_name: Optional[str], 
+              hidden_size: Optional[int],
+              output_dim: int, 
+              freeze_backbone: bool) -> nn.Module:
+        '''
+        Builds the full model.
+        '''
+        backbone = ModelBuilder.build_backbone(backbone_name, freeze_backbone)
+        if not hidden_size: 
+            hidden_size = backbone.config.hidden_size
+        elif pooler_name is not None or classifier_name is not None: 
+            assert backbone is None or hidden_size == backbone.config.hidden_size, (
+                f"Provided hidden size {hidden_size} does not match backbone hidden size {backbone.config.hidden_size}"
+            )
+        pooler = ModelBuilder.build_pooling(pooler_name, hidden_size)
+        classifier = ModelBuilder.build_classifier(classifier_name, hidden_size, output_dim)
+        aggregator = ModelBuilder.build_pooling(aggregator_name, hidden_size)
         return nn.Sequential(
-            self.build_backbone(self.backbone, self.freeze_backbone), 
-            ModelBuilder.build_pooling(self.pooling, self.hidden_size),
-            ModelBuilder.build_classifier(self.classifier, self.hidden_size, self.output_dim),
-            ModelBuilder.build_pooling(self.aggregator, self.hidden_size)
+            backbone,
+            pooler,
+            classifier,
+            aggregator
         )

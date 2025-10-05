@@ -127,25 +127,29 @@ def main():
     if config.fulltune:
         print("Building full fine-tuning model...")
         model = (
-            ModelBuilder(
-            output_dim=len(train_dataset.categories),
-            backbone=config.backbone,
-            pooling=config.pooling,
-            classifier=config.classifier,
-            aggregator=aggregator,
-            freeze_backbone=config.freeze_backbone).build()
+            ModelBuilder.build(
+                backbone_name=config.backbone,
+                pooler_name=config.pooling,
+                classifier_name=config.classifier,
+                aggregator_name=aggregator,
+                hidden_size=None,
+                output_dim=len(train_dataset.categories),
+                freeze_backbone=config.freeze_backbone
+            )
         )
     else:
         print("Building classifier head on frozen features...")
         hidden_size = BACKBONE_CONFIGS[config.backbone].hidden_size
         model = (
-            ModelBuilder(
+            ModelBuilder.build(
+                backbone_name=None,
+                pooler_name=config.pooling,
+                classifier_name=config.classifier,
+                aggregator_name=aggregator,
+                hidden_size=hidden_size,
                 output_dim=len(train_dataset.categories),
-                backbone=None,
-                pooling=config.pooling,
-                classifier=config.classifier,
-                aggregator=aggregator,
-            ).set_hidden_size(hidden_size).build()
+                freeze_backbone=True
+            )
         )
 
     best_ckpt = ModelCheckpoint(
