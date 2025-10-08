@@ -39,7 +39,7 @@ def main():
     backbone_config = BACKBONE_CONFIGS[config.backbone]
     consumed_ndim = backbone_config.input_ndim - backbone_config.output_ndim
     sliding_style_config = SLIDING_STYLES[config.sliding_style]
-    dataset_config = DATASETS[config.dataset]
+    dataset = DATASETS[config.dataset]
     aggregator = (
         "max"
         if sliding_style_config.data_ndim - consumed_ndim - 1 > 1
@@ -71,7 +71,6 @@ def main():
     )
 
     print("Loading train data...")
-    dataset = DATASETS[config.dataset]
     train_dataset = DatasetBuilder(
         path=os.path.join(
             dataset.precomputed_path,
@@ -79,7 +78,7 @@ def main():
             "train",
             config.train_subset or "",
         ),
-        dataset=dataset_config,
+        dataset=dataset,
         sliding_style=sliding_style_config,
         transform=None,
         precomputed=True,
@@ -95,7 +94,7 @@ def main():
             "val",
             config.val_subset or "",
         ),
-        dataset=dataset_config,
+        dataset=dataset,
         sliding_style=sliding_style_config,
         transform=None,
         precomputed=True,
@@ -133,7 +132,7 @@ def main():
                 classifier_name=config.classifier,
                 aggregator_name=aggregator,
                 hidden_size=None,
-                output_dim=len(train_dataset.categories),
+                output_dim=len(dataset.categories),
                 freeze_backbone=config.freeze_backbone
             )
         )
@@ -174,7 +173,7 @@ def main():
         optimizer=config.optimizer,
         weight_config=config.weight_config.model_dump(),
     )
-    lit_module.set_root_path(config.dataset.path)
+    lit_module.set_root_path(dataset.path)
 
     tqdm_disable = not sys.stdout.isatty()
     print(f"Are we in an interactive terminal? {not tqdm_disable}")

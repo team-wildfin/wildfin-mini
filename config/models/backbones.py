@@ -51,7 +51,7 @@ VJEPA2 = BackBoneConfig(
     name="vjepa2",
     architecture="transformer",
     hidden_size=1024,
-    input_ndim=3,
+    input_ndim=4,
     output_ndim=2,
 )
 
@@ -67,7 +67,6 @@ BACKBONE_CONFIGS: Dict[str, BackBoneConfig] = {
 BACKBONE_MODULES: Dict[str, Callable[[], nn.Module]] = {
     "vjepa2": lambda: AutoModel.from_pretrained(
         "facebook/vjepa2-vitl-fpc64-256",
-        dtype=torch.float16,
         device_map="auto",
         attn_implementation="sdpa"
     ), 

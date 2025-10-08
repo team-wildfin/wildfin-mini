@@ -515,7 +515,7 @@ class PrecomputedDataset(Dataset):
             file_paths = get_files_of_type(self.path, ".npy", min_ctime=min_ctime)
             INPUT_TYPE = "inputs" if feature_model is None else f"{feature_model}_features"
             self.input_paths = [p for p in file_paths if INPUT_TYPE in p]
-            print(f"found {len(self.input_paths)} input files")
+            print(f"found {len(self.input_paths)} input files for input type {INPUT_TYPE}")
         with step_timer("loading label file paths", verbose=PROFILE):
             self.label_paths = get_files_of_type(self.path, ".tsv", min_ctime=min_ctime)
             print(f"found {len(self.label_paths)} label files")

@@ -65,18 +65,19 @@ DINO_ATTENTION_BALANCED_UNIFORM = [
 
 VJEPA_BALANCED_UNIFORM = [
     Experiment(
-        **dict(
+        **{
             **DEFAULT_FIELDS,
-            id=f"vjepa2_balanced_uniform_{dataset}_{sliding_style}",
-            dataset=dataset,
-            sliding_style=sliding_style,
-            backbone="vjepa2",
-            sampler="balanced",
-            weight_config=UniformConfig(),
-            epochs=40,
-            fulltune=False,
+            'id': f"vjepa2_balanced_uniform_{dataset}_{sliding_style}",
+            'dataset': dataset,
+            'sliding_style': sliding_style,
+            'backbone': "vjepa2",
+            'sampler': "balanced",
+            'weight_config': UniformConfig(),
+            'epochs': 40,
+            'fulltune': True,
+            'freeze_backbone': True,  
+        }               # overrides DEFAULT_FIELDS
         )
-    )
     for sliding_style in ["sliding_window_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]

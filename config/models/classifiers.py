@@ -21,7 +21,7 @@ CLASSIFIER_CONFIGS: Dict[str, ModelConfig] = {
 } 
 
 class MLP(nn.Module):
-    def __init__(self, in_features, hidden_dim, out_features, num_layers):
+    def __init__(self, in_features, out_features, hidden_dim = 256, num_layers = 3):
         super().__init__()
         assert num_layers >= 2, "MLP must have at least 2 layers"
         self.mlp = nn.Sequential(*[
