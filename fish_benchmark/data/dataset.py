@@ -122,9 +122,9 @@ class BaseSlidingWindowDataset(IterableDataset):
     The total number of items is (num_frames - window_size) // step_size
     The labels are one-hot encoded.
     '''
-    input_transform: Callable=None, 
     ds: LocalDataset
     ss: SlidingStyle
+    input_transform: Callable=None, 
     total_frames: int = None
     def __post_init__(self):
         self.image_window_queue = deque([], maxlen=self.ss.window_size)
@@ -280,12 +280,6 @@ class BaseSlidingWindowDataset(IterableDataset):
         summary['label_count'] = label_count.tolist()
         #summary['dataset_size'] = len(self)
         return summary
-
-def get_categories(dataset_name):
-    if dataset_name in dataset_config:
-        return dataset_config[dataset_name]['categories']
-    else:
-        raise ValueError(f"dataset_name {dataset_name} not recognized")
 
 class FrameAnnotatedSource(BaseSource):
     '''

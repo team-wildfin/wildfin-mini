@@ -11,14 +11,14 @@ from pathlib import Path
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
-from fish_benchmark.models import get_input_transform, ModelBuilder
+from fish_benchmark.models import ModelBuilder
 from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
 from fish_benchmark.typing.experiment import Experiment  # Your TrainConfig class
 from config.datasets import DATASETS
 from config.models.backbones import BACKBONE_CONFIGS
-
+from config.sliding_styles import SLIDING_STYLES
 from artifact import log_best_model, log_latest_model
 
 
@@ -36,11 +36,13 @@ def main():
 
     config: Experiment = load_config(args.config)
     min_ctime = args.min_ctime
-
-    consumed_ndim = model_config[config.backbone]["input_ndim"] - model_config[config.backbone]["output_ndim"]
+    backbone_config = BACKBONE_CONFIGS[config.backbone]
+    consumed_ndim = backbone_config.input_ndim - backbone_config.output_ndim
+    sliding_style_config = SLIDING_STYLES[config.sliding_style]
+    dataset_config = DATASETS[config.dataset]
     aggregator = (
         "max"
-        if config.sliding_style.data_ndim - consumed_ndim - 1 > 1
+        if sliding_style_config.data_ndim - consumed_ndim - 1 > 1
         else None
     )
 
@@ -77,8 +79,8 @@ def main():
             "train",
             config.train_subset or "",
         ),
-        dataset=config.dataset,
-        style=config.sliding_style,
+        dataset=dataset_config,
+        sliding_style=sliding_style_config,
         transform=None,
         precomputed=True,
         feature_model=None if config.fulltune else config.backbone,

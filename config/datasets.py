@@ -1,5 +1,5 @@
-from fish_benchmark.typing.types import SlidingStyle, LocalDataset, Split
-from sliding_styles import *
+from fish_benchmark.typing.types import  LocalDataset, Split
+from .sliding_styles import *
 
 FISHFOLLOW = LocalDataset(
     name="fishfollow",
