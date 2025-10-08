@@ -30,6 +30,8 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
     args = get_args()
     SOURCE = args.source
+    print("debug: ------")
+    print(args.dataset)
     DATASET = DATASETS[args.dataset]
     INPUT_DEST = args.input_dest
     LABEL_DEST = args.label_dest

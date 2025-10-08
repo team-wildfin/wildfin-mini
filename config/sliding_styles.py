@@ -24,8 +24,8 @@ TEST_SLIDING_WINDOW = SlidingStyle(
     patch_w = 1,
 )
 
-FRAMES = SlidingStyle(
-    name = "frames",
+FRAMES_W_TEMP = SlidingStyle(
+    name = "frames_w_temp",
     window_size = 1,
     tolerance_region = 0,
     samples_per_window = 1,
@@ -51,7 +51,7 @@ SLIDING_WINDOW_W_TEMP = SlidingStyle(
 SLIDING_STYLES = {
     "test_frames": TEST_FRAMES,
     "test_sliding_window": TEST_SLIDING_WINDOW,
-    "frames": FRAMES,
+    "frames_w_temp": FRAMES_W_TEMP,
     "sliding_window_w_temp": SLIDING_WINDOW_W_TEMP,
 }
 

@@ -10,17 +10,17 @@ SLIDING_STYLES = [
     # "frames", 
     # "frames_w_temp", 
     # "sliding_window", 
-    # "sliding_window_w_temp", 
+    "sliding_window_w_temp", 
     # "sliding_window_w_stride", 
-    "sliding_window_ti8",
+    # "sliding_window_ti8",
     # "fix_patched_512", 
     # "test_frames", 
     # "test_sliding_window", 
-    "test_sliding_window_ti8",
+    # "test_sliding_window_ti8",
     # "test_fix_patched_512",
 ]
 PARALLEL = False
-SAVE_INPUT = False
+SAVE_INPUT = True
 
 logger = setup_logger(
     name = 'slide_window',
@@ -40,21 +40,21 @@ def main():
     for dataset in [CORALCAM, FISHFOLLOW]:
         for split in dataset.splits: 
             for ss_name in set(SLIDING_STYLES).intersection(set(split.get_sliding_style_names())):
-                root_dir = os.path.join(dataset.path, split)
-                dest_root_dir = os.path.join(dataset.precomputed_path, ss_name, split)
+                root_dir = os.path.join(dataset.path, split.name)
+                dest_root_dir = os.path.join(dataset.precomputed_path, ss_name, split.name)
                 for subset in os.listdir(root_dir):
                     assert(os.path.isdir(os.path.join(root_dir, subset))), f"Subset path {subset} is not a directory"
                     source = os.path.join(root_dir, subset)
                     input_dest = os.path.join(dest_root_dir, subset, 'inputs')
                     label_dest = os.path.join(dest_root_dir, subset, 'labels')
-                    output_dir = os.path.join('logs', 'slide_window', dataset, ss_name, split, subset)
+                    output_dir = os.path.join('logs', 'slide_window', dataset.name, ss_name, split.name, subset)
                     os.makedirs(output_dir, exist_ok=True)
-                    wrap_cmd = get_wrap_cmd(source, input_dest, label_dest, subset, dataset, ss_name)
-                    submission_name = f"{dataset.name}_{ss_name}_{split}_{subset}"
+                    wrap_cmd = get_wrap_cmd(source, input_dest, label_dest, subset, dataset.name, ss_name)
+                    submission_name = f"{dataset.name}_{ss_name}_{split.name}_{subset}"
                     command = get_slurm_submission_command(
                             submission_name, output_dir, wrap_cmd, gpu_count=0
                         ) if PARALLEL else wrap_cmd
-                    logger.info(f"Running command for {dataset.name}_{ss_name}_{split}_{subset} with command: {command}")
+                    logger.info(f"Running command for {dataset.name}_{ss_name}_{split.name}_{subset} with command: {command}")
                     try: 
                         subprocess.run(command, shell=True, check=True)
                     except subprocess.CalledProcessError as e:

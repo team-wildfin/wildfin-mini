@@ -16,7 +16,7 @@ TRAINING_PROJECT = "coralcam"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,
-        DINOV3_ATTENTION_BALANCED_UNIFORM
+        VJEPA_BALANCED_UNIFORM
     )
 )
 CONFIG_OUT = "generated_configs"

@@ -21,6 +21,7 @@ DEFAULT_FIELDS = {
     'freeze_backbone': False
 }
 
+
 DINOV3_ATTENTION_BALANCED_UNIFORM = [
     Experiment(
         **{
@@ -37,7 +38,7 @@ DINOV3_ATTENTION_BALANCED_UNIFORM = [
             'freeze_backbone': True        # overrides DEFAULT_FIELDS
         }
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -58,7 +59,25 @@ DINO_ATTENTION_BALANCED_UNIFORM = [
             'freeze_backbone': True        # overrides DEFAULT_FIELDS
         }
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
+VJEPA_BALANCED_UNIFORM = [
+    Experiment(
+        **dict(
+            **DEFAULT_FIELDS,
+            id=f"vjepa2_balanced_uniform_{dataset}_{sliding_style}",
+            dataset=dataset,
+            sliding_style=sliding_style,
+            backbone="vjepa2",
+            sampler="balanced",
+            weight_config=UniformConfig(),
+            epochs=40,
+            fulltune=False,
+        )
+    )
+    for sliding_style in ["sliding_window_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -194,7 +213,7 @@ DINO_RANDOM_UNIFORM = [
             fulltune=fulltune,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
     for fulltune in [True, False]
 ]
@@ -213,7 +232,7 @@ DINO_BALANCED_UNIFORM = [
             fulltune=fulltune,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
     for fulltune in [False]
 ]
@@ -232,7 +251,7 @@ DINO_BALANCED_UNIFORM_FINETUNE = [
             fulltune=fulltune,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
     for fulltune in [True]
 ]
@@ -252,7 +271,7 @@ DINO_BALANCED_FOCAL = [
         )
     )
     for fulltune in [True, False]
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -271,7 +290,7 @@ DINO_BALANCED_FOCAL_FINETUNE = [
         )
     )
     for fulltune in [True]
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -290,7 +309,7 @@ DINO_RANDOM_FOCAL = [
         )
     )
     for fulltune in [True, False]
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -309,7 +328,7 @@ DINO_RANDOM_INVERSE = [
         )
     )
     for fulltune in [True, False]
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -336,7 +355,7 @@ RESNET_BALANCED_UNIFORM = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
     for fulltune in [True, False]
 ]
@@ -355,7 +374,7 @@ RESNET_RANDOM_UNIFORM = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
     for fulltune in [True, False]
 ]
@@ -374,7 +393,7 @@ RESNET_RANDOM_INVERSE = [
             fulltune=fulltune,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for fulltune in [True, False]
     for dataset in ["coralcam", "fishfollow"]
 ]
@@ -393,7 +412,7 @@ RESNET_RANDOM_FOCAL = [
             fulltune=fulltune,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for fulltune in [True, False]
     for dataset in ["coralcam", "fishfollow"]
 ]
@@ -412,7 +431,7 @@ RESNET_BALANCED_FOCAL = [
             fulltune=fulltune,
         )
     )
-    for sliding_style in ["frames"]
+    for sliding_style in ["frames_w_temp"]
     for fulltune in [True, False]
     for dataset in ["coralcam", "fishfollow"]
 ]

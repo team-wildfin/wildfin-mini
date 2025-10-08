@@ -126,6 +126,7 @@ class BaseSlidingWindowDataset(IterableDataset):
     ss: SlidingStyle
     input_transform: Callable=None, 
     total_frames: int = None
+    shuffle: bool = False
     def __post_init__(self):
         self.image_window_queue = deque([], maxlen=self.ss.window_size)
         self.labels_window_queue = deque([], maxlen=self.ss.window_size)
@@ -164,7 +165,7 @@ class BaseSlidingWindowDataset(IterableDataset):
         if not self.only_labels: 
             clips = torch.stack(self.clips)
             labels = torch.stack(self.labels)
-            if self.ss.shuffle: 
+            if self.shuffle: 
                 perm = torch.randperm(len(clips))
                 clips = clips[perm]
                 labels = labels[perm]
@@ -173,7 +174,7 @@ class BaseSlidingWindowDataset(IterableDataset):
                 yield image, label
         else: 
             labels = torch.stack(self.labels)
-            if self.ss.shuffle:
+            if self.shuffle:
                 perm = torch.randperm(len(labels))
                 labels = labels[perm]
             for label in labels: 

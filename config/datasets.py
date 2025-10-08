@@ -17,13 +17,13 @@ FISHFOLLOW = LocalDataset(
         Split(
             name="train",
             sliding_styles=[
-                FRAMES,
+                FRAMES_W_TEMP,
                 SLIDING_WINDOW_W_TEMP,
             ]
         ), Split(
             name="val",
             sliding_styles=[
-                FRAMES,
+                FRAMES_W_TEMP,
                 SLIDING_WINDOW_W_TEMP,
             ]
         ), Split(
@@ -38,7 +38,7 @@ FISHFOLLOW = LocalDataset(
 
 CORALCAM = LocalDataset(
     name="coralcam",
-    path='/share/j_sun/jth264/coralcam',
+    path='/share/j_sun/jth264/coralcam/organized',
     precomputed_path='/share/j_sun/jth264/precomputed/coralcam',
     categories=[
         "Other behavior",
@@ -67,13 +67,13 @@ CORALCAM = LocalDataset(
         Split(
             name="train",
             sliding_styles=[
-                FRAMES,
+                FRAMES_W_TEMP,
                 SLIDING_WINDOW_W_TEMP,
             ]
         ), Split(
             name="val",
             sliding_styles=[
-                FRAMES,
+                FRAMES_W_TEMP,
                 SLIDING_WINDOW_W_TEMP,
             ]
         ), Split(
