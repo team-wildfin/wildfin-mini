@@ -11,7 +11,7 @@ import lightning as L
 import json
 from config.sliding_styles import SLIDING_STYLES    
 import glob
-from fish_benchmark.types import Experiment, Evaluation
+from fish_benchmark.typing.experiment import Experiment, Evaluation
 from config.datasets import DATASETS
 
 eval_config = yaml.safe_load(open('config/eval.yml', 'r'))

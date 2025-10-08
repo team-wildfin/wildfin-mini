@@ -1,7 +1,7 @@
 from config.models.models import ModelConfig, BackBoneConfig
 from typing import Dict
-from fish_benchmark.types import SlidingStyle
-from sliding_styles import *
+from fish_benchmark.typing.types import SlidingStyle
+from ..sliding_styles import *
 from typing import List, Dict, Callable, Literal
 import torch.nn as nn
 from transformers import AutoModel
@@ -71,19 +71,19 @@ BACKBONE_CONFIGS: Dict[str, BackBoneConfig] = {
     "vjepa2": VJEPA2,
 }
 
-BACKBONE_MODULES: Dict[str, nn.Module] = {
-    "vjepa2": AutoModel.from_pretrained(
+BACKBONE_MODULES: Dict[str, Callable[[], nn.Module]] = {
+    "vjepa2": lambda: AutoModel.from_pretrained(
         "facebook/vjepa2-vitl-fpc64-256",
         dtype=torch.float16,
         device_map="auto",
         attn_implementation="sdpa"
     ), 
-    "videomae": VideoMAEModel.from_pretrained("MCG-NJU/videomae-base"), 
-    "dino": AutoModel.from_pretrained('facebook/dinov2-base'),
-    "dino_large": AutoModel.from_pretrained('facebook/dinov2-large'),
-    "dinov3": AutoModel.from_pretrained('facebook/dinov3-base'),
-    "dinov3_large": AutoModel.from_pretrained('facebook/dinov3-large'),
-    "resnet50": ResNetModel.from_pretrained('microsoft/resnet-50'),
+    "videomae": lambda: VideoMAEModel.from_pretrained("MCG-NJU/videomae-base"), 
+    "dino": lambda: AutoModel.from_pretrained('facebook/dinov2-base'),
+    "dino_large": lambda: AutoModel.from_pretrained('facebook/dinov2-large'),
+    "dinov3": lambda: AutoModel.from_pretrained('facebook/dinov3-base'),
+    "dinov3_large": lambda: AutoModel.from_pretrained('facebook/dinov3-large'),
+    "resnet50": lambda: ResNetModel.from_pretrained('microsoft/resnet-50'),
 }
 
 PREPROCESSORS: Dict[str, Callable[[torch.Tensor], torch.Tensor]] = {

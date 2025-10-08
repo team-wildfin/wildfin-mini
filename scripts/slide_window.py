@@ -50,11 +50,11 @@ def main():
                     output_dir = os.path.join('logs', 'slide_window', dataset, ss_name, split, subset)
                     os.makedirs(output_dir, exist_ok=True)
                     wrap_cmd = get_wrap_cmd(source, input_dest, label_dest, subset, dataset, ss_name)
-                    submission_name = f"{dataset}_{ss_name}_{split}_{subset}"
+                    submission_name = f"{dataset.name}_{ss_name}_{split}_{subset}"
                     command = get_slurm_submission_command(
                             submission_name, output_dir, wrap_cmd, gpu_count=0
                         ) if PARALLEL else wrap_cmd
-                    logger.info(f"Running command for {dataset}_{ss_name}_{split}_{subset} with command: {command}")
+                    logger.info(f"Running command for {dataset.name}_{ss_name}_{split}_{subset} with command: {command}")
                     try: 
                         subprocess.run(command, shell=True, check=True)
                     except subprocess.CalledProcessError as e:

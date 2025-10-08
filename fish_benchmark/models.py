@@ -61,7 +61,7 @@ class CNN(FreezableBackbone):
     def __init__(self, model_name, freeze: bool = False):
         super().__init__(freeze=freeze)
         self.config = BACKBONE_CONFIGS[model_name]
-        self.model = BACKBONE_MODULES[model_name]
+        self.model = BACKBONE_MODULES[model_name]()
         self.input_ndim = self.config.input_ndim
         assert self.config.hidden_size == self.model.config.hidden_size, (
             f"Model hidden size {self.model.config.hidden_size[-1]} does not match config hidden size {self.config.hidden_size}"
@@ -75,7 +75,7 @@ class CNN(FreezableBackbone):
 class TransformerModel(FreezableBackbone):
     def __init__(self, model_name: str, *, freeze: bool = False):
         super().__init__(freeze=freeze)
-        self.model = BACKBONE_MODULES[model_name]
+        self.model = BACKBONE_MODULES[model_name]()
         self.config = BACKBONE_CONFIGS[model_name]
         self.input_ndim = self.config.input_ndim
         assert self.config.hidden_size == self.model.config.hidden_size, (

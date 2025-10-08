@@ -15,7 +15,7 @@ from fish_benchmark.models import get_input_transform, ModelBuilder
 from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
-from fish_benchmark.types import Experiment  # Your TrainConfig class
+from fish_benchmark.typing.experiment import Experiment  # Your TrainConfig class
 from config.datasets import DATASETS
 from config.models.backbones import BACKBONE_CONFIGS
 
@@ -36,8 +36,6 @@ def main():
 
     config: Experiment = load_config(args.config)
     min_ctime = args.min_ctime
-
-    model_config = yaml.safe_load(open("config/models.yml", "r"))
 
     consumed_ndim = model_config[config.backbone]["input_ndim"] - model_config[config.backbone]["output_ndim"]
     aggregator = (

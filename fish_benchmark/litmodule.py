@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import lightning as L
 import json
 import wandb
-from fish_benchmark.types import Weight
+from fish_benchmark.typing.types import Weight
 from torch.optim.lr_scheduler import LambdaLR
 from data.statistics.pos_frequency import get_pos_freq
 from torchmetrics.functional.classification import (

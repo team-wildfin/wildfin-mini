@@ -1,10 +1,10 @@
-from fish_benchmark.types import (
-    Experiment,
+from fish_benchmark.typing.types import (
     WeightConfig,
     InverseConfig,
     UniformConfig,
     FocalLossConfig,
 )
+from fish_benchmark.typing.experiment import Experiment
 from typing import List, Dict, Any
 
 DEFAULT_FIELDS = {
@@ -20,6 +20,27 @@ DEFAULT_FIELDS = {
     'max_samples_per_class': 1000,
     'freeze_backbone': False
 }
+
+DINOV3_ATTENTION_BALANCED_UNIFORM = [
+    Experiment(
+        **{
+            **DEFAULT_FIELDS,
+            'id': f'dinov3_attention_uniform_{dataset}_{sliding_style}',
+            'dataset': dataset,
+            'sliding_style': sliding_style,
+            'backbone': "dinov3",
+            'pooling': 'attention',        # overrides DEFAULT_FIELDS
+            'sampler': "balanced",
+            'weight_config': UniformConfig(),
+            'epochs': 40,
+            'fulltune': True,
+            'freeze_backbone': True        # overrides DEFAULT_FIELDS
+        }
+    )
+    for sliding_style in ["frames"]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
 
 DINO_ATTENTION_BALANCED_UNIFORM = [
     Experiment(
@@ -55,7 +76,7 @@ VIDEOMAE_BALANCED_UNIFORM = [
             fulltune=False,
         )
     )
-    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride", "sliding_window_ti8"]
+    for sliding_style in ["sliding_window_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -73,7 +94,7 @@ VIDEOMAE_RANDOM_UNIFORM = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride", "sliding_window_ti8"]
+    for sliding_style in ["sliding_window_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -91,7 +112,7 @@ VIDEOMAE_BALANCED_FOCAL = [
             **DEFAULT_FIELDS,
         )
     )
-    for sliding_style in ["sliding_window_w_temp", "sliding_window_w_stride", "sliding_window_ti8"]
+    for sliding_style in ["sliding_window_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -109,7 +130,7 @@ VIDEOMAE_BALANCED_FOCAL_2 = [
             fulltune=False,
         )
     )
-    for sliding_style in ["sliding_window_w_stride", "sliding_window_w_temp", "sliding_window_ti8"]
+    for sliding_style in ["sliding_window_w_temp"]
     for dataset in ["coralcam", "fishfollow"]
     # Best f1 score
 ]
@@ -128,7 +149,7 @@ VIDEOMAE_RANDOM_FOCAL = [
             fulltune=False,
         )
     )
-    for sliding_style in ["sliding_window_w_stride", 'sliding_window_w_temp', 'sliding_window_ti8']
+    for sliding_style in ['sliding_window_w_temp']
     for dataset in ["coralcam", "fishfollow"]
 ]
 
@@ -146,7 +167,7 @@ VIDEOMAE_RANDOM_INVERSE = [
             fulltune=False,
         )
     )
-    for sliding_style in ["sliding_window_w_stride", 'sliding_window_w_temp', 'sliding_window_ti8']
+    for sliding_style in ['sliding_window_w_temp']
     for dataset in ["coralcam", "fishfollow"]
 ]
 

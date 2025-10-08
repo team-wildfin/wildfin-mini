@@ -5,7 +5,7 @@ import logging
 from scripts.matcher import WandbRunMatcher
 from datetime import datetime, timezone
 
-from fish_benchmark.types import Experiment
+from fish_benchmark.typing.experiment import Experiment
 from configs import (
     VIDEOMAE_WEIGHTED_EXPS,
     DINO_WEIGHTED_EXPS,

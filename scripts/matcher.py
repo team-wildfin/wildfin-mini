@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict, Callable, Iterable
-from fish_benchmark.types import Experiment
+from fish_benchmark.typing.experiment import Experiment
 import wandb
 import logging
 logger = logging.getLogger(__name__)

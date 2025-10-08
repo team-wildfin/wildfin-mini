@@ -4,7 +4,7 @@ import yaml
 import os
 from configs import *
 from typing import List, Optional, Callable
-from fish_benchmark.types import Experiment
+from fish_benchmark.typing.experiment import Experiment
 from scripts.matcher import WandbRunMatcher
 from fish_benchmark.utils.general import setup_logger
 from submission import get_slurm_submission_command
@@ -16,7 +16,7 @@ TRAINING_PROJECT = "coralcam"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,
-        DINO_ATTENTION_BALANCED_UNIFORM
+        DINOV3_ATTENTION_BALANCED_UNIFORM
     )
 )
 CONFIG_OUT = "generated_configs"

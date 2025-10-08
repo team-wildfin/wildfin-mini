@@ -2,8 +2,10 @@ import av
 import yaml
 import os
 from fish_benchmark.utils.general import setup_logger
-model_config =yaml.safe_load(open("config/models.yml", "r"))
-DATASETS = [
+from config.models.backbones import MODEL_SLIDING_STYLES
+from config.datasets import DATASETS as dataset_config
+
+DATASET_NAMES = [
     'coralcam', 
     # 'fishfollow'
 ]
@@ -84,7 +86,7 @@ if __name__ == '__main__':
         for SPLIT in dataset_config[DATASET]['splits'].keys():   
             for SLIDING_STYLE in dataset_config[DATASET]['splits'][SPLIT]['sliding_styles']: 
                 for FEATURE_EXTRACTOR in FEATURE_EXTRACTORS + ['inputs']:
-                    if FEATURE_EXTRACTOR != "inputs" and model_config[FEATURE_EXTRACTOR]['sliding_styles'] and SLIDING_STYLE not in model_config[FEATURE_EXTRACTOR]['sliding_styles']: continue
+                    if FEATURE_EXTRACTOR != "inputs" and MODEL_SLIDING_STYLES[FEATURE_EXTRACTOR] and SLIDING_STYLE not in MODEL_SLIDING_STYLES[FEATURE_EXTRACTOR]: continue
                     report = run(DATASET, SPLIT, SLIDING_STYLE, FEATURE_EXTRACTOR)
                     report_path = os.path.join(SAVE_DIR, DATASET, SPLIT, SLIDING_STYLE, f'{FEATURE_EXTRACTOR}_report.yml')
                     os.makedirs(os.path.dirname(report_path), exist_ok=True)

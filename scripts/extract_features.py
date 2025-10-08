@@ -37,9 +37,6 @@ SLIDING_STYLES = [
 PRECOMPUTED = False
 PARALLEL = False
 CHECK_REPORT = False
-
-model_config = yaml.safe_load(open("config/models.yml", "r"))
-
 device = "cuda" if torch.cuda.is_available() else "cpu"
 REPORT_ROOT = os.path.join("data", "validation", "reports")
 OUT_ROOT = os.path.join("logs", "extract_features")
