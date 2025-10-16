@@ -6,7 +6,7 @@ from scripts.matcher import WandbRunMatcher
 from datetime import datetime, timezone
 
 from fish_benchmark.typing.experiment import Experiment
-from configs import (
+from config.experiments.neurips import (
     VIDEOMAE_WEIGHTED_EXPS,
     DINO_WEIGHTED_EXPS,
     RESNET50_WEIGHTED_EXPS,

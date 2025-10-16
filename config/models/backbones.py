@@ -34,7 +34,7 @@ DINO_LARGE = BackBoneConfig(
 DINO_V3 = BackBoneConfig(
     name="dinov3",
     architecture="transformer",
-    hidden_size=384,
+    hidden_size=4096,
     input_ndim=3,
     output_ndim=2
 )

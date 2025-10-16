@@ -2,23 +2,24 @@ import os
 import subprocess
 import yaml
 import os
-from configs import *
+from config.experiments.neurips import *
 from typing import List, Optional, Callable
 from fish_benchmark.typing.experiment import Experiment
 from scripts.matcher import WandbRunMatcher
 from fish_benchmark.utils.general import setup_logger
 from submission import get_slurm_submission_command
+from config.experiments.cvpr import CVPR_EXPS
 
 PARALLEL = False
 OUTPUT_BASE = os.path.join("logs", "train")
 ENTITY = "fish-benchmark"
 TRAINING_PROJECT = "coralcam"
-ALL_EXPS = list(
-    filter(
-        lambda exp: exp.dataset == TRAINING_PROJECT,
-        VJEPA_BALANCED_UNIFORM
-    )
-)
+def filt(exp: Experiment) -> bool:
+    return (exp.backbone in ['dinov3'] and 
+            exp.pooling in ['mean', 'attention'] and 
+            exp.weight_config.weight_method in ['uniform', 'focal_loss'] and 
+            exp.dataset == TRAINING_PROJECT) 
+
 CONFIG_OUT = "generated_configs"
 os.makedirs(CONFIG_OUT, exist_ok=True)
 os.makedirs(OUTPUT_BASE, exist_ok=True)
@@ -57,6 +58,7 @@ def main():
     """
     logger.info("Starting training runs...")
     runner = WandbRunMatcher(ENTITY, TRAINING_PROJECT)
+    ALL_EXPS = [exp for exp in CVPR_EXPS if filt(exp)]
     matched_run_ids = runner.match(ALL_EXPS)
     pending_exps = [exp for exp in ALL_EXPS if exp.id not in matched_run_ids]
 

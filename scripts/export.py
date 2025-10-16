@@ -14,7 +14,7 @@ import numpy as np
 from typing import Callable, Dict, List, Optional, Union
 from dataclasses import dataclass
 from scripts.matcher import WandbRunMatcher
-from configs import (
+from config.experiments.neurips import (
     VIDEOMAE_WEIGHTED_EXPS,
     DINO_WEIGHTED_EXPS, 
     RESNET50_WEIGHTED_EXPS,

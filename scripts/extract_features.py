@@ -5,7 +5,7 @@ extracts features from precomputed inputs
 import yaml
 import os
 import torch
-from config.models.models import MODEL_SLIDING_STYLES
+from config.models.backbones import MODEL_SLIDING_STYLES
 from fish_benchmark.utils.general import setup_logger
 import subprocess
 import argparse
@@ -15,18 +15,20 @@ from config.datasets import CORALCAM, FISHFOLLOW
 from submission import get_slurm_submission_command
 
 TARGET_MODELS = [
-    "videomae",
+    # "videomae",
     # 'dino',
     # 'dino_large',
-    # 'resnet50'
+    # 'resnet50', 
+    # 'dinov3'
+    "vjepa2"
 ]
 SLIDING_STYLES = [
     # "frames",
-    # "frames_w_temp",
+    "frames_w_temp",
     # "sliding_window",
-    # "sliding_window_w_temp",
+    "sliding_window_w_temp",
     # "sliding_window_w_stride",
-    "sliding_window_ti8",
+    # "sliding_window_ti8",
     # "fix_patched_512",
     # "test_frames",
     # "test_sliding_window",
@@ -36,7 +38,7 @@ SLIDING_STYLES = [
 
 PRECOMPUTED = False
 PARALLEL = False
-CHECK_REPORT = False
+CHECK_REPORT = True
 device = "cuda" if torch.cuda.is_available() else "cpu"
 REPORT_ROOT = os.path.join("data", "validation", "reports")
 OUT_ROOT = os.path.join("logs", "extract_features")
@@ -47,6 +49,7 @@ logger = setup_logger(
     os.path.join(OUT_ROOT, "extract_fishfollow_features.log"),
     console=True,
     file=False,
+    level="DEBUG"
 )
 
 
@@ -69,7 +72,7 @@ def get_wrap_command(
     )
 
 
-def find_report(dataset, split, sliding_style, model):
+def find_report(dataset, split, sliding_style, model) -> Dict:
     # report should exist in REPORT_ROOT/dataset/split/sliding_style/<model>_report.yml
     report_path = os.path.join(
         REPORT_ROOT, dataset, split, sliding_style, f"{model}_report.yml"
@@ -108,7 +111,7 @@ def run(
     precomputed: bool,
 ):
     SUBSET_SOURCE = os.path.join(subset_path, "inputs") if precomputed else subset_path
-    FEATURE_DEST = os.path.join(subset_dest_path, f"{model: str}_features")
+    FEATURE_DEST = os.path.join(subset_dest_path, f"{model}_features")
     wrap_cmp = get_wrap_command(
         SUBSET_SOURCE, ds_name, ss_name, FEATURE_DEST, subset_id, model, precomputed
     )
@@ -130,26 +133,26 @@ def main():
     for dataset in [CORALCAM, FISHFOLLOW]:
         for split in dataset.splits:
             for model in TARGET_MODELS:
-                for ss_name in set(split.get_sliding_style_names()) & set(MODEL_SLIDING_STYLES[model]):
+                for ss_name in set(split.get_sliding_style_names()) & set([ss.name for ss in MODEL_SLIDING_STYLES[model]]):
                     SOURCE_PATH = (
-                        os.path.join(dataset.precomputed_path, ss_name, split)
+                        os.path.join(dataset.precomputed_path, ss_name, split.name)
                         if PRECOMPUTED
-                        else os.path.join(dataset.path, split)
+                        else os.path.join(dataset.path, split.name)
                     )
 
-                    DEST_PATH = os.path.join(dataset.precomputed_path, ss_name, split)
+                    DEST_PATH = os.path.join(dataset.precomputed_path, ss_name, split.name)
 
                     if CHECK_REPORT:
                         report = find_report(dataset.name, split.name, ss_name, model)
                         filt = get_incomplete_subsets(report) if report else {}
                         logger.info(
-                            f"found {len(filt)} incomplete subsets for {dataset.name} {split.name} {ss_name} {model}: {filt}"
-                        )
+                            f"found {len(filt)} incomplete subsets out of {len(report[split.name])} for {dataset.name} {split.name} {ss_name} {model}: {filt}"
+                        )        
                     else:
                         filt = None
-
+                    
                     for subset in os.listdir(SOURCE_PATH):
-                        if filt and subset not in filt:
+                        if (filt is not None) and (subset not in filt):
                             logger.debug(
                                 f"Skipping {subset} for {dataset.name} {split.name} {ss_name} {model}"
                             )

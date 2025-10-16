@@ -162,13 +162,13 @@ class ModelBuilder():
         return module_cls(**args)
 
     @staticmethod
-    def build(backbone_name: Optional[str], 
-              pooler_name: Optional[str], 
-              classifier_name: Optional[str], 
-              aggregator_name: Optional[str], 
-              hidden_size: Optional[int],
-              output_dim: int, 
-              freeze_backbone: bool) -> nn.Module:
+    def build(backbone_name: Optional[str] = None, 
+              pooler_name: Optional[str] = None, 
+              classifier_name: Optional[str] = None, 
+              aggregator_name: Optional[str] = None, 
+              hidden_size: Optional[int] = None,
+              output_dim: Optional[int] = None,
+              freeze_backbone: Optional[bool] = None) -> nn.Module:
         '''
         Builds the full model.
         '''

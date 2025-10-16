@@ -6,41 +6,8 @@ from fish_benchmark.typing.types import (
 )
 from fish_benchmark.typing.experiment import Experiment
 from typing import List, Dict, Any
+from defaults import DEFAULT_FIELDS
 
-DEFAULT_FIELDS = {
-    'pooling': 'mean',
-    'classifier': 'mlp',
-    'monitor': 'val_mAP',
-    'learning_rate': 0.00005,
-    'batch_size': 32,
-    'weight_decay': 0.001,
-    'shuffle': False,
-    'optimizer': 'adam',
-    'label_type': 'onehot',
-    'max_samples_per_class': 1000,
-    'freeze_backbone': False
-}
-
-
-DINOV3_ATTENTION_BALANCED_UNIFORM = [
-    Experiment(
-        **{
-            **DEFAULT_FIELDS,
-            'id': f'dinov3_attention_uniform_{dataset}_{sliding_style}',
-            'dataset': dataset,
-            'sliding_style': sliding_style,
-            'backbone': "dinov3",
-            'pooling': 'attention',        # overrides DEFAULT_FIELDS
-            'sampler': "balanced",
-            'weight_config': UniformConfig(),
-            'epochs': 40,
-            'fulltune': True,
-            'freeze_backbone': True        # overrides DEFAULT_FIELDS
-        }
-    )
-    for sliding_style in ["frames_w_temp"]
-    for dataset in ["coralcam", "fishfollow"]
-]
 
 
 DINO_ATTENTION_BALANCED_UNIFORM = [
