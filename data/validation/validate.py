@@ -8,17 +8,16 @@ from config.datasets import CORALCAM, FISHFOLLOW
 from fish_benchmark.typing.types import LocalDataset, Split, SlidingStyle
 
 DATASETS = [
-    CORALCAM,
+    # CORALCAM,
     FISHFOLLOW  
 ]
 FEATURE_EXTRACTORS = [
-    # 'dino', 
-    # 'dino_large', 
-    # 'videomae', 
-    # 'resnet50', 
-    'dinov3',
-    'vjepa2'
-
+    'dino', 
+    'dino_large', 
+    'videomae', 
+    'resnet50', 
+    # 'dinov3',
+    # 'vjepa2'
 ]  # or 'clip', etc.
 SAVE_DIR = 'data/validation/reports'
 if not os.path.exists(SAVE_DIR):

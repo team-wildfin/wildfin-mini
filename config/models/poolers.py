@@ -23,11 +23,11 @@ MAX_POOLER = ModelConfig(
 ) 
 
 class AttentionPooling(nn.Module):
-    def __init__(self, embed_dim, num_heads=8):
+    def __init__(self, hidden_size, num_heads=8):
         super().__init__()
-        self.query_token = nn.Parameter(torch.randn(1, 1, embed_dim))
-        self.norm = nn.LayerNorm(embed_dim)
-        self.attn = nn.MultiheadAttention(embed_dim, num_heads=num_heads, batch_first=True)
+        self.query_token = nn.Parameter(torch.randn(1, 1, hidden_size))
+        self.norm = nn.LayerNorm(hidden_size)
+        self.attn = nn.MultiheadAttention(hidden_size, num_heads=num_heads, batch_first=True)
 
     def forward(self, x):
         B = x.size(0)

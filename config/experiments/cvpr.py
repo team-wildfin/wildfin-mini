@@ -1,7 +1,7 @@
-from defaults import DEFAULT_FIELDS
+from .defaults import DEFAULT_FIELDS
 from fish_benchmark.typing.experiment import Experiment
 from fish_benchmark.typing.types import UniformConfig, FocalLossConfig
-from neurips import DINO_WEIGHTED_EXPS, VIDEOMAE_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS
+from .neurips import DINO_WEIGHTED_EXPS, VIDEOMAE_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS
 
 DINOV3 = [
     Experiment(
@@ -10,7 +10,7 @@ DINOV3 = [
             'id': f'dinov3_{pooling}_{weight_config.weight_method}_{dataset}_{sliding_style}',
             'dataset': dataset,
             'sliding_style': sliding_style,
-            'backbone': "dinov3",
+            'backbone': "dinov3_large",
             'pooling': pooling,        # overrides DEFAULT_FIELDS
             'sampler': "balanced",
             'weight_config': weight_config,
@@ -29,7 +29,7 @@ VJEPA2 = [
     Experiment(
         **{
             **DEFAULT_FIELDS,
-            'id': f'vijepa2_{pooling}_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'id': f'vjepa2_{pooling}_{weight_config.weight_method}_{dataset}_{sliding_style}',
             'dataset': dataset,
             'sliding_style': sliding_style,
             'backbone': "vjepa2",

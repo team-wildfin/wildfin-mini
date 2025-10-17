@@ -6,7 +6,7 @@ from fish_benchmark.typing.types import (
 )
 from fish_benchmark.typing.experiment import Experiment
 from typing import List, Dict, Any
-from defaults import DEFAULT_FIELDS
+from .defaults import DEFAULT_FIELDS
 
 
 

@@ -19,8 +19,8 @@ TARGET_MODELS = [
     # 'dino',
     # 'dino_large',
     # 'resnet50', 
-    # 'dinov3'
-    "vjepa2"
+    'dinov3_large',
+    # "vjepa2"
 ]
 SLIDING_STYLES = [
     # "frames",
@@ -30,8 +30,8 @@ SLIDING_STYLES = [
     # "sliding_window_w_stride",
     # "sliding_window_ti8",
     # "fix_patched_512",
-    # "test_frames",
-    # "test_sliding_window",
+    "test_frames",
+    "test_sliding_window",
     # "test_fix_patched_512",
     # "test_sliding_window_ti8"
 ]
@@ -81,13 +81,13 @@ def find_report(dataset, split, sliding_style, model) -> Dict:
         logger.warning(
             f"Report not found for {dataset} {split} {sliding_style} {model} at {report_path}"
         )
-        return None
+        return {'train': {}, 'val': {}, 'test': {}}  # empty report
     with open(report_path, "r") as f:
         report = yaml.safe_load(f)
     return report
 
 
-def get_incomplete_subsets(report: Dict):
+def get_complete_subsets(report: Dict):
     # assert report is not empty
     assert report, "Report is empty"
     data: Dict = list(report.values())[
@@ -95,7 +95,7 @@ def get_incomplete_subsets(report: Dict):
     ]  # Assuming report is a dict with one key-value pair
     res = []
     for subset, subset_data in data.items():
-        if subset_data["actual_files"] != subset_data["expected_items"]:
+        if subset_data["actual_files"] == subset_data["expected_items"]:
             res.append(subset)
     return res
 
@@ -130,6 +130,14 @@ def run(
 
 
 def main():
+    #prompt the user to confirm if PARALLEL
+    if PARALLEL:
+        confirm = input(
+            f"PARALLEL is set to True. Proceed? (y/n): "
+        ).strip().lower()
+        if confirm != "y":
+            logger.info("Aborting.")
+            return
     for dataset in [CORALCAM, FISHFOLLOW]:
         for split in dataset.splits:
             for model in TARGET_MODELS:
@@ -139,20 +147,19 @@ def main():
                         if PRECOMPUTED
                         else os.path.join(dataset.path, split.name)
                     )
-
                     DEST_PATH = os.path.join(dataset.precomputed_path, ss_name, split.name)
 
                     if CHECK_REPORT:
                         report = find_report(dataset.name, split.name, ss_name, model)
-                        filt = get_incomplete_subsets(report) if report else {}
+                        skip = get_complete_subsets(report) if report else {}
                         logger.info(
-                            f"found {len(filt)} incomplete subsets out of {len(report[split.name])} for {dataset.name} {split.name} {ss_name} {model}: {filt}"
+                            f"found {len(skip)} complete subsets out of {len(report[split.name])} for {dataset.name} {split.name} {ss_name} {model}: {skip}"
                         )        
                     else:
-                        filt = None
+                        skip = None
                     
                     for subset in os.listdir(SOURCE_PATH):
-                        if (filt is not None) and (subset not in filt):
+                        if (skip is not None) and (subset in skip):
                             logger.debug(
                                 f"Skipping {subset} for {dataset.name} {split.name} {ss_name} {model}"
                             )

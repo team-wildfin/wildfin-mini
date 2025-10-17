@@ -15,8 +15,8 @@ OUTPUT_BASE = os.path.join("logs", "train")
 ENTITY = "fish-benchmark"
 TRAINING_PROJECT = "coralcam"
 def filt(exp: Experiment) -> bool:
-    return (exp.backbone in ['dinov3'] and 
-            exp.pooling in ['mean', 'attention'] and 
+    return (exp.backbone in ['dinov3_large'] and 
+            exp.pooling in ['attention', 'mean'] and 
             exp.weight_config.weight_method in ['uniform', 'focal_loss'] and 
             exp.dataset == TRAINING_PROJECT) 
 
@@ -73,10 +73,10 @@ def main():
         logger.info("No pending experiments to run.")
         return
 
-    user_input = input("\nProceed with running these experiments? (y/n): ").strip().lower()
-    if user_input != "y":
-        logger.info("Aborted by user.")
-        return
+    # user_input = input("\nProceed with running these experiments? (y/n): ").strip().lower()
+    # if user_input != "y":
+    #     logger.info("Aborted by user.")
+    #     return
 
     for exp in pending_exps:
         logger.info(f"Running training for experiment: {exp.id}")

@@ -20,7 +20,7 @@ from config.datasets import DATASETS
 from config.models.backbones import BACKBONE_CONFIGS
 from config.sliding_styles import SLIDING_STYLES
 from artifact import log_best_model, log_latest_model
-
+checkpoint_path = yaml.safe_load(open("config/training.yml"))['checkpoint_path']
 
 def load_config(path: Union[str, Path]) -> Experiment:
     with open(path, "r") as f:
@@ -155,7 +155,7 @@ def main():
         monitor=config.monitor,
         save_top_k=1,
         mode="max",
-        dirpath=f"./checkpoints/{wandb_logger.experiment.id}",
+        dirpath=f"{checkpoint_path}/{wandb_logger.experiment.id}",
         filename="best-{epoch:02d}-{val_mAP:.2f}",
     )
 
@@ -163,7 +163,7 @@ def main():
         save_top_k=1,
         every_n_epochs=1,
         save_on_train_epoch_end=True,
-        dirpath=f"./checkpoints/{wandb_logger.experiment.id}",
+        dirpath=f"{checkpoint_path}/{wandb_logger.experiment.id}",
         filename="latest",
     )
 

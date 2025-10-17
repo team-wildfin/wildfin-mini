@@ -15,6 +15,7 @@ from fish_benchmark.typing.experiment import Experiment, Evaluation
 from config.datasets import DATASETS
 
 eval_config = yaml.safe_load(open('config/eval.yml', 'r'))
+checkpoint_path = yaml.safe_load(open('config/training.yml', 'r'))['checkpoint_path']
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 TEST_METRIC_DIR = os.path.join('logs', 'test_metrics')
@@ -43,7 +44,7 @@ if __name__ == "__main__":
         #load from ./checkpoints/<run_id>/best<something>.ckpt
         print(f"Failed to download artifact: {e}")
         print(f"Trying to load from local path")
-        ckpt_pattern = os.path.join('checkpoints', args.run, 'best*.ckpt')
+        ckpt_pattern = os.path.join(checkpoint_path, args.run, 'best*.ckpt')
         ckpt_files = glob.glob(ckpt_pattern)
         assert len(ckpt_files) == 1, f"Expected exactly one checkpoint file matching 'best*.ckpt' in {ckpt_pattern}"
         ckpt_file = ckpt_files[0]
