@@ -24,7 +24,7 @@ from config.models.backbones import BACKBONE_CONFIGS, BACKBONE_MODULES, PREPROCE
 from config.models.poolers import POOLER_MODULES
 from config.models.classifiers import CLASSIFIER_MODULES
 import inspect 
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 
 class FreezableBackbone(nn.Module, ABC):
     def __init__(self, *, freeze: bool = False):
@@ -63,12 +63,10 @@ class CNN(FreezableBackbone):
         self.config = BACKBONE_CONFIGS[model_name]
         self.model = BACKBONE_MODULES[model_name]()
         self.input_ndim = self.config.input_ndim
-        assert self.config.hidden_size == self.model.config.hidden_size, (
-            f"Model hidden size {self.model.config.hidden_size[-1]} does not match config hidden size {self.config.hidden_size}"
-        )
 
     def run(self, x: torch.Tensor) -> torch.Tensor:
         feats = self.model(x).last_hidden_state  # (B, C, H, W)
+        print(feats.shape)
         B, C, H, W = feats.shape
         return feats.flatten(2).transpose(1, 2)  # (B, H*W, C)
 
@@ -119,12 +117,27 @@ class BroadcastableModule(nn.Module):
 
 class ModelBuilder():
     @staticmethod
+    def assert_args_complete(module_cls: type, args: dict):
+        # Only keep required parameters (no default)
+        required = [
+            name for name, param in inspect.signature(module_cls).parameters.items()
+            if param.default is inspect.Parameter.empty
+        ]
+        missing = set(required) - set(args.keys())
+        assert not missing, f"Missing required parameters {missing} in args {list(args.keys())}"
+
+    @staticmethod
+    def trim_args(module_cls: type, args: Dict) -> Dict:
+        return {
+            k: v for k, v in args.items() 
+                if k in inspect.signature(module_cls).parameters and v is not None
+        }
+
+    @staticmethod
     def build_backbone(backbone_name, freeze_backbone) -> Union[CNN, TransformerModel]:
         '''
         Builds the backbone model. Side Effect: Updates self.hidden_size.
         '''
-        if backbone_name is None:
-            return nn.Identity()
         backbone_config = BACKBONE_CONFIGS[backbone_name]
         backbone = (TransformerModel(backbone_config.name, freeze=freeze_backbone)      
                 if backbone_config.architecture == 'transformer' 
@@ -136,29 +149,19 @@ class ModelBuilder():
         '''
         Builds the pooling layer.
         '''
-        if pooler is None:
-            return nn.Identity()
         module_cls = POOLER_MODULES[pooler]
-        args = {
-            k: v for k, v in {
-                'dim': 1, 'hidden_size': hidden_size
-            }.items() 
-                if k in inspect.signature(module_cls).parameters
-        }
+        args = ModelBuilder.trim_args(module_cls, {'dim': 1, 'hidden_size': hidden_size})
+        ModelBuilder.assert_args_complete(module_cls, args)
         return module_cls(**args)
     
     @staticmethod
     def build_classifier(classifier: str, in_features: str, out_features: str) -> nn.Module:
-        if classifier is None:
-            return nn.Identity()
         module_cls = CLASSIFIER_MODULES[classifier]
-        args = {
-            k: v for k, v in {
+        args = ModelBuilder.trim_args(module_cls, {
                 'in_features': in_features, 
                 'out_features': out_features, 
-            }.items() 
-                if k in inspect.signature(module_cls).parameters
-        }
+            })
+        ModelBuilder.assert_args_complete(module_cls, args)
         return module_cls(**args)
 
     @staticmethod
@@ -172,19 +175,19 @@ class ModelBuilder():
         '''
         Builds the full model.
         '''
-        backbone = ModelBuilder.build_backbone(backbone_name, freeze_backbone)
-        if not hidden_size: 
+        backbone = ModelBuilder.build_backbone(backbone_name, freeze_backbone) if backbone_name else None
+        if backbone is not None: 
+            if backbone.config.hidden_size != hidden_size and hidden_size is not None:
+                raise Warning(
+                    f"Provided hidden_size {hidden_size} does not match backbone hidden_size {backbone.config.hidden_size}, using backbone hidden_size."
+                )
             hidden_size = backbone.config.hidden_size
-        elif pooler_name is not None or classifier_name is not None: 
-            assert backbone is None or hidden_size == backbone.config.hidden_size, (
-                f"Provided hidden size {hidden_size} does not match backbone hidden size {backbone.config.hidden_size}"
-            )
-        pooler = ModelBuilder.build_pooling(pooler_name, hidden_size)
-        classifier = ModelBuilder.build_classifier(classifier_name, hidden_size, output_dim)
-        aggregator = ModelBuilder.build_pooling(aggregator_name, hidden_size)
+        pooler = ModelBuilder.build_pooling(pooler_name, hidden_size) if pooler_name else None
+        classifier = ModelBuilder.build_classifier(classifier_name, hidden_size, output_dim) if classifier_name else None
+        aggregator = ModelBuilder.build_pooling(aggregator_name, hidden_size) if aggregator_name else None
         return nn.Sequential(
-            backbone,
-            pooler,
-            classifier,
-            aggregator
+            backbone if backbone else nn.Identity(),
+            pooler if pooler else nn.Identity(),
+            classifier if classifier else nn.Identity(),
+            aggregator if aggregator else nn.Identity()
         )

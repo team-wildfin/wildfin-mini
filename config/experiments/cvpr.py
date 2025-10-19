@@ -3,11 +3,11 @@ from fish_benchmark.typing.experiment import Experiment
 from fish_benchmark.typing.types import UniformConfig, FocalLossConfig
 from .neurips import DINO_WEIGHTED_EXPS, VIDEOMAE_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS
 
-DINOV3 = [
+DINOV3_LARGE = [
     Experiment(
         **{
             **DEFAULT_FIELDS,
-            'id': f'dinov3_{pooling}_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'id': f'dinov3_large_{pooling}_{weight_config.weight_method}_{dataset}_{sliding_style}',
             'dataset': dataset,
             'sliding_style': sliding_style,
             'backbone': "dinov3_large",
@@ -47,6 +47,27 @@ VJEPA2 = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
+VIDEOMAE_ATTENTION = [
+    Experiment(
+        **{
+            **DEFAULT_FIELDS,
+            'id': f'videomae_attention_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'dataset': dataset,
+            'sliding_style': sliding_style,
+            'backbone': "videomae",
+            'pooling': 'attention',        # overrides DEFAULT_FIELDS
+            'sampler': "balanced",
+            'weight_config': weight_config,
+            'epochs': 40,
+            'fulltune': True,
+            'freeze_backbone': True        # overrides DEFAULT_FIELDS
+        }
+    )
+    for sliding_style in ["sliding_window_w_temp"]
+    for weight_config in [UniformConfig(), FocalLossConfig(focal_loss_alpha=0.75, focal_loss_gamma=5.0)]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
 RESNET_ATTENTION = [
     Experiment(
         **{
@@ -68,4 +89,10 @@ RESNET_ATTENTION = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
-CVPR_EXPS = DINOV3 + VJEPA2 + RESNET_ATTENTION + DINO_WEIGHTED_EXPS + VIDEOMAE_WEIGHTED_EXPS + RESNET50_WEIGHTED_EXPS
+CVPR_EXPS = (DINOV3_LARGE + 
+             VJEPA2 + 
+             RESNET_ATTENTION + 
+             VIDEOMAE_WEIGHTED_EXPS + 
+             VIDEOMAE_ATTENTION +
+             RESNET50_WEIGHTED_EXPS
+            ) 

@@ -142,7 +142,7 @@ def main():
         model = (
             ModelBuilder.build(
                 backbone_name=None,
-                pooler_name=config.pooling,
+                pooler_name=None,
                 classifier_name=config.classifier,
                 aggregator_name=aggregator,
                 hidden_size=hidden_size,

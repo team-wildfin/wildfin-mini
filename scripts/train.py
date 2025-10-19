@@ -13,10 +13,10 @@ from config.experiments.cvpr import CVPR_EXPS
 PARALLEL = False
 OUTPUT_BASE = os.path.join("logs", "train")
 ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "coralcam"
+TRAINING_PROJECT = "fishfollow"
 def filt(exp: Experiment) -> bool:
-    return (exp.backbone in ['dinov3_large'] and 
-            exp.pooling in ['attention', 'mean'] and 
+    return (exp.backbone in ['dinov3_large', 'vjepa2', 'resnet50', 'videomae'] and 
+            exp.pooling in ['attention'] and 
             exp.weight_config.weight_method in ['uniform', 'focal_loss'] and 
             exp.dataset == TRAINING_PROJECT) 
 

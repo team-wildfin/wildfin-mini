@@ -8,4 +8,5 @@ class ModelConfig(BaseModel):
     
 class BackBoneConfig(ModelConfig):
     architecture: Literal['cnn', 'transformer']
+    crop_size: tuple[int, int]
     hidden_size: int

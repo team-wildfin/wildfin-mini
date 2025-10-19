@@ -88,7 +88,7 @@ if __name__ == "__main__":
         dataset=dataset,
         style=SLIDING_STYLES[config['test_sliding_style']],
         transform=None,
-        precomputed=True,
+        precomputed= not config.get('fulltune'),
         feature_model=config['backbone'] if not config.get('fulltune') else None
     ).build()
     test_dataloader = DataLoader(

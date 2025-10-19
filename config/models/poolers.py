@@ -27,6 +27,8 @@ class AttentionPooling(nn.Module):
         super().__init__()
         self.query_token = nn.Parameter(torch.randn(1, 1, hidden_size))
         self.norm = nn.LayerNorm(hidden_size)
+        if hidden_size % num_heads != 0:
+            num_heads = 1  # Fallback to single head if hidden_size not divisible
         self.attn = nn.MultiheadAttention(hidden_size, num_heads=num_heads, batch_first=True)
 
     def forward(self, x):
