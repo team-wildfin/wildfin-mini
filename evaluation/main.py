@@ -13,6 +13,7 @@ from config.sliding_styles import SLIDING_STYLES
 import glob
 from fish_benchmark.typing.experiment import Experiment, Evaluation
 from config.datasets import DATASETS
+from config.maps.backbone_preprocessors import PREPROCESSORS
 
 eval_config = yaml.safe_load(open('config/eval.yml', 'r'))
 checkpoint_path = yaml.safe_load(open('config/training.yml', 'r'))['checkpoint_path']
@@ -74,22 +75,24 @@ if __name__ == "__main__":
     ]
 
     wandb_logger = WandbLogger(
-        project=f'{config['dataset']}_eval',    
+        project=f'{config.dataset}_eval',    
         entity="fish-benchmark",
         save_dir="./logs",
-        tags = [v for k, v in config.items() if k in tags_keys] + (["fulltune"] if config.get("fulltune") else []), 
+        tags = [v for k, v in config.items() if k in tags_keys] + (["fulltune"] if config.fulltune else []), 
         config=config,
     )
-    dataset = DATASETS[config['dataset']]
-    test_data_dir = os.path.join(
-        dataset.precomputed_path, config['test_sliding_style'], 'test')
+    dataset = DATASETS[config.dataset]
+    precomputed = not config.fulltune
+    test_data_dir = (os.path.join(dataset.precomputed_path, config.test_sliding_style, 'test') 
+                     if precomputed 
+                     else dataset.path)
     test_dataset = DatasetBuilder(
         path=test_data_dir, 
         dataset=dataset,
-        style=SLIDING_STYLES[config['test_sliding_style']],
-        transform=None,
-        precomputed= not config.get('fulltune'),
-        feature_model=config['backbone'] if not config.get('fulltune') else None
+        sliding_style=SLIDING_STYLES[config.test_sliding_style],
+        transform=None if precomputed else PREPROCESSORS[config.backbone],
+        precomputed=precomputed,
+        feature_model=config.backbone if precomputed else None # if not precomoputed, the feature model is the downloaded backbone
     ).build()
     test_dataloader = DataLoader(
         test_dataset, 

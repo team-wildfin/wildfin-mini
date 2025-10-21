@@ -20,7 +20,9 @@ from transformers import AutoConfig
 import yaml
 from contextlib import nullcontext
 from abc import ABC, abstractmethod
-from config.models.backbones import BACKBONE_CONFIGS, BACKBONE_MODULES, PREPROCESSORS, ModelConfig, BackBoneConfig
+from config.models.backbones import ModelConfig, BackBoneConfig, BACKBONE_CONFIGS
+from config.maps.backbone_modules import BACKBONE_MODULES 
+from config.maps.backbone_preprocessors import PREPROCESSORS
 from config.models.poolers import POOLER_MODULES
 from config.models.classifiers import CLASSIFIER_MODULES
 import inspect 

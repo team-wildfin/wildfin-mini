@@ -81,7 +81,10 @@ def main():
     for exp in pending_exps:
         logger.info(f"Running training for experiment: {exp.id}")
         config_path = save_config_to_file(exp, CONFIG_OUT)
-        run_training(config_path, exp.id)
+        try: 
+            run_training(config_path, exp.id)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Training failed for {exp.id}: {e}")
 
     logger.info("Training runs completed.")
 

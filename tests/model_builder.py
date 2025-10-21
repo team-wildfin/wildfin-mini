@@ -2,7 +2,7 @@ from fish_benchmark.models import ModelBuilder
 import unittest
 from typing import Dict
 import torch
-from config.models.backbones import PREPROCESSORS
+from config.maps.backbone_preprocessors import PREPROCESSORS
 
 class TestModelBuilder(unittest.TestCase):
     def setUp(self):

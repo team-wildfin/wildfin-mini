@@ -147,7 +147,7 @@ def main():
                 aggregator_name=aggregator,
                 hidden_size=hidden_size,
                 output_dim=len(train_dataset.categories),
-                freeze_backbone=True
+                freeze_backbone=False
             )
         )
 

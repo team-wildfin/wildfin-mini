@@ -1,6 +1,8 @@
 from pydantic import BaseModel, model_validator
 from typing import Optional, Literal
-from config.models.backbones import MODEL_SLIDING_STYLES
+print("importing backbone sliding styles...")
+from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
+print("importing types...")
 from fish_benchmark.typing.types import Pooling, Classifier, WeightConfig, Sampler, Metric, Optimizer, LabelType
 
 class Experiment(BaseModel): 
@@ -37,6 +39,9 @@ class Experiment(BaseModel):
     #additional configs
     train_subset: Optional[str] = None
     val_subset: Optional[str] = None
+
+    def items(self):
+        return self.__dict__.items()
 
     @model_validator(mode="after")
     def check_sliding_style(self):

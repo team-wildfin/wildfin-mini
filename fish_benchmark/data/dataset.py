@@ -342,7 +342,9 @@ class FrameAnnotatedSource(BaseSource):
 
             label = np.loadtxt(label_path, delimiter='\t', dtype=int)
             container = av.open(video_path)
-            assert label.shape[0] == container.streams.video[0].frames, f"Number of frames in {video_path}: {container.streams.video[0].frames} does not match number of annotations in {label_path}: {label.shape[0]}"
+            if label.shape[0] != container.streams.video[0].frames:
+                logger.warning(f"Label length {label.shape[0]} does not match number of frames {container.streams.video[0].frames} in video {video_path}")
+                continue
 
             #front padding
             first_frame = get_first_frame(video_path)
@@ -511,6 +513,7 @@ class PrecomputedDataset(Dataset):
         self.transform = transform
         self.categories = categories
         print(self.path)
+        print(f"feature_model: {feature_model}")
         with step_timer("loading input file paths", verbose=PROFILE):
             file_paths = get_files_of_type(self.path, ".npy", min_ctime=min_ctime)
             INPUT_TYPE = "inputs" if feature_model is None else f"{feature_model}_features"
