@@ -4,16 +4,16 @@ import wandb
 import logging
 from scripts.matcher import WandbRunMatcher
 from datetime import datetime, timezone
-
+import pprint
 from fish_benchmark.typing.experiment import Experiment
 from config.experiments.cvpr import CVPR_EXPS
-from submission import get_slurm_submission_command
+from .submission import get_slurm_submission_command
 from fish_benchmark.utils.general import setup_logger
 
-logger = setup_logger("evaluate", "logs/evaluate.log", console=True, file=True, level=logging.DEBUG)
+logger = setup_logger("evaluate", console=True, file=False, level=logging.DEBUG)
 
 ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "fishfollow"
+TRAINING_PROJECT = "coralcam"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,
@@ -47,12 +47,18 @@ def main():
     train_project_matcher = WandbRunMatcher(ENTITY, TRAINING_PROJECT)
     eval_project_matcher = WandbRunMatcher(ENTITY, EVAL_PROJECT)
     logger.debug("matching train runs")
-    trained = train_project_matcher.match(ALL_EXPS)     # {exp_id: run_id}
+    train_status = train_project_matcher.match(ALL_EXPS)     # {exp_id: run_id}
+    trained = {exp_id: v for exp_id, v in train_status.items() if v != []}
+    pprint.pprint(trained)
     logger.debug("matching eval runs")
-    evaluated = eval_project_matcher.match(ALL_EXPS)   # {exp_id: run_id}
+    evaluation_status = {
+        exp_id: eval_project_matcher.match_by_train_id(train_ids)
+        for exp_id, train_ids in trained.items()
+    }
+    pprint.pprint(evaluation_status)
+    evaluated = {exp_id: v for exp_id, v in evaluation_status.items() if not all(x is None for x in v)}
     logger.info(f"Total experiments: {len(ALL_EXPS)}")
     logger.info(f"Found {len(trained)} trained runs and {len(evaluated)} evaluated runs.")
-
     pending_eval = {exp_id: trained[exp_id] for exp_id in set(trained.keys()) - set(evaluated.keys())}
     
     if not pending_eval:
@@ -63,10 +69,10 @@ def main():
     for exp_id in sorted(pending_eval.keys()):
         logger.info(f"  - {exp_id}")
 
-    # confirm = input("Proceed with evaluation for these experiments? [y/n]: ").strip().lower()
-    # if confirm != "y":
-    #     logger.info("Aborting evaluation.")
-    #     return
+    confirm = input("Proceed with evaluation for these experiments? [y/n]: ").strip().lower()
+    if confirm != "y":
+        logger.info("Aborting evaluation.")
+        return
 
     for exp_id, run_id in pending_eval.items():
         logger.info(f"Running evaluation for run ID: {run_id} (experiment: {exp_id})")
