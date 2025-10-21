@@ -2,7 +2,7 @@ import av
 import yaml
 import os
 from fish_benchmark.utils.general import setup_logger
-from config.models.backbones import MODEL_SLIDING_STYLES
+from config.maps.model_sliding_style import MODEL_SLIDING_STYLE
 from config.sliding_styles import SLIDING_STYLES
 from config.datasets import CORALCAM, FISHFOLLOW
 from fish_benchmark.typing.types import LocalDataset, Split, SlidingStyle

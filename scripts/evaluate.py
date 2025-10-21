@@ -6,23 +6,18 @@ from scripts.matcher import WandbRunMatcher
 from datetime import datetime, timezone
 
 from fish_benchmark.typing.experiment import Experiment
-from config.experiments.neurips import (
-    VIDEOMAE_WEIGHTED_EXPS,
-    DINO_WEIGHTED_EXPS,
-    RESNET50_WEIGHTED_EXPS,
-    VIDEOMAE_BALANCED_FOCAL
-)
+from config.experiments.cvpr import CVPR_EXPS
 from submission import get_slurm_submission_command
 from fish_benchmark.utils.general import setup_logger
 
-logger = setup_logger("evaluate", "logs/evaluate.log", console=True, file=True, level=logging.INFO)
+logger = setup_logger("evaluate", "logs/evaluate.log", console=True, file=True, level=logging.DEBUG)
 
 ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "coralcam"
+TRAINING_PROJECT = "fishfollow"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,
-        VIDEOMAE_WEIGHTED_EXPS
+        CVPR_EXPS
     )
 )
 EVAL_PROJECT = f"{TRAINING_PROJECT}_eval"
@@ -51,8 +46,9 @@ def eval(entity: str, project: str, run_id: str):
 def main():
     train_project_matcher = WandbRunMatcher(ENTITY, TRAINING_PROJECT)
     eval_project_matcher = WandbRunMatcher(ENTITY, EVAL_PROJECT)
-
+    logger.debug("matching train runs")
     trained = train_project_matcher.match(ALL_EXPS)     # {exp_id: run_id}
+    logger.debug("matching eval runs")
     evaluated = eval_project_matcher.match(ALL_EXPS)   # {exp_id: run_id}
     logger.info(f"Total experiments: {len(ALL_EXPS)}")
     logger.info(f"Found {len(trained)} trained runs and {len(evaluated)} evaluated runs.")
@@ -67,14 +63,17 @@ def main():
     for exp_id in sorted(pending_eval.keys()):
         logger.info(f"  - {exp_id}")
 
-    confirm = input("Proceed with evaluation for these experiments? [y/n]: ").strip().lower()
-    if confirm != "y":
-        logger.info("Aborting evaluation.")
-        return
+    # confirm = input("Proceed with evaluation for these experiments? [y/n]: ").strip().lower()
+    # if confirm != "y":
+    #     logger.info("Aborting evaluation.")
+    #     return
 
     for exp_id, run_id in pending_eval.items():
         logger.info(f"Running evaluation for run ID: {run_id} (experiment: {exp_id})")
-        eval(ENTITY, TRAINING_PROJECT, run_id)
+        try: 
+            eval(ENTITY, TRAINING_PROJECT, run_id)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Evaluation failed for {exp_id}: {e}")
 
 
 if __name__ == "__main__":

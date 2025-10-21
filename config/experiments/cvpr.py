@@ -1,17 +1,22 @@
+print("experiment defaults importing...")
 from .defaults import DEFAULT_FIELDS
+print("experiment types importing...")
 from fish_benchmark.typing.experiment import Experiment
+print("loss types importing...")
 from fish_benchmark.typing.types import UniformConfig, FocalLossConfig
+print("experiment constants importing...")
 from .neurips import DINO_WEIGHTED_EXPS, VIDEOMAE_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS
+print("experiment packages imported")
 
-DINOV3_LARGE = [
+DINOV3_LARGE_ATTENTION = [
     Experiment(
         **{
             **DEFAULT_FIELDS,
-            'id': f'dinov3_large_{pooling}_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'id': f'dinov3_large_attention_{weight_config.weight_method}_{dataset}_{sliding_style}',
             'dataset': dataset,
             'sliding_style': sliding_style,
             'backbone': "dinov3_large",
-            'pooling': pooling,        # overrides DEFAULT_FIELDS
+            'pooling': 'attention',        # overrides DEFAULT_FIELDS
             'sampler': "balanced",
             'weight_config': weight_config,
             'epochs': 40,
@@ -20,20 +25,40 @@ DINOV3_LARGE = [
         }
     )
     for sliding_style in ["frames_w_temp"]
-    for pooling in ['attention', 'mean']
     for weight_config in [UniformConfig(), FocalLossConfig(focal_loss_alpha=0.75, focal_loss_gamma=5.0)]
     for dataset in ["coralcam", "fishfollow"]
 ]
 
-VJEPA2 = [
+DINOV3_LARGE_MEAN = [
     Experiment(
         **{
             **DEFAULT_FIELDS,
-            'id': f'vjepa2_{pooling}_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'id': f'dinov3_large_mean_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'dataset': dataset,
+            'sliding_style': sliding_style,
+            'backbone': "dinov3_large",
+            'pooling': 'mean',        
+            'sampler': "balanced",
+            'weight_config': weight_config,
+            'epochs': 40,
+            'fulltune': False,
+            'freeze_backbone': False       
+        }
+    )
+    for sliding_style in ["frames_w_temp"]
+    for weight_config in [UniformConfig(), FocalLossConfig(focal_loss_alpha=0.75, focal_loss_gamma=5.0)]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
+VJEPA2_ATTENTION = [
+    Experiment(
+        **{
+            **DEFAULT_FIELDS,
+            'id': f'vjepa2_attention_{weight_config.weight_method}_{dataset}_{sliding_style}',
             'dataset': dataset,
             'sliding_style': sliding_style,
             'backbone': "vjepa2",
-            'pooling': pooling,        # overrides DEFAULT_FIELDS
+            'pooling': 'attention',        # overrides DEFAULT_FIELDS
             'sampler': "balanced",
             'weight_config': weight_config,
             'epochs': 40,
@@ -42,7 +67,27 @@ VJEPA2 = [
         }
     )
     for sliding_style in ["sliding_window_w_temp"]
-    for pooling in ['attention', 'mean']
+    for weight_config in [UniformConfig(), FocalLossConfig(focal_loss_alpha=0.75, focal_loss_gamma=5.0)]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
+VJEPA2_MEAN = [
+    Experiment(
+        **{
+            **DEFAULT_FIELDS,
+            'id': f'vjepa2_mean_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'dataset': dataset,
+            'sliding_style': sliding_style,
+            'backbone': "vjepa2",
+            'pooling': 'mean',        # overrides DEFAULT_FIELDS
+            'sampler': "balanced",
+            'weight_config': weight_config,
+            'epochs': 40,
+            'fulltune': False,
+            'freeze_backbone': False        # overrides DEFAULT_FIELDS
+        }
+    )
+    for sliding_style in ["sliding_window_w_temp"]
     for weight_config in [UniformConfig(), FocalLossConfig(focal_loss_alpha=0.75, focal_loss_gamma=5.0)]
     for dataset in ["coralcam", "fishfollow"]
 ]
@@ -89,8 +134,10 @@ RESNET_ATTENTION = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
-CVPR_EXPS = (DINOV3_LARGE + 
-             VJEPA2 + 
+CVPR_EXPS = (DINOV3_LARGE_ATTENTION + 
+             DINOV3_LARGE_MEAN +
+             VJEPA2_ATTENTION + 
+             VJEPA2_MEAN +
              RESNET_ATTENTION + 
              VIDEOMAE_WEIGHTED_EXPS + 
              VIDEOMAE_ATTENTION +

@@ -1,5 +1,5 @@
 from fish_benchmark.models import ModelBuilder
-from config.models.backbones import PREPROCESSORS
+from config.maps.backbone_preprocessors import PREPROCESSORS
 from fish_benchmark.data.dataset import DatasetBuilder
 import yaml 
 import argparse
