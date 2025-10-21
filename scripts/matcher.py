@@ -2,7 +2,12 @@ from typing import Optional, List, Dict, Callable, Iterable
 from fish_benchmark.typing.experiment import Experiment
 import wandb
 import logging
-logger = logging.getLogger(__name__)
+# Configure the *root logger* so it handles logs from any module
+logging.basicConfig(
+    level=logging.INFO,  # or INFO if you want less verbosity
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
+logger = logging.getLogger()
 class WandbRunMatcher: 
     '''
     A general class to run any function using wandb runs from the source project and output to the destination project.
@@ -30,10 +35,13 @@ class WandbRunMatcher:
         """
         matched_runs = {}
         source_runs = self.api.runs(f"{self.entity}/{self.source_project}", filters={"state": "finished"})
+        logger.debug(f"Found {len(source_runs)} finished runs in {self.source_project}.")
+        print(f"Found {len(source_runs)} finished runs in {self.source_project}.")
         for run in source_runs:
             if not self._has_any_artifact(run):
                 continue
             for exp in experiments:
+                #u0r08iio
                 if self.match_config(run.config, exp):
                     if exp.id not in matched_runs or run.created_at > matched_runs[exp.id].created_at:
                         matched_runs[exp.id] = run
@@ -57,6 +65,6 @@ class WandbRunMatcher:
         for k, v in ref_dict.items():
             run_val = get(run_config, k)
             if run_val != v:
-                logger.debug(f"Config mismatch: {k} -> {run_val} != {v} in {reference.id}")
+                logger.info(f"Config mismatch: {k} -> {run_val} != {v} in {reference.id}")
                 return False
         return True
