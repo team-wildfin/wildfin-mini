@@ -12,7 +12,6 @@ class WandbRunMatcher:
     def __init__(self, entity: str, project: str): 
         self.entity = entity
         self.source_project = project
-        self.api = wandb.Api()
 
     def _has_any_artifact(self, run) -> bool:
         """
@@ -30,10 +29,10 @@ class WandbRunMatcher:
         If non_duplicate is True, it will filter out runs that have already been evaluated.
         """
         matched_runs = {}
-        source_runs = self.api.runs(f"{self.entity}/{self.source_project}", filters={"state": "finished"})
+        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": ["finished", "running"]}})
         logger.debug(f"Found {len(source_runs)} finished runs in {self.source_project}.")
         print(f"Found {len(source_runs)} finished runs in {self.source_project}.")
-        source_runs = [run for run in source_runs if self._has_any_artifact(run)]
+        #source_runs = [run for run in source_runs if self._has_any_artifact(run)]
         for exp in experiments: 
             runs = []
             for run in source_runs: 
@@ -42,16 +41,18 @@ class WandbRunMatcher:
             matched_runs[exp.id] = runs
         return matched_runs
 
-    def match_by_train_id(self, train_ids: List[str]) -> List[Optional[str]]: 
-        source_runs = self.api.runs(f"{self.entity}/{self.source_project}", filters={"state": "finished"})
+    def match_by_train_id(self, train_ids: List[str]) -> List[str]: 
+        '''
+        Returns the set of evaluation run IDs that correspond to any of the given training run IDs.
+        In most cases the train ids should be of the same experiment. 
+        '''
+        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": ["finished", "running"]}})
         matched_ids = []
         for train_id in train_ids:
-            matched_id = None
             for run in source_runs:
                 if run.config.get('training_run_id', None) == train_id:
-                    matched_id = run.id
+                    matched_ids.append(run.id)
                     break
-            matched_ids.append(matched_id)
         return matched_ids
 
     @staticmethod 

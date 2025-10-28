@@ -7,13 +7,14 @@ from datetime import datetime, timezone
 import pprint
 from fish_benchmark.typing.experiment import Experiment
 from config.experiments.cvpr import CVPR_EXPS
-from .submission import get_slurm_submission_command
+from submission import get_slurm_submission_command
 from fish_benchmark.utils.general import setup_logger
+from scripts.query import query_pending_evaluations
 
 logger = setup_logger("evaluate", console=True, file=False, level=logging.DEBUG)
 
 ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "coralcam"
+TRAINING_PROJECT = "fishfollow"
 ALL_EXPS = list(
     filter(
         lambda exp: exp.dataset == TRAINING_PROJECT,
@@ -44,43 +45,14 @@ def eval(entity: str, project: str, run_id: str):
     subprocess.run(cmd, shell=True, check=True)
 
 def main():
-    train_project_matcher = WandbRunMatcher(ENTITY, TRAINING_PROJECT)
-    eval_project_matcher = WandbRunMatcher(ENTITY, EVAL_PROJECT)
-    logger.debug("matching train runs")
-    train_status = train_project_matcher.match(ALL_EXPS)     # {exp_id: run_id}
-    trained = {exp_id: v for exp_id, v in train_status.items() if v != []}
-    pprint.pprint(trained)
-    logger.debug("matching eval runs")
-    evaluation_status = {
-        exp_id: eval_project_matcher.match_by_train_id(train_ids)
-        for exp_id, train_ids in trained.items()
-    }
-    pprint.pprint(evaluation_status)
-    evaluated = {exp_id: v for exp_id, v in evaluation_status.items() if not all(x is None for x in v)}
-    logger.info(f"Total experiments: {len(ALL_EXPS)}")
-    logger.info(f"Found {len(trained)} trained runs and {len(evaluated)} evaluated runs.")
-    pending_eval = {exp_id: trained[exp_id] for exp_id in set(trained.keys()) - set(evaluated.keys())}
-    
-    if not pending_eval:
-        logger.info("All experiments have been evaluated.")
-        return
-
-    logger.info(f"{len(pending_eval)} experiments pending evaluation:")
-    for exp_id in sorted(pending_eval.keys()):
-        logger.info(f"  - {exp_id}")
-
-    confirm = input("Proceed with evaluation for these experiments? [y/n]: ").strip().lower()
-    if confirm != "y":
-        logger.info("Aborting evaluation.")
-        return
-
-    for exp_id, run_id in pending_eval.items():
-        logger.info(f"Running evaluation for run ID: {run_id} (experiment: {exp_id})")
+    while(pending_eval := query_pending_evaluations(
+        WandbRunMatcher(ENTITY, TRAINING_PROJECT), WandbRunMatcher(ENTITY, EVAL_PROJECT), ALL_EXPS)):
+        logger.info("Evaluating the first pending experiment...")
+        exp_id, run_id = next(iter(pending_eval.items()))
         try: 
             eval(ENTITY, TRAINING_PROJECT, run_id)
         except subprocess.CalledProcessError as e:
             logger.error(f"Evaluation failed for {exp_id}: {e}")
-
 
 if __name__ == "__main__":
     main()

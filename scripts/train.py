@@ -9,6 +9,8 @@ from scripts.matcher import WandbRunMatcher
 from fish_benchmark.utils.general import setup_logger
 from submission import get_slurm_submission_command
 from config.experiments.cvpr import CVPR_EXPS
+import pprint
+from scripts.query import query_pending_experiments
 
 PARALLEL = False
 OUTPUT_BASE = os.path.join("logs", "train")
@@ -16,7 +18,7 @@ ENTITY = "fish-benchmark"
 TRAINING_PROJECT = "fishfollow"
 def filt(exp: Experiment) -> bool:
     return (exp.backbone in ['dinov3_large', 'vjepa2', 'resnet50', 'videomae'] and 
-            exp.pooling in ['attention'] and 
+            exp.pooling in ['attention', 'mean'] and 
             exp.weight_config.weight_method in ['uniform', 'focal_loss'] and 
             exp.dataset == TRAINING_PROJECT) 
 
@@ -52,43 +54,22 @@ def run_training(config_path: str, config_id: str):
     subprocess.run(command, shell=True, check=True)
 
 
+
 def main():
     """
     Main function to run training for predefined configurations.
     """
     logger.info("Starting training runs...")
-    runner = WandbRunMatcher(ENTITY, TRAINING_PROJECT)
     ALL_EXPS = [exp for exp in CVPR_EXPS if filt(exp)]
-    matched_run_ids = runner.match(ALL_EXPS)
-    pending_exps = [exp for exp in ALL_EXPS if exp.id not in matched_run_ids]
-
-    logger.info(f"Total of {len(ALL_EXPS)} experiments")
-    logger.info(f"{len(matched_run_ids)} already matched runs found.")
-    logger.info(f"{len(pending_exps)} experiments pending training:\n")
-
-    for exp in pending_exps:
-        print(f"  - {exp.id}")
-
-    if not pending_exps:
-        logger.info("No pending experiments to run.")
-        return
-
-    # user_input = input("\nProceed with running these experiments? (y/n): ").strip().lower()
-    # if user_input != "y":
-    #     logger.info("Aborted by user.")
-    #     return
-
-    for exp in pending_exps:
+    while(pending_exps := query_pending_experiments(
+        WandbRunMatcher(ENTITY, TRAINING_PROJECT), ALL_EXPS)):
+        exp = next(iter(pending_exps))
         logger.info(f"Running training for experiment: {exp.id}")
         config_path = save_config_to_file(exp, CONFIG_OUT)
         try: 
             run_training(config_path, exp.id)
         except subprocess.CalledProcessError as e:
             logger.error(f"Training failed for {exp.id}: {e}")
-
-    logger.info("Training runs completed.")
-
-
 
 if __name__ == "__main__":
     main()

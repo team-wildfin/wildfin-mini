@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, IterableDataset, TensorDataset, Sampler
 import os
 import av
 from fish_benchmark.typing.types import SlidingStyle, LocalDataset
-from fish_benchmark.utils.general import read_video_pyav, sample_frame_indices, get_first_frame, get_last_frame
+from fish_benchmark.utils.general import get_first_frame, get_last_frame
 from torchvision.datasets import Caltech101
 from torch.utils.data import Subset
 import webdataset as wds

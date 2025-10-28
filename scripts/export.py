@@ -19,28 +19,27 @@ from config.experiments.neurips import (
     DINO_WEIGHTED_EXPS, 
     RESNET50_WEIGHTED_EXPS,
 )
+from config.experiments.cvpr import CVPR_EXPS
 import logging
 from functools import reduce
 from fish_benchmark.utils.general import setup_logger
 from fish_benchmark.utils.export import *
 import yaml
 from config.datasets import DATASETS
+from scripts.query import query_trained, query_evaluated
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
 ENTITY = "fish-benchmark"
-DATASET_NAME = 'coralcam'
-PROJECT = f"{DATASET_NAME}_eval"
+DATASET_NAME = 'fishfollow'
+PROJECT = f"{DATASET_NAME}"
+EVAL_PROJECT = f"{DATASET_NAME}_eval"
 dataset = DATASETS[DATASET_NAME]
 LABEL_TOLERANCES = [0, 1, 3, 5, 7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results'
-ALL_EXPS = (
-    VIDEOMAE_WEIGHTED_EXPS +
-    DINO_WEIGHTED_EXPS +
-    RESNET50_WEIGHTED_EXPS
-)
+OUTPUT_PATH = 'cvpr_results'
+ALL_EXPS = CVPR_EXPS
 
 subgroup_mappings = {
     "coralcam": {
@@ -98,7 +97,9 @@ def get_results(entity: str, project: str, run_ids: List[str]) -> Dict[str, dict
             with open(local_path, "r") as f:
                 data = json.load(f)
                 logger.info(f"Loaded JSON for {run_id}")
-        results[run_id] = data
+        results[run_id] = {}
+        results[run_id]['data'] = data
+        results[run_id]['config'] = api.run(f"{entity}/{project}/{run_id}").config
     return results
 
 def expand_confusion_matrices(matrices: torch.Tensor, names: List[str]) -> Dict[str, List[List[int]]]:
@@ -114,10 +115,10 @@ def expand_confusion_matrices(matrices: torch.Tensor, names: List[str]) -> Dict[
     return expanded
 
 def compute_with_label_tolerance(results, label_tolerance, output_path):
-    api = wandb.Api()
     rows = []
-    for run_id, data in results.items():
-        run = api.run(f"{ENTITY}/{PROJECT}/{run_id}")
+    for run_id, dic in results.items():
+        config = dic['config']
+        data = dic['data']
         probs = torch.tensor(data["probs"])
         targets = torch.tensor(data["targets"])
         targets = torch.from_numpy(flood_all_columns(targets.cpu().numpy(), label_tolerance)).to(torch.device('cpu'))
@@ -160,7 +161,7 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
         ]) if 'habitat' in subgroup_mappings[DATASET_NAME] else {}
 
 
-        row = run.config | {"run_id": run.id} | results | per_group_results | per_col_confusion | per_habitat_confusion
+        row = config | {"run_id": run_id} | results | per_group_results | per_col_confusion | per_habitat_confusion
         rows.append(row)
 
     existing_rows = load_existing_csv(output_path)
@@ -170,9 +171,12 @@ def compute_with_label_tolerance(results, label_tolerance, output_path):
     write_csv(output_path, updated_rows, fieldnames)
 
 def main():
-    runner = WandbRunMatcher(ENTITY, PROJECT)
-    matched_run_ids = runner.match(ALL_EXPS)
-    results = get_results(ENTITY, PROJECT, matched_run_ids.values())
+    train_matcher = WandbRunMatcher(ENTITY, PROJECT)
+    eval_matcher = WandbRunMatcher(ENTITY, EVAL_PROJECT)
+    trained = query_trained(train_matcher, ALL_EXPS)
+    evaluated = query_evaluated(eval_matcher, trained)
+    runs = [v[0] for v in evaluated.values() if len(v) > 0]
+    results = get_results(ENTITY, EVAL_PROJECT, runs)
     for label_tolerance in LABEL_TOLERANCES:
         output_path = os.path.join(OUTPUT_PATH, f"{DATASET_NAME}_results_label_tolerance_{label_tolerance}.csv")
         logger.info(f"Computing results with label tolerance {label_tolerance} and writing to {output_path}")

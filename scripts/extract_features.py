@@ -5,8 +5,8 @@ extracts features from precomputed inputs
 import yaml
 import os
 import torch
-from config.maps.model_sliding_style import MODEL_SLIDING_STYLE
 from fish_benchmark.utils.general import setup_logger
+from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
 import subprocess
 import argparse
 import shutil
@@ -18,26 +18,26 @@ TARGET_MODELS = [
     # "videomae",
     # 'dino',
     # 'dino_large',
-    # 'resnet50', 
-    'dinov3_large',
+    'resnet50', 
+    # 'dinov3_large',
     # "vjepa2"
 ]
 SLIDING_STYLES = [
     # "frames",
     "frames_w_temp",
     # "sliding_window",
-    "sliding_window_w_temp",
+    # "sliding_window_w_temp",
     # "sliding_window_w_stride",
     # "sliding_window_ti8",
     # "fix_patched_512",
     "test_frames",
-    "test_sliding_window",
+    # "test_sliding_window",
     # "test_fix_patched_512",
     # "test_sliding_window_ti8"
 ]
 
 PRECOMPUTED = False
-PARALLEL = False
+PARALLEL = True
 CHECK_REPORT = True
 device = "cuda" if torch.cuda.is_available() else "cpu"
 REPORT_ROOT = os.path.join("data", "validation", "reports")

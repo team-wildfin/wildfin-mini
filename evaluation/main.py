@@ -52,11 +52,11 @@ if __name__ == "__main__":
         print(f"Loaded checkpoint from {ckpt_file}")
         
     training_run = wandb.Api().run(f"{args.entity}/{args.project}/{args.run}")
-    train_config = dict(training_run.config)
-    test_sliding_style = eval_config[train_config['sliding_style']] # name of the test sliding style
-    config = Evaluation(
-        **train_config, 
-        **{
+    train_config = Experiment.model_validate(training_run.config)
+    test_sliding_style = eval_config[train_config.sliding_style] # name of the test sliding style
+    config = Evaluation.model_validate(
+        train_config.model_dump() |
+        {
         "test_sliding_style": test_sliding_style,
         "training_run_id": args.run,
         "training_entity": args.entity,
@@ -79,20 +79,17 @@ if __name__ == "__main__":
         entity="fish-benchmark",
         save_dir="./logs",
         tags = [v for k, v in config.items() if k in tags_keys] + (["fulltune"] if config.fulltune else []), 
-        config=config,
+        config=config.model_dump(),
     )
     dataset = DATASETS[config.dataset]
-    precomputed = not config.fulltune
-    test_data_dir = (os.path.join(dataset.precomputed_path, config.test_sliding_style, 'test') 
-                     if precomputed 
-                     else dataset.path)
+    test_data_dir = os.path.join(dataset.precomputed_path, config.test_sliding_style, 'test') 
     test_dataset = DatasetBuilder(
         path=test_data_dir, 
         dataset=dataset,
         sliding_style=SLIDING_STYLES[config.test_sliding_style],
-        transform=None if precomputed else PREPROCESSORS[config.backbone],
-        precomputed=precomputed,
-        feature_model=config.backbone if precomputed else None # if not precomoputed, the feature model is the downloaded backbone
+        transform=None,
+        precomputed=True,
+        feature_model=config.backbone if not config.fulltune else None # if not precomoputed, the feature model is the downloaded backbone
     ).build()
     test_dataloader = DataLoader(
         test_dataset, 

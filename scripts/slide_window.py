@@ -8,9 +8,9 @@ from config.datasets import CORALCAM, FISHFOLLOW
 
 SLIDING_STYLES = [
     # "frames", 
-    "frames_w_temp", 
+    # "frames_w_temp", 
     # "sliding_window", 
-    "sliding_window_w_temp", 
+    # "sliding_window_w_temp", 
     # "sliding_window_w_stride", 
     # "sliding_window_ti8",
     # "fix_patched_512", 
@@ -19,7 +19,7 @@ SLIDING_STYLES = [
     # "test_sliding_window_ti8",
     # "test_fix_patched_512",
 ]
-PARALLEL = False
+PARALLEL = True
 SAVE_INPUT = True
 
 logger = setup_logger(

@@ -1,6 +1,6 @@
 from typing import Literal
-from pydantic import BaseModel, model_validator
-from typing import Optional, List
+from pydantic import BaseModel, model_validator, Field
+from typing import Optional, List, Union, Annotated
 from config.models.models import ModelConfig
 import yaml
 
@@ -61,5 +61,7 @@ class InverseConfig(BaseModel):
 class UniformConfig(BaseModel):
     weight_method: Literal['uniform'] = 'uniform'
 
-WeightConfig = UniformConfig | InverseConfig | FocalLossConfig
-
+WeightConfig = Annotated[
+    Union[UniformConfig, InverseConfig, FocalLossConfig],
+    Field(discriminator='weight_method')
+]
