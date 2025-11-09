@@ -289,6 +289,9 @@ class Accuracy(MetricPipeline, ToleranceMetric):
         total = torch.numel(preds)
         return (correct / total).item()
 
+mAP: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_average_precision, average='macro', num_labels = y.shape[1]) | tensor_to_basic).result()
+mAP_per_class: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_average_precision, average=None, num_labels=y.shape[1]) | tensor_to_basic).result()
+
 def union(lst: List[Dict]) -> Dict:
     """
     Union of a list of dictionaries, merging entries by taking the union of keys.

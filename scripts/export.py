@@ -132,6 +132,7 @@ def compute_with_label_tolerance(results, tolerance, output_path):
             "recall_micro": RecallMicro(tolerance),
             "recall_macro": RecallMacro(tolerance),
             "acc": Accuracy(tolerance),
+            "mAP": mAP,
         }
         per_class_metrics = {
             #per-class metrics
@@ -139,6 +140,7 @@ def compute_with_label_tolerance(results, tolerance, output_path):
             "precision_per_class": PrecisionPerClass(tolerance),
             "recall_per_class": RecallPerClass(tolerance),
             "positive_per_class": PositivePerClass(),
+            "mAP_per_class": mAP_per_class,
         }
         results = compute(probs, targets, aggregate_metrics | per_class_metrics, device=torch.device('cpu'))
         per_group_results = union(
