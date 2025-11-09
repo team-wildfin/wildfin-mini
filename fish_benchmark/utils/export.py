@@ -11,6 +11,9 @@ from torchmetrics.functional.classification import (
     multilabel_f1_score,
     multilabel_average_precision
 )
+from abc import ABC, abstractmethod
+import torch.nn.functional as F
+
 
 def load_existing_csv(path: str) -> List[Dict[str, Any]]:
     """Load existing rows from a CSV file if it exists."""
@@ -142,24 +145,149 @@ class Pipe:
             return self.args[0]
         return self.args if self.args else None
     
-#aggregate metrics
-Metric = Callable[[torch.Tensor, torch.Tensor], Any] #2d tensors with the same shape
-Filter = Callable[[torch.Tensor, torch.Tensor], torch.Tensor] #expects full targets, returns a mask 
-f1_micro: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_f1_score, average='micro', num_labels = y.shape[1]) | tensor_to_basic).result()
-f1_macro: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_f1_score, average='macro', num_labels = y.shape[1]) | tensor_to_basic).result()
-precision_micro: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_precision, average='micro', num_labels = y.shape[1]) | tensor_to_basic).result()
-precision_macro: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_precision, average='macro', num_labels = y.shape[1]) | tensor_to_basic).result()
-recall_micro: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_recall, average='micro', num_labels = y.shape[1]) | tensor_to_basic).result()
-recall_macro: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_recall, average='macro', num_labels = y.shape[1]) | tensor_to_basic).result()
-mAP: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_average_precision, average='macro', num_labels = y.shape[1]) | tensor_to_basic).result()
-acc: Metric = lambda x, y: (Pipe(x, y) | (lambda x, y: ((x > 0.5) == y).float().mean()) | tensor_to_basic).result()
+Metric = Callable[[torch.Tensor, torch.Tensor], Any]
 
-#per class metrics
-mAP_per_class: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_average_precision, average=None, num_labels=y.shape[1]) | tensor_to_basic).result()
-f1_per_class: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_f1_score, average=None, num_labels=y.shape[1]) | tensor_to_basic).result()
-precision_per_class: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_precision, average=None, num_labels=y.shape[1]) | tensor_to_basic).result()
-recall_per_class: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_recall, average=None, num_labels=y.shape[1]) | tensor_to_basic).result()
-positive_per_class: Metric = lambda _, y: (Pipe(_, y) | (lambda _, y: y.sum(dim=0).int()) | tensor_to_basic).result()
+class ToleranceMetric(ABC):     
+    def __init__(self, tolerance: int = 0):
+        self.tolerance = tolerance
+
+    @abstractmethod
+    def __call__(self, preds: torch.Tensor, targets: torch.Tensor) -> Any:
+        pass
+
+class MetricPipeline(ABC): 
+    @abstractmethod
+    def __preprocess__(self, preds: torch.Tensor, targets: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        pass
+
+    @abstractmethod
+    def __compute__(self, preds: torch.Tensor, targets: torch.Tensor) -> Any:
+        pass
+
+    def __call__(self, preds: torch.Tensor, targets: torch.Tensor) -> Any:
+        preds, targets = self.__preprocess__(preds, targets)
+        return self.__compute__(preds, targets)
+
+
+def flood_1d(x: torch.Tensor, tolerance: int) -> torch.Tensor:
+    """
+    Dilate/flood a binary tensor along the first dimension (n) by `tolerance`.
+    Each 1 in x[i, j] will flood ±tolerance rows in the same column j.
+
+    Args:
+        x (torch.Tensor): Binary tensor of shape (n, d)
+        tolerance (int): Radius of flooding region (>= 0)
+
+    Returns:
+        torch.Tensor: Flooded binary tensor of same shape as x
+    """
+    if tolerance <= 0:
+        return x
+
+    # Treat each column independently, so swap n and d
+    x = x.transpose(0, 1).unsqueeze(1).float()  # (d,1,n)
+    kernel = torch.ones(1, 1, 2 * tolerance + 1, device=x.device)
+    flooded = F.conv1d(x, kernel, padding=tolerance)
+    flooded = (flooded > 0).squeeze(1).to(torch.int)
+    return flooded.transpose(0, 1)  # back to (n,d)
+
+class Recall(MetricPipeline, ToleranceMetric): 
+    def __preprocess__(self, preds, targets):
+        preds = (preds > 0.5).to(torch.int)
+        targets = (targets > 0.5).to(torch.int)
+        preds = flood_1d(preds, self.tolerance)
+        return preds, targets  # matched = recalled ones
+
+class RecallPerClass(Recall): 
+    def __compute__(self, preds, targets):
+        tp = (preds & targets).sum(dim=0).float()
+        fn = (targets & (~preds)).clamp(min=0).sum(dim=0).float()
+        recall = tp / (tp + fn + 1e-8)
+        return recall.tolist()
+
+class RecallMacro(ToleranceMetric):
+    def __call__(self, preds, targets):
+        return torch.tensor(RecallPerClass(self.tolerance)(preds, targets)).mean().item()
+
+class RecallMicro(Recall): 
+    def __compute__(self, preds, targets):
+        tp = (preds & targets).sum().float()
+        fn = (targets - tp).clamp(min=0).sum().float()
+        recall = tp / (tp + fn + 1e-8)
+        return recall.item()
+    
+class Precision(MetricPipeline, ToleranceMetric): 
+    def __preprocess__(self, preds, targets):
+        preds = (preds > 0.5).to(torch.int)
+        targets = (targets > 0.5).to(torch.int)
+        targets = flood_1d(targets, self.tolerance)
+        return preds, targets  # matched = true positives
+
+class PrecisionPerClass(Precision):
+    def __compute__(self, preds, targets):
+        tp = (preds & targets).sum(dim=0).float()
+        fp = (preds & (~targets)).clamp(min=0).sum(dim=0).float()
+        precision = tp / (tp + fp + 1e-8)
+        return precision.tolist()
+
+class PrecisionMacro(ToleranceMetric):
+    def __call__(self, preds, targets):
+        return torch.tensor(PrecisionPerClass(self.tolerance)(preds, targets)).mean().item()
+
+class PrecisionMicro(Precision): 
+    def __compute__(self, preds, targets):
+        tp = (preds & targets).sum().float()
+        fp = (preds - tp).clamp(min=0).sum().float()
+        precision = tp / (tp + fp + 1e-8)
+        return precision.item()
+
+
+# ========= F1 Metrics =========
+class F1PerClass(ToleranceMetric):
+    def __call__(self, preds, targets):
+        precision_per_class = PrecisionPerClass(self.tolerance)(preds, targets)
+        recall_per_class = RecallPerClass(self.tolerance)(preds, targets)
+        f1_per_class = []
+        for p, r in zip(precision_per_class, recall_per_class):
+            if p + r == 0:
+                f1_per_class.append(0.0)
+            else:
+                f1_per_class.append(2 * p * r / (p + r))
+        return f1_per_class
+    
+class F1Micro(ToleranceMetric):
+    def __call__(self, preds, targets):
+        p = PrecisionMicro(self.tolerance)
+        r = RecallMicro(self.tolerance)
+        precision = p(preds, targets)
+        recall = r(preds, targets)
+        return 2 * precision * recall / (precision + recall + 1e-8)
+
+class F1Macro(ToleranceMetric):
+    def __call__(self, preds, targets):
+        p = PrecisionMacro(self.tolerance)
+        r = RecallMacro(self.tolerance)
+        precision = p(preds, targets)
+        recall = r(preds, targets)
+        return 2 * precision * recall / (precision + recall + 1e-8)
+
+class PositivePerClass(Metric):
+    def __call__(self, preds, targets):
+        positives = targets.sum(dim=0).tolist()
+        return positives
+
+class Accuracy(MetricPipeline, ToleranceMetric):
+    def __preprocess__(self, preds, targets):
+        preds = (preds > 0.5).to(torch.int)
+        targets = (targets > 0.5).to(torch.int)
+        preds_expanded = (flood_1d(preds, self.tolerance) & targets.bool()) | preds.bool()
+        targets_expanded = (flood_1d(targets, self.tolerance) & preds.bool()) | targets.bool()
+        return preds_expanded, targets_expanded
+
+    def __compute__(self, preds, targets):
+        correct = (preds == targets).float().sum()
+        total = torch.numel(preds)
+        return (correct / total).item()
 
 def union(lst: List[Dict]) -> Dict:
     """

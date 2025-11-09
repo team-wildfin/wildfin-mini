@@ -14,10 +14,14 @@ from scripts.query import query_pending_evaluations
 logger = setup_logger("evaluate", console=True, file=False, level=logging.DEBUG)
 
 ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "fishfollow"
+TRAINING_PROJECT = "coralcam"
+RERUN = False
 ALL_EXPS = list(
     filter(
-        lambda exp: exp.dataset == TRAINING_PROJECT,
+        lambda exp: (
+            exp.dataset == TRAINING_PROJECT and 
+            exp.backbone in ['vjepa2'] and 
+            exp.pooling == 'attention'),
         CVPR_EXPS
     )
 )
@@ -46,7 +50,7 @@ def eval(entity: str, project: str, run_id: str):
 
 def main():
     while(pending_eval := query_pending_evaluations(
-        WandbRunMatcher(ENTITY, TRAINING_PROJECT), WandbRunMatcher(ENTITY, EVAL_PROJECT), ALL_EXPS)):
+        WandbRunMatcher(ENTITY, TRAINING_PROJECT), WandbRunMatcher(ENTITY, EVAL_PROJECT), ALL_EXPS, rerun = RERUN)):
         logger.info("Evaluating the first pending experiment...")
         exp_id, run_id = next(iter(pending_eval.items()))
         try: 

@@ -23,13 +23,13 @@ class WandbRunMatcher:
             logger.debug(f"Error checking artifacts for run {run.id}: {e}")
             return False
 
-    def match(self, experiments: List[Experiment]) -> Dict[str, str]:
+    def match(self, experiments: List[Experiment], states: List[str] = ["finished"]) -> Dict[str, str]:
         """
         Get matched run IDs for the given experiments.
         If non_duplicate is True, it will filter out runs that have already been evaluated.
         """
         matched_runs = {}
-        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": ["finished", "running"]}})
+        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": states}})
         logger.debug(f"Found {len(source_runs)} finished runs in {self.source_project}.")
         print(f"Found {len(source_runs)} finished runs in {self.source_project}.")
         #source_runs = [run for run in source_runs if self._has_any_artifact(run)]
@@ -41,12 +41,12 @@ class WandbRunMatcher:
             matched_runs[exp.id] = runs
         return matched_runs
 
-    def match_by_train_id(self, train_ids: List[str]) -> List[str]: 
-        '''
+    def match_by_train_id(self, train_ids: List[str], states: List[str] = ["finished"]) -> List[str]: 
+        """
         Returns the set of evaluation run IDs that correspond to any of the given training run IDs.
         In most cases the train ids should be of the same experiment. 
-        '''
-        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": ["finished", "running"]}})
+        """
+        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": states}})
         matched_ids = []
         for train_id in train_ids:
             for run in source_runs:
@@ -54,6 +54,20 @@ class WandbRunMatcher:
                     matched_ids.append(run.id)
                     break
         return matched_ids
+    
+    def get_latest(self, run_ids: List[str]) -> str: 
+        '''
+        From the given run IDs, return the latest one based on the created_at timestamp.
+        '''
+        api = wandb.Api()
+        latest_run = None
+        latest_time = None
+        for run_id in run_ids: 
+            run = api.run(f"{self.entity}/{self.source_project}/{run_id}")
+            if latest_time is None or run.created_at > latest_time: 
+                latest_time = run.created_at
+                latest_run = run_id
+        return latest_run
 
     @staticmethod 
     def match_config(run_config: dict, reference: Experiment) -> bool:

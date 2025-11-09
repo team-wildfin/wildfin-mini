@@ -4,6 +4,8 @@ import pprint
 import logging
 from fish_benchmark.typing.experiment import Experiment
 
+logger = logging.getLogger(__name__)
+
 def query_pending_experiments(runner: WandbRunMatcher, experiments: List[Experiment]) -> List[Experiment]:
     matched_runs = runner.match(experiments)     # {exp_id: run_id}
     pending_exps = [exp for exp in experiments if len(matched_runs[exp.id]) == 0]
@@ -31,9 +33,10 @@ def query_evaluated(eval_matcher: WandbRunMatcher,
 
 def query_pending_evaluations(train_matcher: WandbRunMatcher, 
                               eval_matcher: WandbRunMatcher, 
-                              experiments: list[Experiment]) -> dict[str, str]:
+                              experiments: list[Experiment], 
+                              rerun: bool = False) -> dict[str, str]:
     trained = query_trained(train_matcher, experiments)
-    evaluated = query_evaluated(eval_matcher, trained)
+    evaluated = query_evaluated(eval_matcher, trained) if not rerun else {}
     pending_eval = {exp_id: trained[exp_id][0] for exp_id in set(trained.keys()) - set(evaluated.keys())}
     logger.info(f"Pending evaluations for {len(pending_eval)} experiments:")
     logger.info(pprint.pprint(pending_eval))

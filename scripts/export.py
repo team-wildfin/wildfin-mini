@@ -38,7 +38,7 @@ dataset = DATASETS[DATASET_NAME]
 LABEL_TOLERANCES = [0, 1, 3, 5, 7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'cvpr_results'
+OUTPUT_PATH = 'results/cvpr2'
 ALL_EXPS = CVPR_EXPS
 
 subgroup_mappings = {
@@ -69,14 +69,13 @@ def compute(
     device: Optional[torch.device] = None,
 ) -> Dict[str, Union[float, List]]:
     results = {}
-    for name, metric_fn in metrics.items():
+    for name, metric in metrics.items():
         key = name
         if prefix:
             key = f"{prefix}_{key}"
-        value = metric_fn(probs, targets)
+        value = metric(probs, targets)
         results[key] = value.tolist() if isinstance(value, torch.Tensor) else value
     return results
-
     
 def get_results(entity: str, project: str, run_ids: List[str]) -> Dict[str, dict]:
     results = {}
@@ -114,33 +113,32 @@ def expand_confusion_matrices(matrices: torch.Tensor, names: List[str]) -> Dict[
         expanded[name] = matrices[i].cpu().numpy().tolist()
     return expanded
 
-def compute_with_label_tolerance(results, label_tolerance, output_path):
+def compute_with_label_tolerance(results, tolerance, output_path):
     rows = []
     for run_id, dic in results.items():
         config = dic['config']
         data = dic['data']
         probs = torch.tensor(data["probs"])
         targets = torch.tensor(data["targets"])
-        targets = torch.from_numpy(flood_all_columns(targets.cpu().numpy(), label_tolerance)).to(torch.device('cpu'))
+        assert probs.shape == targets.shape, f"Probs and targets must have the same shape, got {probs.shape} and {targets.shape}"
+        assert probs is not None and targets is not None, f"Probs and targets must not be None for run {run_id}"
 
         aggregate_metrics = {
             #average metrics
-            "f1_micro": f1_micro,
-            "f1_macro": f1_macro,
-            "precision_micro": precision_micro,
-            "precision_macro": precision_macro,
-            "recall_micro": recall_micro,
-            "recall_macro": recall_macro,
-            "mAP": mAP,
-            "acc": acc,
+            "f1_micro": F1Micro(tolerance),
+            "f1_macro": F1Macro(tolerance),
+            "precision_micro": PrecisionMicro(tolerance),
+            "precision_macro": PrecisionMacro(tolerance),
+            "recall_micro": RecallMicro(tolerance),
+            "recall_macro": RecallMacro(tolerance),
+            "acc": Accuracy(tolerance),
         }
         per_class_metrics = {
             #per-class metrics
-            "f1_per_class": f1_per_class,
-            "precision_per_class": precision_per_class,
-            "recall_per_class": recall_per_class,
-            "mAP_per_class": mAP_per_class,
-            "positive_per_class": positive_per_class,
+            "f1_per_class": F1PerClass(tolerance),
+            "precision_per_class": PrecisionPerClass(tolerance),
+            "recall_per_class": RecallPerClass(tolerance),
+            "positive_per_class": PositivePerClass(),
         }
         results = compute(probs, targets, aggregate_metrics | per_class_metrics, device=torch.device('cpu'))
         per_group_results = union(
@@ -175,7 +173,7 @@ def main():
     eval_matcher = WandbRunMatcher(ENTITY, EVAL_PROJECT)
     trained = query_trained(train_matcher, ALL_EXPS)
     evaluated = query_evaluated(eval_matcher, trained)
-    runs = [v[0] for v in evaluated.values() if len(v) > 0]
+    runs = [eval_matcher.get_latest(v) for v in evaluated.values() if len(v) > 0]
     results = get_results(ENTITY, EVAL_PROJECT, runs)
     for label_tolerance in LABEL_TOLERANCES:
         output_path = os.path.join(OUTPUT_PATH, f"{DATASET_NAME}_results_label_tolerance_{label_tolerance}.csv")
