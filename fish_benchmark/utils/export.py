@@ -265,11 +265,8 @@ class F1Micro(ToleranceMetric):
 
 class F1Macro(ToleranceMetric):
     def __call__(self, preds, targets):
-        p = PrecisionMacro(self.tolerance)
-        r = RecallMacro(self.tolerance)
-        precision = p(preds, targets)
-        recall = r(preds, targets)
-        return 2 * precision * recall / (precision + recall + 1e-8)
+        f1_per_class = F1PerClass(self.tolerance)(preds, targets)
+        return torch.tensor(f1_per_class).mean().item()
 
 class PositivePerClass(Metric):
     def __call__(self, preds, targets):
