@@ -22,7 +22,7 @@ class Experiment(BaseModel):
     classifier: Classifier
     
     #training configs
-    weight_config: WeightConfig
+    weight_config: Optional[WeightConfig] = None
     weight_decay: float
     sampler: Sampler
     fulltune: bool

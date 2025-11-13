@@ -75,6 +75,8 @@ class WandbRunMatcher:
         def get(run_config, key):
             if key == 'fulltune':
                 return run_config.get(key, False)
+            if key == 'freeze_backbone':
+                return run_config.get(key, False)
             elif key == 'label_type':
                 return run_config.get(key, 'onehot')
             return run_config.get(key)

@@ -7,5 +7,5 @@ MODEL_SLIDING_STYLES: Dict[str, List[SlidingStyle]] = {
     "dino_large": [FRAMES_W_TEMP, TEST_FRAMES],
     "dinov3_base": [FRAMES_W_TEMP, TEST_FRAMES],
     "dinov3_large": [FRAMES_W_TEMP, TEST_FRAMES],
-    "resnet50": [FRAMES_W_TEMP, TEST_FRAMES],
+    "resnet50": [FRAMES_W_TEMP, FRAMES, TEST_FRAMES],
 }

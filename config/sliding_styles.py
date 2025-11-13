@@ -36,6 +36,18 @@ FRAMES_W_TEMP = SlidingStyle(
     patch_w = 1,
 )
 
+FRAMES = SlidingStyle(
+    name = "frames",
+    window_size = 1,
+    tolerance_region = 0,
+    samples_per_window = 1,
+    step_size = 2,
+    data_ndim = 3,
+    patch_type = "relative",
+    patch_h = 1,
+    patch_w = 1,
+)
+
 SLIDING_WINDOW_W_TEMP = SlidingStyle(
     name = "sliding_window_w_temp",
     window_size = 16,

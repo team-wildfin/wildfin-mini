@@ -348,6 +348,23 @@ RESNET_BALANCED_FOCAL = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
+RESNET_FULLTUNE = [
+    Experiment(
+        **dict(
+            id=f"resnet_fulltune_{dataset}_{sliding_style}_True",
+            dataset=dataset,
+            sliding_style=sliding_style,
+            backbone="resnet50",
+            sampler="balanced",
+            epochs=40,
+            fulltune=True,
+            **DEFAULT_FIELDS,
+        )
+    )
+    for sliding_style in ["frames"]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
 RESNET50_WEIGHTED_EXPS: List[Experiment] = (
     RESNET_BALANCED_UNIFORM
     + RESNET_RANDOM_UNIFORM

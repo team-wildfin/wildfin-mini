@@ -18,6 +18,7 @@ from config.experiments.neurips import (
     VIDEOMAE_WEIGHTED_EXPS,
     DINO_WEIGHTED_EXPS, 
     RESNET50_WEIGHTED_EXPS,
+    RESNET_FULLTUNE
 )
 from config.experiments.cvpr import CVPR_EXPS
 import logging
@@ -35,11 +36,11 @@ DATASET_NAME = 'fishfollow'
 PROJECT = f"{DATASET_NAME}"
 EVAL_PROJECT = f"{DATASET_NAME}_eval"
 dataset = DATASETS[DATASET_NAME]
-LABEL_TOLERANCES = [0, 1, 3, 5, 7]
+LABEL_TOLERANCES = [7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results/cvpr2'
-ALL_EXPS = CVPR_EXPS
+OUTPUT_PATH = 'results/fulltune'
+ALL_EXPS = RESNET_FULLTUNE
 
 subgroup_mappings = {
     "coralcam": {

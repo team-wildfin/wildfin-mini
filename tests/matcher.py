@@ -13,6 +13,7 @@ from config.experiments.cvpr import CVPR_EXPS
 logger.debug("importing matcher...")
 from scripts.matcher import WandbRunMatcher
 from fish_benchmark.typing.experiment import Experiment
+from config.experiments.neurips import RESNET_FULLTUNE
 
 class MatcherTest(unittest.TestCase):
     def setUp(self):
@@ -25,13 +26,11 @@ class MatcherTest(unittest.TestCase):
         #         CVPR_EXPS
         #     )
         # )
-        self.experiments = [
-            Experiment
-        ]
+        self.experiments = RESNET_FULLTUNE
     def test_match(self):
         matched = self.matcher.match(self.experiments)
         self.assertIsInstance(matched, dict)
-        print(f"Matched {len(matched)} runs.")
+        print(matched)
         for exp_id, run_id in matched.items():
             self.assertIn(exp_id, [exp.id for exp in self.experiments])
             self.assertIsInstance(run_id, str)
