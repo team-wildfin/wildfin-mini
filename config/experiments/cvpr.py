@@ -5,7 +5,7 @@ from fish_benchmark.typing.experiment import Experiment
 print("loss types importing...")
 from fish_benchmark.typing.types import UniformConfig, FocalLossConfig
 print("experiment constants importing...")
-from .neurips import DINO_WEIGHTED_EXPS, VIDEOMAE_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS
+from .neurips import DINO_WEIGHTED_EXPS, VIDEOMAE_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS, RESNET_FULLTUNE
 print("experiment packages imported")
 
 DINOV3_LARGE_ATTENTION = [
@@ -141,5 +141,6 @@ CVPR_EXPS = (DINOV3_LARGE_ATTENTION +
              RESNET_ATTENTION + 
              VIDEOMAE_WEIGHTED_EXPS + 
              VIDEOMAE_ATTENTION +
-             RESNET50_WEIGHTED_EXPS
+             RESNET50_WEIGHTED_EXPS + 
+             RESNET_FULLTUNE
             ) 

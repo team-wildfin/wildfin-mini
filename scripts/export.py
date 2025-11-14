@@ -39,21 +39,21 @@ dataset = DATASETS[DATASET_NAME]
 LABEL_TOLERANCES = [7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results/fulltune'
-ALL_EXPS = RESNET_FULLTUNE
+OUTPUT_PATH = 'results/new_grouping'
+os.makedirs(OUTPUT_PATH, exist_ok=True)
+ALL_EXPS = CVPR_EXPS
 
 subgroup_mappings = {
     "coralcam": {
         'biting': [0, 1], 
-        'aggression': [3, 4]
+        'aggression': [3]
     }, 
     "fishfollow":{
-        'habitat': [16, 17, 19], 
-        'biting': [1, 2, 6, 9], 
-        'movement': [3, 4], 
-        'foraging': [8, 11, 14], 
-        'interactions': [5, 7, 13], 
-        'other': [0, 10, 12, 15, 18]
+        "habitat": [16, 17, 19],
+        "bites": [6, 1, 9],
+        "movement": [3, 8, 11, 14, 15],
+        "social_interaction": [5],
+        "not_visible": [13],
     }
 }
 
@@ -133,7 +133,7 @@ def compute_with_label_tolerance(results, tolerance, output_path):
             "recall_micro": RecallMicro(tolerance),
             "recall_macro": RecallMacro(tolerance),
             "acc": Accuracy(tolerance),
-            "mAP": mAP,
+            "mAP": mAP(),
         }
         per_class_metrics = {
             #per-class metrics
@@ -141,15 +141,18 @@ def compute_with_label_tolerance(results, tolerance, output_path):
             "precision_per_class": PrecisionPerClass(tolerance),
             "recall_per_class": RecallPerClass(tolerance),
             "positive_per_class": PositivePerClass(),
-            "mAP_per_class": mAP_per_class,
+            "ap_per_class": APPerClass(),
         }
-        results = compute(probs, targets, aggregate_metrics | per_class_metrics, device=torch.device('cpu'))
+        mapping = subgroup_mappings[DATASET_NAME]
+        interested_cols = reduce(lambda acc, x: acc + x, mapping.values(), [])
+        results = compute(probs[:, interested_cols], targets[:, interested_cols], 
+                          aggregate_metrics | per_class_metrics, device=torch.device('cpu'))
         per_group_results = union(
-                            [compute(probs[:, subgroup_mappings[DATASET_NAME][k]], 
-                                     targets[:, subgroup_mappings[DATASET_NAME][k]], 
+                            [compute(probs[:, mapping[k]], 
+                                     targets[:, mapping[k]], 
                                      aggregate_metrics, 
                                      prefix=k) 
-                                    for k in subgroup_mappings[DATASET_NAME].keys()]) 
+                                    for k in mapping.keys()]) 
         confusion_matrix = binary_confusion_matrix(probs, targets)
         per_col_confusion = expand_confusion_matrices(confusion_matrix, dataset.categories)
         per_habitat_confusion = union([

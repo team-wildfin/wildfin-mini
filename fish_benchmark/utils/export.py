@@ -9,7 +9,8 @@ from torchmetrics.functional.classification import (
     multilabel_precision,
     multilabel_recall,
     multilabel_f1_score,
-    multilabel_average_precision
+    multilabel_average_precision, 
+    binary_average_precision
 )
 from abc import ABC, abstractmethod
 import torch.nn.functional as F
@@ -286,8 +287,13 @@ class Accuracy(MetricPipeline, ToleranceMetric):
         total = torch.numel(preds)
         return (correct / total).item()
 
-mAP: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_average_precision, average='macro', num_labels = y.shape[1]) | tensor_to_basic).result()
-mAP_per_class: Metric = lambda x, y: (Pipe(x, y) | partial(multilabel_average_precision, average=None, num_labels=y.shape[1]) | tensor_to_basic).result()
+class APPerClass: 
+    def __call__(self, preds: torch.Tensor, targets: torch.Tensor): 
+        return [binary_average_precision(preds[:, i], targets[:, i]) for i in range(preds.shape[1])]
+
+class mAP: 
+    def __call__(self, preds: torch.Tensor, targets: torch.Tensor):
+        return torch.tensor(APPerClass()(preds, targets)).mean().item()
 
 def union(lst: List[Dict]) -> Dict:
     """
