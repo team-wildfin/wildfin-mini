@@ -10,12 +10,23 @@ logger = logging.getLogger(__name__)
 
 
 class Validator(ShardExecutor): 
-    def set_root(self, root_path):
+    def __init__(self, 
+                 datasets: List[LocalDataset], 
+                 sliding_styles: List[str], 
+                 root_path: str,
+                 parallel: bool = False, 
+                 logger: logging.Logger = None, 
+                 ShardManager=None):
+        super().__init__(
+            datasets=datasets,
+            sliding_styles=sliding_styles,
+            parallel=parallel,
+            logger=logger,
+            ShardManager=ShardManager
+        )
         self.root_path = root_path
-        return self
 
     def find_report(self, dataset, split, sliding_style, model) -> Dict: 
-        assert self.root_path, "Root path not set for Validator"
         # report should exist in REPORT_ROOT/dataset/split/sliding_style/<model>_report.yml
         report_path = os.path.join(
             self.root_path, dataset, split, sliding_style, f"{model}_report.yml"
@@ -106,7 +117,6 @@ class Validator(ShardExecutor):
         return report
 
     def run(self, models: List[str]): 
-        assert self.root_path, "Root path not set for Validator" 
         for dataset in self.datasets: 
             for split in dataset.splits:   
                 for sliding_style in split.sliding_styles: 

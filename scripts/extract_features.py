@@ -14,8 +14,8 @@ from typing import Dict
 from config.data.datasets import CORALCAM, FISHFOLLOW
 from fish_benchmark.utils.submission import get_slurm_submission_command
 from fish_benchmark.execution.feature_extractor import FeatureExtractor
-from fish_benchmark.execution.validator import Validator
 
+DATASETS = [CORALCAM, FISHFOLLOW]
 TARGET_MODELS = [
     # "videomae",
     # 'dino',
@@ -37,10 +37,6 @@ SLIDING_STYLES = [
     # "test_fix_patched_512",
     # "test_sliding_window_ti8"
 ]
-
-PRECOMPUTED = False
-PARALLEL = True
-CHECK_REPORT = True
 device = "cuda" if torch.cuda.is_available() else "cpu"
 REPORT_ROOT = os.path.join("data", "validation", "reports")
 OUT_ROOT = os.path.join("logs", "extract_features")
@@ -55,17 +51,9 @@ logger = setup_logger(
 )
 
 if __name__ == "__main__":
-    datasets = [CORALCAM, FISHFOLLOW]
-    feature_extractor = FeatureExtractor(
-        datasets=datasets,
+    FeatureExtractor(
+        datasets=DATASETS,
         sliding_styles=SLIDING_STYLES,
-        parallel=PARALLEL,
-        check_report=CHECK_REPORT,
-        device=device,
+        models = TARGET_MODELS,
         logger=logger
-    )
-    feature_extractor.run(
-        models=TARGET_MODELS,
-        precomputed=PRECOMPUTED,
-        validator = Validator(datasets=datasets, sliding_styles=SLIDING_STYLES).set_root(REPORT_ROOT)
-    )
+    ).set_default_validator(validator_root=REPORT_ROOT).run()

@@ -30,11 +30,10 @@ logger = setup_logger(
 )
 if __name__ == "__main__": 
     datasets = [CORALCAM, FISHFOLLOW]
-    preprocessor = Preprocessor(
+    Preprocessor(
         datasets=datasets,
         sliding_styles=SLIDING_STYLES,
         parallel=PARALLEL,
         save_input=SAVE_INPUT,
         logger=logger
-    )
-    preprocessor.run()
+    ).run()

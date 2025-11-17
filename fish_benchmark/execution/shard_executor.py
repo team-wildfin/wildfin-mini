@@ -3,13 +3,14 @@ from fish_benchmark.typing.types import LocalDataset
 from typing import List, Type
 import logging
 from abc import ABC, abstractmethod
+from config.logging.loggers import get_console_logger
 
 class ShardExecutor: 
     def __init__(self, 
                  datasets: List[LocalDataset], 
                  sliding_styles: List[str], 
                  parallel: bool = False, 
-                 logger: logging.Logger = None, 
+                 logger: logging.Logger = get_console_logger(), 
                  ShardManager: Type[ShardManager] = NestedFSShardManager):
         """
         Initialize the Preprocessor with datasets, sliding styles, and other options.

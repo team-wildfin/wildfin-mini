@@ -45,3 +45,7 @@ class Matcher(ABC):
     @abstractmethod
     def get_run_config(self, run_id: str) -> dict:
         pass
+
+    @abstractmethod
+    def init_run(self): 
+        pass 

@@ -25,163 +25,104 @@ from fish_benchmark.utils.export import *
 import yaml
 from config.data.datasets import DATASETS
 from fish_benchmark.management.query import query_trained, query_evaluated
+from fish_benchmark.management.wandb_matcher import WandbRunMatcher
+from fish_benchmark.execution.exp_executor import ExperimentExecutor
+from fish_benchmark.typing.experiment import Experiment
+
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
-
-# ==== CONFIG ====
-ENTITY = "fish-benchmark"
-DATASET_NAME = 'coralcam'
-PROJECT = f"{DATASET_NAME}"
-EVAL_PROJECT = f"{DATASET_NAME}_eval"
-dataset = DATASETS[DATASET_NAME]
-LABEL_TOLERANCES = [7]
-PARALLEL = False
-DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results/new_grouping'
-os.makedirs(OUTPUT_PATH, exist_ok=True)
-ALL_EXPS = CVPR_EXPS
-
-subgroup_mappings = {
-    "coralcam": {
-        'biting': [0, 1], 
-        'aggression': [3]
-    }, 
-    "fishfollow":{
-        "habitat": [16, 17, 19],
-        "bites": [6, 1, 9],
-        "movement": [3, 8, 11, 14, 15],
-        "social_interaction": [5],
-        "not_visible": [13],
-    }
-}
-
 from typing import Callable, Dict, List, Union
 import torch
 import numpy as np
-from functools import partial
 
-def compute(
-    probs: torch.Tensor, 
-    targets: torch.Tensor, 
-    metrics: Dict[str, Metric],
-    prefix: str = None,
-    device: Optional[torch.device] = None,
-) -> Dict[str, Union[float, List]]:
-    results = {}
-    for name, metric in metrics.items():
-        key = name
-        if prefix:
-            key = f"{prefix}_{key}"
-        value = metric(probs, targets)
-        results[key] = value.tolist() if isinstance(value, torch.Tensor) else value
-    return results
+
+class Exportor(ExperimentExecutor):
+    """
+    Calculates all aggregate metrics for all subgroups. As well as per class metrics for all classes. Writes results to a CSV file.
+    """
+    def __init__(self, 
+                 experiments: List[Experiment],
+                 train_matcher: WandbRunMatcher,
+                 eval_matcher: WandbRunMatcher,
+                 logger: Optional[logging.Logger] = None,
+                 parallel: bool = False, 
+                 aggregate_metrics: Dict[str, Callable[[torch.Tensor, torch.Tensor], Union[float, List]]] = {},
+                 per_class_metrics: Dict[str, Callable[[torch.Tensor, torch.Tensor], Union[float, List]]] = {},
+                 subgroup_mappings: Dict[str, List[int]] = {},
+                    output_base: str = ".",
+                    output_name: str = "results.csv",
+                 ):
+        super().__init__(
+            experiments=experiments,
+            train_matcher=train_matcher,
+            eval_matcher=eval_matcher,
+            logger=logger,
+            parallel=parallel
+        )
+        self.aggregate_metrics = aggregate_metrics
+        self.per_class_metrics = per_class_metrics
+        self.subgroup_mappings = subgroup_mappings
+        self.output_base = output_base
+        self.output_name = output_name
+
+    def get_results(self, matcher: WandbRunMatcher, run_ids: List[str]) -> Dict[str, dict]:
+        results = {}
+        for run_id in run_ids:
+            data = matcher.get_artifact(run_id, 
+                                        local_artifact_name=f"{run_id}.json",
+                                        remote_artifact_name = f"test_metrics_{run_id}.json:v0")
+            results[run_id] = {}
+            results[run_id]['data'] = data
+            results[run_id]['config'] = matcher.get_run_config(run_id)
+        return results
     
-def get_results(entity: str, project: str, run_ids: List[str]) -> Dict[str, dict]:
-    results = {}
-    api = wandb.Api()
-    for run_id in run_ids:
-        try:
-            with open(f'logs/test_metrics/{run_id}.json', "r") as f:
-                data = json.load(f)
-                logger.info(f"Loaded locally {run_id}")
-        except Exception as e:
-            logger.info(f"Failed to find local file {run_id}: {e}")
-            logger.info(f"Downloading artifact for {run_id}")
-            artifact_name = f"test_metrics_{run_id}.json"
-            artifact_path = f"{entity}/{project}/{artifact_name}:v0"
-            artifact = api.artifact(artifact_path)
-            file_path = artifact.download(root=DOWNLOAD_DIR)
-            local_path = os.path.join(file_path, run_id + ".json")
-            with open(local_path, "r") as f:
-                data = json.load(f)
-                logger.info(f"Loaded JSON for {run_id}")
-        results[run_id] = {}
-        results[run_id]['data'] = data
-        results[run_id]['config'] = api.run(f"{entity}/{project}/{run_id}").config
-    return results
+    @staticmethod
+    def compute_metrics(
+        probs: torch.Tensor, 
+        targets: torch.Tensor, 
+        metrics: Dict[str, Metric],
+        prefix: str = None,
+        device: Optional[torch.device] = None,
+    ) -> Dict[str, Union[float, List]]:
+        results = {}
+        for name, metric in metrics.items():
+            key = name
+            if prefix:
+                key = f"{prefix}_{key}"
+            value = metric(probs, targets)
+            results[key] = value.tolist() if isinstance(value, torch.Tensor) else value
+        return results
 
-def expand_confusion_matrices(matrices: torch.Tensor, names: List[str]) -> Dict[str, List[List[int]]]:
-    """
-    Expand confusion matrices to a dictionary with names as keys.
-    Requires: tensor has shape [num_classes, 2, 2] where num_classes is the number of classes.
-    """
-    assert matrices.ndim == 3 and matrices.shape[1] == 2 and matrices.shape[2] == 2, \
-        "Confusion matrix tensor must have shape [num_classes, 2, 2]"
-    expanded = {}
-    for i, name in enumerate(names):
-        expanded[name] = matrices[i].cpu().numpy().tolist()
-    return expanded
+    def compute(self, results, output_path):
+        rows = []
+        for run_id, dic in results.items():
+            config = dic['config']
+            data = dic['data']
+            probs = torch.tensor(data["probs"])
+            targets = torch.tensor(data["targets"])
+            assert probs.shape == targets.shape, f"Probs and targets must have the same shape, got {probs.shape} and {targets.shape}"
+            assert probs is not None and targets is not None, f"Probs and targets must not be None for run {run_id}"
+            interested_cols = sorted(reduce(lambda acc, x: acc + x, self.subgroup_mappings.values(), []))
+            results = Exportor.compute_metrics(probs[:, interested_cols], targets[:, interested_cols], 
+                            self.aggregate_metrics | self.per_class_metrics, device=torch.device('cpu'))
+            per_group_results = union(
+                                [Exportor.compute_metrics(probs[:, self.subgroup_mappings[k]], 
+                                        targets[:, self.subgroup_mappings[k]], 
+                                        self.aggregate_metrics, 
+                                        prefix=k) 
+                                        for k in self.subgroup_mappings.keys()]) 
+            row = config | {"run_id": run_id} | results | per_group_results
+            rows.append(row)
+        existing_rows = load_existing_csv(output_path)
+        updated_rows = update(existing_rows, rows, key="run_id")
+        fieldnames = get_all_fieldnames(updated_rows)
+        fill_missing_fields(updated_rows, fieldnames)
+        write_csv(output_path, updated_rows, fieldnames)
 
-def compute_with_label_tolerance(results, tolerance, output_path):
-    rows = []
-    for run_id, dic in results.items():
-        config = dic['config']
-        data = dic['data']
-        probs = torch.tensor(data["probs"])
-        targets = torch.tensor(data["targets"])
-        assert probs.shape == targets.shape, f"Probs and targets must have the same shape, got {probs.shape} and {targets.shape}"
-        assert probs is not None and targets is not None, f"Probs and targets must not be None for run {run_id}"
+    def run(self): 
+        trained = query_trained(self.train_matcher, self.experiments)
+        evaluated = query_evaluated(self.eval_matcher, trained)
+        runs = [self.eval_matcher.get_latest(v) for v in evaluated.values() if len(v) > 0]
+        results = self.get_results(self.eval_matcher, runs)
 
-        aggregate_metrics = {
-            #average metrics
-            "f1_micro": F1Micro(tolerance),
-            "f1_macro": F1Macro(tolerance),
-            "precision_micro": PrecisionMicro(tolerance),
-            "precision_macro": PrecisionMacro(tolerance),
-            "recall_micro": RecallMicro(tolerance),
-            "recall_macro": RecallMacro(tolerance),
-            "acc": Accuracy(tolerance),
-            "mAP": mAP(),
-        }
-        per_class_metrics = {
-            #per-class metrics
-            "f1_per_class": F1PerClass(tolerance),
-            "precision_per_class": PrecisionPerClass(tolerance),
-            "recall_per_class": RecallPerClass(tolerance),
-            "positive_per_class": PositivePerClass(),
-            "ap_per_class": APPerClass(),
-        }
-        mapping = subgroup_mappings[DATASET_NAME]
-        interested_cols = sorted(reduce(lambda acc, x: acc + x, mapping.values(), []))
-        results = compute(probs[:, interested_cols], targets[:, interested_cols], 
-                          aggregate_metrics | per_class_metrics, device=torch.device('cpu'))
-        per_group_results = union(
-                            [compute(probs[:, mapping[k]], 
-                                     targets[:, mapping[k]], 
-                                     aggregate_metrics, 
-                                     prefix=k) 
-                                    for k in mapping.keys()]) 
-        confusion_matrix = binary_confusion_matrix(probs, targets)
-        per_col_confusion = expand_confusion_matrices(confusion_matrix, dataset.categories)
-        per_habitat_confusion = union([
-            expand_confusion_matrices(
-                binary_confusion_matrix(
-                    probs[mask := (targets[:, habitat_idx] == 1)], 
-                    targets[mask]),
-                [name + f"__{dataset.categories[habitat_idx]}_habitat" for name in dataset.categories]
-            ) for habitat_idx in subgroup_mappings[DATASET_NAME]['habitat']
-        ]) if 'habitat' in subgroup_mappings[DATASET_NAME] else {}
-
-
-        row = config | {"run_id": run_id} | results | per_group_results | per_col_confusion | per_habitat_confusion
-        rows.append(row)
-
-    existing_rows = load_existing_csv(output_path)
-    updated_rows = update(existing_rows, rows, key="run_id")
-    fieldnames = get_all_fieldnames(updated_rows)
-    fill_missing_fields(updated_rows, fieldnames)
-    write_csv(output_path, updated_rows, fieldnames)
-
-def main():
-    train_matcher = WandbRunMatcher(ENTITY, PROJECT)
-    eval_matcher = WandbRunMatcher(ENTITY, EVAL_PROJECT)
-    trained = query_trained(train_matcher, ALL_EXPS)
-    evaluated = query_evaluated(eval_matcher, trained)
-    runs = [eval_matcher.get_latest(v) for v in evaluated.values() if len(v) > 0]
-    results = get_results(ENTITY, EVAL_PROJECT, runs)
-    for label_tolerance in LABEL_TOLERANCES:
-        output_path = os.path.join(OUTPUT_PATH, f"{DATASET_NAME}_results_label_tolerance_{label_tolerance}.csv")
-        logger.info(f"Computing results with label tolerance {label_tolerance} and writing to {output_path}")
-        compute_with_label_tolerance(results, label_tolerance, output_path)
-
-if __name__ == "__main__":
-    main()
+        output_path = os.path.join(self.output_base, self.output_name)
+        self.compute(results, output_path)

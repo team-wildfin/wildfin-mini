@@ -48,4 +48,7 @@ class NestedFSShardManager(ShardManager):
 
     
     def locate_precomputed(self, split: str, subset: str, sliding_style: str, shard_type: str) -> str:
-        return os.path.join(self.base_path, split, subset, sliding_style, shard_type)
+        result = os.path.join(self.base_path, split, subset, sliding_style, shard_type)
+        if not os.path.exists(result): 
+            raise FileNotFoundError(f"Precomputed path does not exist: {result}")
+        return result

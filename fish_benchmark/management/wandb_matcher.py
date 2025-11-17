@@ -5,6 +5,8 @@ import wandb
 import logging
 from fish_benchmark.typing.types import RunState
 from fish_benchmark.management.matcher import Matcher
+import json
+import os 
 # Configure the *root logger* so it handles logs from any module
 logger = logging.getLogger(__name__)
 
@@ -13,9 +15,23 @@ class WandbRunMatcher(Matcher):
     A general class to run any function using wandb runs from the source project and output to the destination project.
     It can detect if the runs 
     '''
-    def __init__(self, entity: str, project: str, default_values: Optional[Dict[str, any]] = {}): 
+    def __init__(self, 
+                 entity: str, 
+                 project: str, 
+                 local_artifact_dir: str = "./artifacts", 
+                 default_values: Optional[Dict[str, any]] = {}): 
+        """
+        Args:
+            entity: The W&B entity (user or team) to use for API calls.
+            project: The W&B project to use for API calls.
+            local_artifact_dir: The local directory to store artifacts. If an artifact is not found
+                locally, it will be downloaded from W&B and stored here.
+            default_values: A dictionary of default values for config keys. If a key is missing in
+                the run config, it will be filled in with the value from this dictionary before matching.
+        """
         self.entity = entity
-        self.source_project = project
+        self.project = project
+        self.local_artifact_dir = local_artifact_dir
         self.default_values = default_values
 
     def _has_any_artifact(self, run) -> bool:
@@ -77,12 +93,6 @@ class WandbRunMatcher(Matcher):
     def match_config(self, run_config: dict, reference: Experiment) -> bool:
         """Check if a W&B run config matches a TrainConfig, ignoring 'id' and defaulting missing fields."""
         def get(run_config, key):
-            # if key == 'fulltune':
-            #     return run_config.get(key, False)
-            # if key == 'freeze_backbone':
-            #     return run_config.get(key, False)
-            # elif key == 'label_type':
-            #     return run_config.get(key, 'onehot')
             if key in self.default_values:
                 return run_config.get(key, self.default_values[key])
             return run_config.get(key)
@@ -96,3 +106,35 @@ class WandbRunMatcher(Matcher):
                 logger.debug(f"Config mismatch: {k} -> {run_val} != {v} in {reference.id}")
                 return False
         return True
+    
+    def get_run_config(self, run_id: str) -> Dict:
+        api = wandb.Api()
+        return api.run(f"{self.entity}/{self.project}/{run_id}").config
+
+    
+    def get_artifact(self, run_id: str, 
+                     local_artifact_name: str, 
+                     remote_artifact_name: Optional[str] = None):
+        """
+        Get the artifact data for the given run ID and artifact name.
+        Local artifacts and remote artifacts may have different naming conventions. 
+        Priotitize local artifacts if they exist, otherwise download from W&B.
+        """
+        api = wandb.Api()
+        try:
+            with open(os.path.join(self.local_artifact_dir, local_artifact_name), "r") as f:
+                data = json.load(f)
+                logger.info(f"Loaded locally {run_id}")
+                return data
+        except Exception as e:
+            logger.info(f"Failed to find local file {run_id}: {e}")
+            logger.info(f"Downloading artifact for {run_id}")
+            if remote_artifact_name is None: 
+                raise ValueError(f"Remote artifact name must be provided if local artifact is not found for run {run_id}")
+            artifact_path = f"{self.entity}/{self.project}/{remote_artifact_name}"
+            artifact = api.artifact(artifact_path)
+            file_path = artifact.download(root=self.local_artifact_dir)
+            local_path = os.path.join(file_path, local_artifact_name)
+            with open(local_path, "r") as f:
+                data = json.load(f)
+                logger.info(f"Loaded JSON for {run_id}")

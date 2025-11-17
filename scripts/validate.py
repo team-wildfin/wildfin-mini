@@ -29,8 +29,8 @@ logger = setup_logger(
     file=False,
 )
 if __name__ == "__main__":
-    validator = Validator(
+    Validator(
         datasets=DATASETS,
         sliding_styles=SLIDING_STYLES,
-    ).set_root(SAVE_DIR)
-    validator.run(models=FEATURE_EXTRACTORS)
+        root_path=SAVE_DIR,
+    ).run(models=FEATURE_EXTRACTORS)

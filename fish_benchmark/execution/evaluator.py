@@ -27,8 +27,8 @@ class Evaluator(ExperimentExecutor):
             f'--entity {entity} --project {project} --run {run_id} '
         )
 
-    def eval(self, matcher: Matcher, run_id: str):
-        wrap_cmd = self.get_wrap_cmd(entity, project, run_id)
+    def eval(self, eval_matcher: WandbRunMatcher, run_id: str):
+        wrap_cmd = self.get_wrap_cmd(eval_matcher.entity, eval_matcher.project, run_id)
         cmd = (
             get_slurm_submission_command(
                 f"{run_id}",

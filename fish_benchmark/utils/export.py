@@ -123,6 +123,19 @@ def binary_confusion_matrix(preds: torch.Tensor, targets: torch.Tensor) -> torch
 
     return conf_matrices
 
+def expand_confusion_matrices(matrices: torch.Tensor, names: List[str]) -> Dict[str, List[List[int]]]:
+    """
+    Expand confusion matrices to a dictionary with names as keys.
+    Requires: tensor has shape [num_classes, 2, 2] where num_classes is the number of classes.
+    """
+    assert matrices.ndim == 3 and matrices.shape[1] == 2 and matrices.shape[2] == 2, \
+        "Confusion matrix tensor must have shape [num_classes, 2, 2]"
+    expanded = {}
+    for i, name in enumerate(names):
+        expanded[name] = matrices[i].cpu().numpy().tolist()
+    return expanded
+
+
 class Pipe:
     def __init__(self, *args):
         self.args = args
