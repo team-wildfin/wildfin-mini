@@ -65,3 +65,5 @@ WeightConfig = Annotated[
     Union[UniformConfig, InverseConfig, FocalLossConfig],
     Field(discriminator='weight_method')
 ]
+
+RunState = Literal['pending', 'running', 'finished', 'failed']

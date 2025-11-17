@@ -1,3 +1,6 @@
+""" 
+Calculates the desired metrics for experimental evaluations. 
+"""
 #https://wandb.ai/fish-benchmark/coralcam_eval/runs/1w3vt7yx
 
 '''
@@ -13,7 +16,7 @@ import torch
 import numpy as np
 from typing import Callable, Dict, List, Optional, Union
 from dataclasses import dataclass
-from fish_benchmark.management.matcher import WandbRunMatcher
+from fish_benchmark.management.wandb_matcher import WandbRunMatcher
 from config.experiments.cvpr import CVPR_EXPS
 import logging
 from functools import reduce

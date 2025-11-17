@@ -1,7 +1,7 @@
 import argparse
 import wandb
 from fish_benchmark.litmodule import LitBinaryClassifierModule
-from fish_benchmark.data.dataset import DatasetBuilder
+from fish_benchmark.data.builder import DatasetBuilder
 import os
 import yaml
 import torch
@@ -9,10 +9,10 @@ from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
 import lightning as L
 import json
-from config.sliding_styles import SLIDING_STYLES    
+from config.data.sliding_styles import SLIDING_STYLES    
 import glob
 from fish_benchmark.typing.experiment import Experiment, Evaluation
-from config.datasets import DATASETS
+from config.data.datasets import DATASETS
 from config.maps.backbone_preprocessors import PREPROCESSORS
 
 eval_config = yaml.safe_load(open('config/eval.yml', 'r'))

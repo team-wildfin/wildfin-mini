@@ -11,7 +11,7 @@ import unittest
 logger.debug("importing experiments...")
 from config.experiments.cvpr import CVPR_EXPS   
 logger.debug("importing matcher...")
-from scripts.matcher import WandbRunMatcher
+from fish_benchmark.management.matcher import WandbRunMatcher
 from fish_benchmark.typing.experiment import Experiment
 from config.experiments.neurips import RESNET_FULLTUNE
 

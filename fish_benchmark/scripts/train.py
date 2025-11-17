@@ -12,14 +12,14 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
 from fish_benchmark.models import ModelBuilder
-from fish_benchmark.data.dataset import DatasetBuilder
+from fish_benchmark.data.builder import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.litmodule import LitBinaryClassifierModule
 from fish_benchmark.typing.experiment import Experiment  # Your TrainConfig class
-from config.datasets import DATASETS
+from config.data.datasets import DATASETS
 from config.models.backbones import BACKBONE_CONFIGS
-from config.sliding_styles import SLIDING_STYLES
-from artifact import log_best_model, log_latest_model
+from config.data.sliding_styles import SLIDING_STYLES
+from fish_benchmark.utils.artifact import log_best_model, log_latest_model
 checkpoint_path = yaml.safe_load(open("config/training.yml"))['checkpoint_path']
 
 def load_config(path: Union[str, Path]) -> Experiment:

@@ -7,8 +7,22 @@ import os
 import numpy as np
 from fish_benchmark.utils.general import PriorityQueue
 from fish_benchmark.data.schemas import Behavior, Event, Metadata
-from fish_benchmark.data.dataset import onehot, load_from_cur_dir
+from fish_benchmark.data.dataset import load_from_cur_dir
+import torch
 
+def onehot(num_total_classes, active_classes):
+    """
+    Convert a list of class indices to one-hot encoding.
+    """
+    one_hot = torch.zeros(num_total_classes, dtype=torch.float32)
+    one_hot[active_classes] = 1
+    return one_hot
+
+def parse_annotation(annotation):
+    behaviors = []
+    for event in annotation['events']:
+        behaviors.append(event['behavior']['name'])
+    return behaviors
 METADATA_TO_BORIS_NAME = {
     'observation_id': ['observation_id'],
     'observation_date': ['observation_date'],

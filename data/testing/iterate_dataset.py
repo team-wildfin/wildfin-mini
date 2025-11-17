@@ -9,7 +9,7 @@ from fish_benchmark.data.dataset import DatasetBuilder
 from fish_benchmark.data.sampler import MultiLabelBalancedSampler
 from fish_benchmark.utils.general import setup_logger 
 from fish_benchmark.models import get_input_transform
-from config.datasets import DATASETS
+from config.data.datasets import DATASETS
 print("importing utilities")
 import yaml
 import argparse

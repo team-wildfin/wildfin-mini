@@ -2,14 +2,14 @@ import os
 import subprocess
 import wandb
 import logging
-from scripts.matcher import WandbRunMatcher
+from fish_benchmark.management.matcher import WandbRunMatcher
 from datetime import datetime, timezone
 import pprint
 from fish_benchmark.typing.experiment import Experiment
 from config.experiments.cvpr import CVPR_EXPS
-from submission import get_slurm_submission_command
+from fish_benchmark.utils.submission import get_slurm_submission_command
 from fish_benchmark.utils.general import setup_logger
-from scripts.query import query_pending_evaluations
+from fish_benchmark.management.query import query_pending_evaluations
 
 logger = setup_logger("evaluate", console=True, file=False, level=logging.DEBUG)
 

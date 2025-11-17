@@ -66,4 +66,3 @@ SLIDING_STYLES = {
     "frames_w_temp": FRAMES_W_TEMP,
     "sliding_window_w_temp": SLIDING_WINDOW_W_TEMP,
 }
-

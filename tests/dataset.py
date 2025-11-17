@@ -1,5 +1,5 @@
 from fish_benchmark.data.dataset import PrecomputedDataset
-from config.datasets import CORALCAM, FISHFOLLOW
+from config.data.datasets import CORALCAM, FISHFOLLOW
 from fish_benchmark.data.dataset import DatasetBuilder
 import os
 import unittest

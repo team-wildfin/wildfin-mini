@@ -1,4 +1,4 @@
-from ..sliding_styles import *
+from ..data.sliding_styles import *
 from typing import Dict, List
 MODEL_SLIDING_STYLES: Dict[str, List[SlidingStyle]] = {
     "vjepa2": [SLIDING_WINDOW_W_TEMP, TEST_SLIDING_WINDOW],

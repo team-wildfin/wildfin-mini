@@ -1,7 +1,7 @@
 import requests
 import yaml
 import os
-from config.datasets import DATASETS
+from config.data.datasets import DATASETS
 
 
 def get_dataset_files(dataverse_url, doi, headers=None):

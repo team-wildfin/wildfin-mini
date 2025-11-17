@@ -1,17 +1,22 @@
+
 from typing import Optional, List, Dict, Callable, Iterable
 from fish_benchmark.typing.experiment import Experiment
 import wandb
 import logging
+from fish_benchmark.typing.types import RunState
+from fish_benchmark.management.matcher import Matcher
 # Configure the *root logger* so it handles logs from any module
 logger = logging.getLogger(__name__)
-class WandbRunMatcher: 
+
+class WandbRunMatcher(Matcher): 
     '''
     A general class to run any function using wandb runs from the source project and output to the destination project.
     It can detect if the runs 
     '''
-    def __init__(self, entity: str, project: str): 
+    def __init__(self, entity: str, project: str, default_values: Optional[Dict[str, any]] = {}): 
         self.entity = entity
         self.source_project = project
+        self.default_values = default_values
 
     def _has_any_artifact(self, run) -> bool:
         """
@@ -23,7 +28,7 @@ class WandbRunMatcher:
             logger.debug(f"Error checking artifacts for run {run.id}: {e}")
             return False
 
-    def match(self, experiments: List[Experiment], states: List[str] = ["finished"]) -> Dict[str, str]:
+    def match(self, experiments: List[Experiment], states: List[RunState] = ["finished"]) -> Dict[str, str]:
         """
         Get matched run IDs for the given experiments.
         If non_duplicate is True, it will filter out runs that have already been evaluated.
@@ -41,7 +46,7 @@ class WandbRunMatcher:
             matched_runs[exp.id] = runs
         return matched_runs
 
-    def match_by_train_id(self, train_ids: List[str], states: List[str] = ["finished"]) -> List[str]: 
+    def match_by_train_id(self, train_ids: List[str], states: List[RunState] = ["finished"]) -> List[str]: 
         """
         Returns the set of evaluation run IDs that correspond to any of the given training run IDs.
         In most cases the train ids should be of the same experiment. 
@@ -69,16 +74,17 @@ class WandbRunMatcher:
                 latest_run = run_id
         return latest_run
 
-    @staticmethod 
-    def match_config(run_config: dict, reference: Experiment) -> bool:
+    def match_config(self, run_config: dict, reference: Experiment) -> bool:
         """Check if a W&B run config matches a TrainConfig, ignoring 'id' and defaulting missing fields."""
         def get(run_config, key):
-            if key == 'fulltune':
-                return run_config.get(key, False)
-            if key == 'freeze_backbone':
-                return run_config.get(key, False)
-            elif key == 'label_type':
-                return run_config.get(key, 'onehot')
+            # if key == 'fulltune':
+            #     return run_config.get(key, False)
+            # if key == 'freeze_backbone':
+            #     return run_config.get(key, False)
+            # elif key == 'label_type':
+            #     return run_config.get(key, 'onehot')
+            if key in self.default_values:
+                return run_config.get(key, self.default_values[key])
             return run_config.get(key)
 
         run_config = {k.lower(): v for k, v in run_config.items()}

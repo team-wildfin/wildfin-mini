@@ -1,6 +1,6 @@
 from fish_benchmark.models import ModelBuilder
 from config.maps.backbone_preprocessors import PREPROCESSORS
-from fish_benchmark.data.dataset import DatasetBuilder
+from fish_benchmark.data.builder import DatasetBuilder
 import yaml 
 import argparse
 from torch.utils.data import DataLoader
@@ -9,8 +9,8 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from tqdm import tqdm
 from fish_benchmark.utils.general import frame_id_with_padding
-from config.datasets import DATASETS 
-from config.sliding_styles import SLIDING_STYLES
+from config.data.datasets import DATASETS 
+from config.data.sliding_styles import SLIDING_STYLES
 from fish_benchmark.debug import step_timer
 import numpy as np
 import shutil

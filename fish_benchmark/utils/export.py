@@ -123,9 +123,6 @@ def binary_confusion_matrix(preds: torch.Tensor, targets: torch.Tensor) -> torch
 
     return conf_matrices
 
-
-
-
 class Pipe:
     def __init__(self, *args):
         self.args = args

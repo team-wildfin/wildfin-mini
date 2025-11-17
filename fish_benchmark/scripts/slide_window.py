@@ -2,9 +2,9 @@ import argparse
 import os
 import yaml
 import torch
-from fish_benchmark.data.dataset import DatasetBuilder
-from config.datasets import DATASETS
-from config.sliding_styles import SLIDING_STYLES
+from fish_benchmark.data.builder import DatasetBuilder
+from config.data.datasets import DATASETS
+from config.data.sliding_styles import SLIDING_STYLES
 from fish_benchmark.utils.general import frame_id_with_padding, setup_logger
 from tqdm import tqdm
 import numpy as np
