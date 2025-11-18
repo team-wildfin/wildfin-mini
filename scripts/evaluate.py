@@ -28,6 +28,8 @@ if __name__ == "__main__":
         train_matcher = WandbRunMatcher(ENTITY, TRAINING_PROJECT, MISSING_VALUES),
         eval_matcher = WandbRunMatcher(ENTITY, EVAL_PROJECT, MISSING_VALUES),
         parallel = PARALLEL,
-        logger = logger
+        logger = logger, 
+        model_ckpt_dir = "/share/j_sun/jth264/checkpoints", 
+        local_artifact_dir = "./logs/test_metrics"
     )
     evaluator.run()

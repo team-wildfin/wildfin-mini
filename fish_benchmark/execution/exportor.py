@@ -67,9 +67,10 @@ class Exportor(ExperimentExecutor):
     def get_results(self, matcher: WandbRunMatcher, run_ids: List[str]) -> Dict[str, dict]:
         results = {}
         for run_id in run_ids:
-            data = matcher.get_artifact(run_id, 
-                                        local_artifact_name=f"{run_id}.json",
-                                        remote_artifact_name = f"test_metrics_{run_id}.json:v0")
+            data_path = matcher.get_artifact(local_path=f"{run_id}.json",
+                                        remote_path = f"test_metrics_{run_id}.json:v0")
+            with open(data_path, "r") as f:
+                data = json.load(f)
             results[run_id] = {}
             results[run_id]['data'] = data
             results[run_id]['config'] = matcher.get_run_config(run_id)

@@ -28,5 +28,6 @@ if __name__ == "__main__":
     Trainer(
         ALL_EXPS, 
         WandbRunMatcher(ENTITY, TRAINING_PROJECT, MISSING_VALUES), 
-        parallel=PARALLEL
+        parallel=PARALLEL, 
+        local_artifact_dir="/share/j_sun/jth264/checkpoints"
     ).run()

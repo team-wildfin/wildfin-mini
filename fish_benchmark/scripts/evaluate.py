@@ -14,46 +14,38 @@ import glob
 from fish_benchmark.typing.experiment import Experiment, Evaluation
 from config.data.datasets import DATASETS
 from config.maps.backbone_preprocessors import PREPROCESSORS
+from config.maps.sliding_style_test import TEST_SLIDING_STYLES
+from fish_benchmark.management.wandb_matcher import WandbRunMatcher
 
-eval_config = yaml.safe_load(open('config/eval.yml', 'r'))
-checkpoint_path = yaml.safe_load(open('config/training.yml', 'r'))['checkpoint_path']
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
-TEST_METRIC_DIR = os.path.join('logs', 'test_metrics')
-os.makedirs(TEST_METRIC_DIR, exist_ok=True)
-
 
 def get_args():
     parser = argparse.ArgumentParser(description="Evaluate a model on a dataset")
     parser.add_argument("--entity", type=str, required=True, help="WandB entity name")
     parser.add_argument("--project", type=str, required=True, help="WandB project name")
     parser.add_argument("--run", type=str, required=True, help="WandB run ID")
+    parser.add_argument("--model_ckpt_dir", type=str, required=True, help="Local directory to store artifacts")
+    parser.add_argument("--result_dest_dir", type=str, required=True, help="Directory to store results")
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = get_args()
-    #load the artifact
-    try: 
-        api = wandb.Api()
-        artifact = api.artifact(f"{args.entity}/{args.project}/model-{args.run}:latest", type="model")
-        artifact_dir = artifact.download()
-        print(f"Artifact downloaded to {artifact_dir}")
-        ckpt_files = glob.glob(os.path.join(artifact_dir, "*.ckpt"))
-        assert len(ckpt_files) == 1, f"Expected exactly one .ckpt file in {artifact_dir}"
-        ckpt_file = ckpt_files[0]
-    except Exception as e:
-        #load from ./checkpoints/<run_id>/best<something>.ckpt
-        print(f"Failed to download artifact: {e}")
-        print(f"Trying to load from local path")
-        ckpt_pattern = os.path.join(checkpoint_path, args.run, 'best*.ckpt')
-        ckpt_files = glob.glob(ckpt_pattern)
-        assert len(ckpt_files) == 1, f"Expected exactly one checkpoint file matching 'best*.ckpt' in {ckpt_pattern}"
-        ckpt_file = ckpt_files[0]
-        print(f"Loaded checkpoint from {ckpt_file}")
-        
+    train_run_matcher = WandbRunMatcher(
+        entity=args.entity, 
+        project=args.project, 
+        local_artifact_dir=args.local_artifact_dir
+    )
+
+    local_ckpt_file = glob.glob(os.path.join(train_run_matcher.local_artifact_dir, args.run, 'best*.ckpt'))[0]
+    ckpt_file = train_run_matcher.get_artifact(
+        local_path = local_ckpt_file,
+        remote_path = f"model-{args.run}:latest"
+    )
+    
     training_run = wandb.Api().run(f"{args.entity}/{args.project}/{args.run}")
     train_config = Experiment.model_validate(training_run.config)
-    test_sliding_style = eval_config[train_config.sliding_style] # name of the test sliding style
+    test_sliding_style = TEST_SLIDING_STYLES[train_config.sliding_style] # name of the test sliding style
     config = Evaluation.model_validate(
         train_config.model_dump() |
         {
@@ -112,7 +104,7 @@ if __name__ == "__main__":
         "targets": targets.tolist()
     }
 
-    json_path = os.path.join(TEST_METRIC_DIR, f"{wandb_logger.experiment.id}.json")
+    json_path = os.path.join(args.result_dest_dir, f"{wandb_logger.experiment.id}.json")
     with open(json_path, "w") as f:
         json.dump(output_dict, f, indent=2)
 

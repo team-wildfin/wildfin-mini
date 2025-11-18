@@ -17,10 +17,30 @@ from fish_benchmark.utils.general import setup_logger
 from fish_benchmark.management.query import query_pending_evaluations
 from fish_benchmark.execution.exp_executor import ExperimentExecutor
 from fish_benchmark.management.matcher import Matcher
+from typing import List, Optional, Callable, Dict, Union
 
 logger = setup_logger("evaluate", console=True, file=False, level=logging.DEBUG)
 
 class Evaluator(ExperimentExecutor): 
+    def __init__(self, 
+                experiments: List[Experiment],
+                train_matcher: WandbRunMatcher,
+                eval_matcher: WandbRunMatcher,
+                logger: Optional[logging.Logger] = None,
+                parallel: bool = False,
+                model_ckpt_dir: str = "./model_checkpoints",
+                local_artifact_dir: str = "./eval_results"):
+        
+        super().__init__(
+            experiments=experiments,
+            train_matcher=train_matcher,
+            eval_matcher=eval_matcher,
+            logger=logger,
+            parallel=parallel,
+            local_artifact_dir=local_artifact_dir
+        )
+        self.model_ckpt_dir = model_ckpt_dir
+                 
     def get_wrap_cmd(self, entity, project, run_id):
         return (
             f'python evaluation/main.py '

@@ -1,0 +1,11 @@
+
+TEST_SLIDING_STLYES = {
+    "frames": "test_frames", 
+    "frames_w_temp": "test_frames",
+    "sliding_window": "test_sliding_window",
+    "sliding_window_w_temp": "test_sliding_window",
+    "sliding_window_w_stride": "test_sliding_window",
+    "sliding_window_ti8": "test_sliding_window_ti8",
+    "fix_patched_224": "test_fix_patched_512",
+    "fix_patched_512": "test_fix_patched_512"
+}

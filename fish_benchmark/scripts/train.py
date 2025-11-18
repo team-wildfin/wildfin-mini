@@ -20,16 +20,15 @@ from config.data.datasets import DATASETS
 from config.models.backbones import BACKBONE_CONFIGS
 from config.data.sliding_styles import SLIDING_STYLES
 from fish_benchmark.utils.artifact import log_best_model, log_latest_model
-checkpoint_path = yaml.safe_load(open("config/training.yml"))['checkpoint_path']
 
 def load_config(path: Union[str, Path]) -> Experiment:
     with open(path, "r") as f:
         raw = yaml.safe_load(f) if str(path).endswith((".yml", ".yaml")) else json.load(f)
     return Experiment(**raw)
 
-
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--ckpt_dir", type=str, required=True, help="Directory to store model checkpoints")
     parser.add_argument("--config", type=str, required=True, help="Path to TrainConfig YAML or JSON")
     parser.add_argument("--min_ctime", type=float, default=1746331200.0)
     args = parser.parse_args()
@@ -155,7 +154,7 @@ def main():
         monitor=config.monitor,
         save_top_k=1,
         mode="max",
-        dirpath=f"{checkpoint_path}/{wandb_logger.experiment.id}",
+        dirpath=f"{args.ckpt_dir}/{wandb_logger.experiment.id}",
         filename="best-{epoch:02d}-{val_mAP:.2f}",
     )
 
@@ -163,7 +162,7 @@ def main():
         save_top_k=1,
         every_n_epochs=1,
         save_on_train_epoch_end=True,
-        dirpath=f"{checkpoint_path}/{wandb_logger.experiment.id}",
+        dirpath=f"{args.ckpt_dir}/{wandb_logger.experiment.id}",
         filename="latest",
     )
 

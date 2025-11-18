@@ -26,10 +26,10 @@ class Trainer(ExperimentExecutor):
         return out_path
     
     def run_training(self, config_path: str, config_id: str, slurm_output_base: Optional[str] = None):
+        wrap_cmd = f"python fish_benchmark/scripts/train.py --config {config_path} --ckpt_dir {self.local_artifact_dir}"
         if self.parallel:
             output_dir = os.path.join(slurm_output_base, config_id)
             submission_name = config_id
-            wrap_cmd = f"python fish_benchmark/scripts/train.py --config {config_path}"
             command = get_slurm_submission_command(
                 submission_name=submission_name,
                 output_dir=output_dir,
@@ -37,7 +37,7 @@ class Trainer(ExperimentExecutor):
                 gpu_count=1,
             )
         else:
-            command = f"python fish_benchmark/scripts/train.py --config {config_path}"
+            command = wrap_cmd
         self.logger.info(f"Running training with config: {config_id}\nCommand: {command}")
         subprocess.run(command, shell=True, check=True)
 

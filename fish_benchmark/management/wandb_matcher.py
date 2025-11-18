@@ -7,6 +7,7 @@ from fish_benchmark.typing.types import RunState
 from fish_benchmark.management.matcher import Matcher
 import json
 import os 
+import glob
 # Configure the *root logger* so it handles logs from any module
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,7 @@ class WandbRunMatcher(Matcher):
         latest_run = None
         latest_time = None
         for run_id in run_ids: 
-            run = api.run(f"{self.entity}/{self.source_project}/{run_id}")
+            run = api.run(f"{self.entity}/{self.project}/{run_id}")
             if latest_time is None or run.created_at > latest_time: 
                 latest_time = run.created_at
                 latest_run = run_id
@@ -110,31 +111,35 @@ class WandbRunMatcher(Matcher):
     def get_run_config(self, run_id: str) -> Dict:
         api = wandb.Api()
         return api.run(f"{self.entity}/{self.project}/{run_id}").config
-
     
-    def get_artifact(self, run_id: str, 
-                     local_artifact_name: str, 
-                     remote_artifact_name: Optional[str] = None):
+
+    def get_artifact(self,
+                     local_path: str, 
+                     remote_path: Optional[str] = None) -> str:
         """
         Get the artifact data for the given run ID and artifact name.
+        local_path: The local path to the artifact file. The path is relative to the local_artifact_dir. If the file exists locally, it will be loaded from there.
+        remote_path: The remote path to the artifact file in W&B.
+
+        Returns: 
+
         Local artifacts and remote artifacts may have different naming conventions. 
         Priotitize local artifacts if they exist, otherwise download from W&B.
         """
         api = wandb.Api()
-        try:
-            with open(os.path.join(self.local_artifact_dir, local_artifact_name), "r") as f:
-                data = json.load(f)
-                logger.info(f"Loaded locally {run_id}")
-                return data
-        except Exception as e:
-            logger.info(f"Failed to find local file {run_id}: {e}")
-            logger.info(f"Downloading artifact for {run_id}")
-            if remote_artifact_name is None: 
-                raise ValueError(f"Remote artifact name must be provided if local artifact is not found for run {run_id}")
-            artifact_path = f"{self.entity}/{self.project}/{remote_artifact_name}"
-            artifact = api.artifact(artifact_path)
-            file_path = artifact.download(root=self.local_artifact_dir)
-            local_path = os.path.join(file_path, local_artifact_name)
-            with open(local_path, "r") as f:
-                data = json.load(f)
-                logger.info(f"Loaded JSON for {run_id}")
+        if local_path:
+            try: 
+                local_file_path = os.path.join(self.local_artifact_dir, local_path)
+                if os.path.exists(local_file_path):
+                    return local_file_path
+            except Exception as e: 
+                logger.warning(f"Failed to load local artifact {local_path}: {e}")
+        elif remote_path:
+            try: 
+                artifact_path = f"{self.entity}/{self.project}/{remote_path}"
+                artifact = api.artifact(artifact_path)
+                return artifact.download(root=self.local_artifact_dir)
+            except Exception as e:
+                logger.warning(f"Failed to download artifact {remote_path}: {e}")
+        else: 
+            raise FileNotFoundError(f"Failed to find artifact: {local_path} or {remote_path}")

@@ -18,6 +18,7 @@ import time
 from contextlib import contextmanager
 import av
 from typing import Any, Callable, List, Union
+import glob
 
 def get_files_of_type(folder_path, file_type, min_ctime = None):
     res = []
@@ -109,3 +110,7 @@ def get_last_frame(path):
         last_frame = frame
     return last_frame
 
+def find_single_match(pattern): 
+    files = glob.glob(pattern)
+    assert len(files) == 1, f"Expected exactly one checkpoint file matching pattern in {pattern}"
+    file = files[0]
