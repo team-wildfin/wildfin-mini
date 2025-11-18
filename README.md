@@ -30,8 +30,7 @@ conda env create -f environment.yml
 
 ## ⚙️ Dataset Configuration
 
-All dataset settings are managed through `config/actual/dataset.yml`.
-
+All dataset settings are managed through `config/data/datasets.py`.
 Each dataset block defines:
 
 - `doi`: Link to the official dataset source (Dataverse)
@@ -71,6 +70,8 @@ fishfollow:
 # 🐟 Reproducing Experiments in **WildFin**
 
 This guide outlines how to reproduce all experiments reported in the WildFin benchmark.
+Follow the 3 steps below to download and organize the data in standard format, then follow demo.ipynb to run the experiments. 
+One can use Wildfin platform to run video benchmarking experiments on custom benchmarks after organizing files in the same format! 
 
 ---
 
@@ -95,7 +96,7 @@ python data/organization/scripts/fishfollow.py
 
 ---
 
-## ✅ Step 3: Match Frame Counts with Annotations
+## ✅ Step 3: Sanity Check Frame Counts matches Annotations
 
 Ensure that frame counts and TSV annotation lines are aligned.
 
@@ -105,76 +106,6 @@ python data/validation/match_labels.py
 
 ---
 
-## 🧠 Step 4: Extract Features with Pretrained Models
-
-Extract features using models like DINOv2, VideoMAE, etc.
-
-```bash
-python scripts/extract_features.py
-```
-
----
-
-## 🧱 Step 5: Apply Sliding Window and Generate Labels
-
-Use sliding window settings to generate `(clip, label)` pairs.
-Note that the default setting is to only store labels, since labels can be directly paired with features extracted in the previous step. 
-
-```bash
-python scripts/slide_window.py
-```
-
----
-
-## 🔍 Step 6: Validate Feature and Label Integrity
-
-Checks for mismatches and logs stats; important when using SLURM, to check that all processes correctly finished.
-
-```bash
-python data/validation/validate.py
-```
-
----
-
-## 🏋️ Step 7: Train Classification Models
-
-Train a MLP / Linear classifier on top of extracted features.
-
-```bash
-python scripts/train.py
-```
-
----
-
-## 🧪 Step 8: Evaluate on Test Set
-
-Run inference on the test set using wandb artifacts from training.
-
-```bash
-python scripts/evaluate.py
-```
-
----
-
-## 📊 Step 9: Export Evaluation Results
-
-Aggregate results into structured tables for analysis and reporting.
-
-```bash
-python scripts/export.py
-```
-
----
-
-## 🧼 Step 10: Clean Tables for Paper Use
-
-Produce paper-ready tables and clean summaries.
-
-```bash
-python scripts/clean.py
-```
-
----
 
 ## 📌 Notes
 

@@ -1,6 +1,6 @@
 from config.models.models import ModelConfig, BackBoneConfig
 from typing import Dict
-from fish_benchmark.typing.types import SlidingStyle
+from vision_bench.typing.types import SlidingStyle
 from ..sliding_styles import *
 from typing import List, Dict, Callable, Literal
 

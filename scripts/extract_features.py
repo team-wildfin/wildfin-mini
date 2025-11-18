@@ -5,15 +5,15 @@ extracts features from precomputed inputs
 import yaml
 import os
 import torch
-from fish_benchmark.utils.general import setup_logger
+from vision_bench.utils.general import setup_logger
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
 import subprocess
 import argparse
 import shutil
 from typing import Dict
 from config.data.datasets import CORALCAM, FISHFOLLOW
-from fish_benchmark.utils.submission import get_slurm_submission_command
-from fish_benchmark.execution.feature_extractor import FeatureExtractor
+from vision_bench.utils.submission import get_slurm_submission_command
+from vision_bench.execution.feature_extractor import FeatureExtractor
 
 DATASETS = [CORALCAM, FISHFOLLOW]
 TARGET_MODELS = [

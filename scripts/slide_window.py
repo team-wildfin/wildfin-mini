@@ -1,10 +1,10 @@
 import os
 import subprocess
 import yaml
-from fish_benchmark.utils.general import setup_logger
-from fish_benchmark.utils.submission import get_slurm_submission_command
+from vision_bench.utils.general import setup_logger
+from vision_bench.utils.submission import get_slurm_submission_command
 from config.data.datasets import CORALCAM, FISHFOLLOW
-from fish_benchmark.execution.preprocessor import Preprocessor
+from vision_bench.execution.preprocessor import Preprocessor
 # Example config values (replace with loading from a file if needed)
 SLIDING_STYLES = [
     # "frames", 

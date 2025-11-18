@@ -1,4 +1,4 @@
-from fish_benchmark.typing.types import SlidingStyle
+from vision_bench.typing.types import SlidingStyle
 
 TEST_FRAMES = SlidingStyle(
     name = "test_frames",

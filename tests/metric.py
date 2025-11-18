@@ -1,4 +1,4 @@
-from fish_benchmark.utils.export import *
+from vision_bench.utils.export import *
 from scripts.export import compute
 tolerance = 2
 probs = torch.tensor([[0.1, 0.9, 0.2], [0.8, 0.3, 0.4]])

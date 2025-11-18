@@ -4,13 +4,13 @@
 run oriented evaluation
 '''
 import os
-from fish_benchmark.management.wandb_matcher import WandbRunMatcher
+from vision_bench.management.wandb_matcher import WandbRunMatcher
 from config.experiments.cvpr import CVPR_EXPS
 import logging
-from fish_benchmark.utils.general import setup_logger
-from fish_benchmark.utils.export import *
+from vision_bench.utils.general import setup_logger
+from vision_bench.utils.export import *
 from config.data.datasets import DATASETS
-from fish_benchmark.execution.exportor import Exportor
+from vision_bench.execution.exportor import Exportor
 from config.experiments.defaults import MISSING_VALUES
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 

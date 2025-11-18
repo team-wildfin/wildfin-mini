@@ -1,4 +1,4 @@
-from fish_benchmark.data.preprocessors import TorchVisionPreprocessor
+from vision_bench.data.preprocessors import TorchVisionPreprocessor
 from typing import Dict, Callable, Any
 PREPROCESSORS: Dict[str, Callable[[Any], Any]] = {
     "vjepa2": TorchVisionPreprocessor(crop_size=(256, 256), resize_shortest=256),

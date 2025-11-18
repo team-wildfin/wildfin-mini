@@ -1,12 +1,12 @@
 import av
 import yaml
 import os
-from fish_benchmark.utils.general import setup_logger
+from vision_bench.utils.general import setup_logger
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLE
 from config.data.sliding_styles import SLIDING_STYLES
 from config.data.datasets import CORALCAM, FISHFOLLOW
-from fish_benchmark.typing.types import LocalDataset, Split, SlidingStyle
-from fish_benchmark.execution.validator import Validator
+from vision_bench.typing.types import LocalDataset, Split, SlidingStyle
+from vision_bench.execution.validator import Validator
 
 DATASETS = [
     CORALCAM,

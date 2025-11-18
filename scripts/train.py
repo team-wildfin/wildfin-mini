@@ -1,10 +1,10 @@
 import os
 from config.experiments.neurips import *
-from fish_benchmark.typing.experiment import Experiment
-from fish_benchmark.management.wandb_matcher import WandbRunMatcher
-from fish_benchmark.utils.general import setup_logger
+from vision_bench.typing.experiment import Experiment
+from vision_bench.management.wandb_matcher import WandbRunMatcher
+from vision_bench.utils.general import setup_logger
 from config.experiments.cvpr import CVPR_EXPS
-from fish_benchmark.execution.trainer import Trainer
+from vision_bench.execution.trainer import Trainer
 from config.experiments.defaults import MISSING_VALUES
 
 PARALLEL = False

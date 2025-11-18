@@ -1,8 +1,8 @@
 import logging
-from fish_benchmark.management.wandb_matcher import WandbRunMatcher
+from vision_bench.management.wandb_matcher import WandbRunMatcher
 from config.experiments.cvpr import CVPR_EXPS
-from fish_benchmark.utils.general import setup_logger
-from fish_benchmark.execution.evaluator import Evaluator
+from vision_bench.utils.general import setup_logger
+from vision_bench.execution.evaluator import Evaluator
 from config.experiments.defaults import MISSING_VALUES
 
 logger = setup_logger("evaluate", console=True, file=False, level=logging.DEBUG)

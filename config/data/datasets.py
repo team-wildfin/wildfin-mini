@@ -1,4 +1,4 @@
-from fish_benchmark.typing.types import  LocalDataset, Split
+from vision_bench.typing.types import  LocalDataset, Split
 from .sliding_styles import *
 
 FISHFOLLOW = LocalDataset(

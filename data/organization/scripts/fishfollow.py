@@ -5,7 +5,7 @@ import yaml
 import shutil
 import subprocess
 from collections import defaultdict
-from fish_benchmark.utils.general import get_files_of_type
+from vision_bench.utils.general import get_files_of_type
 import av  # PyAV for video processing
 from config.data.datasets import DATASETS
 
