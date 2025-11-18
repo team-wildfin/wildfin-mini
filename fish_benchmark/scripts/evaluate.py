@@ -79,7 +79,7 @@ if __name__ == "__main__":
         path=test_data_dir, 
         dataset=dataset,
         sliding_style=SLIDING_STYLES[config.test_sliding_style],
-        transform=None,
+        input_transform=None,
         precomputed=True,
         feature_model=config.backbone if not config.fulltune else None # if not precomoputed, the feature model is the downloaded backbone
     ).build()

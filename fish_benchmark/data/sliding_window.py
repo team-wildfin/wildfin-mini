@@ -11,7 +11,6 @@ from torch.utils.data import IterableDataset, TensorDataset
 from fish_benchmark.data.source import BaseSource
 from fish_benchmark.data.patcher import Patcher
 
-PROFILE = False
 @dataclass
 class BaseSlidingWindowDataset(IterableDataset):
     '''
@@ -23,6 +22,7 @@ class BaseSlidingWindowDataset(IterableDataset):
     ds: LocalDataset
     ss: SlidingStyle
     input_transform: Callable=None, 
+    label_transform: Callable=None,
     total_frames: int = None
     shuffle: bool = False
     def __post_init__(self):
@@ -97,18 +97,19 @@ class BaseSlidingWindowDataset(IterableDataset):
             #if the next yielding index is more than window size away, then this frame would not be used
             return
         
-        with step_timer("converting PIL image to numpy", verbose=PROFILE): 
-            #images are converted to tensors from the start as we want to treat clip processing as batch processing using torch.stack
-            if not self.only_labels: self.image_window_queue.append(np.array(image.convert('RGB')))
-            self.labels_window_queue.append(label)
+        #images are converted to tensors from the start as we want to treat clip processing as batch processing using torch.stack
+        if not self.only_labels: self.image_window_queue.append(np.array(image.convert('RGB')))
+        if self.label_transform:
+            label = self.label_transform(label)
+            
+        self.labels_window_queue.append(label)
     
         if self.is_yielding_idx(ith_sample):
             #if the calculation of yielding index is correct, then we should have enough images in the window queue
             assert len(self.labels_window_queue) >= self.ss.window_size, f"image buffer should be at least {self.ss.window_size} long"
 
-            with step_timer("getting latest clip", verbose=PROFILE):
-                if not self.only_labels: self.clips.append(self.get_latest_clip())
-                self.labels.append(self.get_latest_label())
+            if not self.only_labels: self.clips.append(self.get_latest_clip())
+            self.labels.append(self.get_latest_label())
 
         if len(self.clips) >= self.MAX_BUFFER_SIZE:
             yield from self.flush()

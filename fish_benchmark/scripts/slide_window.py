@@ -52,7 +52,7 @@ if __name__ == '__main__':
         dataset = DATASET,
         sliding_style = SLIDING_STYLE, 
         precomputed = False, 
-        transform = TorchVisionPreprocessor(), 
+        input_transform = TorchVisionPreprocessor(), 
         only_labels = False if SAVE_INPUT else True
     ).build()
     

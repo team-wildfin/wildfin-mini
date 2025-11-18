@@ -74,7 +74,7 @@ if __name__ == '__main__':
         path=SOURCE,
         dataset=DATASET,
         sliding_style=SLIDING_STYLE, 
-        transform=input_transform,
+        input_transform=input_transform,
         precomputed=PRECOMPUTED
     ).build()
 

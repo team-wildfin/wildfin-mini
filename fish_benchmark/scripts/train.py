@@ -79,7 +79,7 @@ def main():
         ),
         dataset=dataset,
         sliding_style=sliding_style_config,
-        transform=None,
+        input_transform=None,
         precomputed=True,
         feature_model=None if config.fulltune else config.backbone,
         min_ctime=min_ctime,
@@ -95,7 +95,7 @@ def main():
         ),
         dataset=dataset,
         sliding_style=sliding_style_config,
-        transform=None,
+        input_transform=None,
         precomputed=True,
         feature_model=None if config.fulltune else config.backbone,
     ).build()
@@ -193,7 +193,6 @@ def main():
         log_latest_model(latest_ckpt, wandb_logger.experiment)
     except Exception as e:
         print(f"Error logging latest model: {e}")
-
 
 if __name__ == "__main__":
     main()

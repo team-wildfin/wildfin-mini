@@ -11,13 +11,15 @@ class PrecomputedDataset(Dataset):
     Dataset mounted on precomputed sliding window clips and labels. 
     Corresponding clips and labels have the same name but live in different folders
     '''
-    def __init__(self, path, categories, transform=None, feature_model=None, min_ctime=None):
+    def __init__(self, path, categories, input_transform=None, label_transform = None, feature_model=None, min_ctime=None):
         '''
         path should be contain 2 subfolders: frames and labels
         '''
         self.label_type = "onehot"
         self.path = path
-        self.transform = transform
+        self.input_transform = input_transform
+        self.label_transform = label_transform
+        
         self.categories = categories
         print(self.path)
         print(f"feature_model: {feature_model}")
@@ -57,8 +59,10 @@ class PrecomputedDataset(Dataset):
         with step_timer(f"loading {key}", verbose=False):
             input = torch.from_numpy(np.load(self.input_dict[key])).float()
             label = torch.from_numpy(self.label_dict[video_id][frame_id]).int() 
-        if self.transform:
-            input = self.transform(input)
+        if self.input_transform:
+            input = self.input_transform(input)
+        if self.label_transform:
+            label = self.label_transform(label)
         return input, label
 
     def get_summary(self):
