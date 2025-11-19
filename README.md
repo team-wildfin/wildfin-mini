@@ -28,45 +28,6 @@ cd wildfin-mini
 conda env create -f environment.yml
 ```
 
-## ⚙️ Dataset Configuration
-
-All dataset settings are managed through `config/data/datasets.py`.
-Each dataset block defines:
-
-- `doi`: Link to the official dataset source (Dataverse)
-- `path`: Location of the organized video + annotation directory
-- `precomputed_path`: Where extracted features and sliding label outputs will be stored
-- `label_type`: Currently supports `onehot` for multi-class classification
-- `categories`: Full list of behavior/action labels  
-  > 🧠 These are **domain-specific categories** defined by marine biologists and used throughout training, evaluation, and reporting
-- `splits`: Defines which sliding styles to use for `train`, `val`, and `test`
-
-Example (excerpt for `fishfollow`):
-
-```yaml
-fishfollow:
-  doi: https://doi.org/10.7910/DVN/QN66Z8
-  path: '/path/to/organized'
-  precomputed_path: '/path/to/precomputed'
-  label_type: onehot
-  categories:
-    - Other behavior
-    - Medium bites
-    - High bites
-    ...
-  splits:
-    train:
-      sliding_styles:
-        - frames
-        - sliding_window
-    val:
-      sliding_styles:
-        - frames
-    test:
-      sliding_styles:
-        - test_frames
-```
-
 # 🐟 Reproducing Experiments in **WildFin**
 
 This guide outlines how to reproduce all experiments reported in the WildFin benchmark.
