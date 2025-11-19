@@ -28,6 +28,7 @@ from vision_bench.management.query import query_trained, query_evaluated
 from vision_bench.management.wandb_matcher import WandbRunMatcher
 from vision_bench.execution.exp_executor import ExperimentExecutor
 from vision_bench.typing.experiment import Experiment
+from vision_bench.typing.metric import Metric
 
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 from typing import Callable, Dict, List, Union

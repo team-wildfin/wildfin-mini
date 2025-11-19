@@ -14,6 +14,16 @@ LabelType = Literal['onehot']
 
 
 class SlidingStyle(BaseModel):
+    '''
+    Defines a way to slide window over data to create model input samples. 
+    Parameters:
+    - name: Name of the sliding style
+    - window_size: Size of the window to slide over the data
+    - tolerance_region: For window size > 1, we consider an example positive if [mid - tolerance_region, mid + tolerance_region] contains a positive label. 
+    - samples_per_window: Evenly sample this many samples from each window. Allows control over temporal resolution. 
+    - step_size: Step size by which the sliding window moves. 
+    - patch_type: Detemines how to stack spatial patches of data. Current depracated, so set to relative for now. 
+    '''
     name: str
     window_size: int
     tolerance_region: int
@@ -32,12 +42,19 @@ class SlidingStyle(BaseModel):
         return self
 
 class Split(BaseModel):
+    '''
+    The Split class defines a data split for training, validation, or testing. 
+    It contains the name of the split and a list of sliding styles that can be applied to the data in that split.
+    '''
     name: Literal['train', 'val', 'test']
     sliding_styles: List[SlidingStyle]
     def get_sliding_style_names(self) -> List[str]:
         return [style.name for style in self.sliding_styles]
 
 class LocalDataset(BaseModel):
+    '''
+    The LocalDataset class defines a dataset that is stored locally.
+    '''
     name: str
     doi: Optional[str] = None
     path: str

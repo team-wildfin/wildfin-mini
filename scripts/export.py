@@ -8,7 +8,7 @@ from vision_bench.management.wandb_matcher import WandbRunMatcher
 from config.experiments.cvpr import CVPR_EXPS
 import logging
 from vision_bench.utils.general import setup_logger
-from vision_bench.utils.export import *
+from config.metrics.metrics import * 
 from config.data.datasets import DATASETS
 from vision_bench.execution.exportor import Exportor
 from config.experiments.defaults import MISSING_VALUES

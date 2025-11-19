@@ -34,6 +34,7 @@ if __name__ == "__main__":
         datasets=datasets,
         sliding_styles=SLIDING_STYLES,
         parallel=PARALLEL,
-        save_input=SAVE_INPUT,
         logger=logger
-    ).run()
+    ).run(
+        save_input=SAVE_INPUT
+    )
