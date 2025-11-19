@@ -10,9 +10,6 @@ Includes:
 import torch
 import torch.nn.functional as F
 import lightning as L
-import json
-import wandb
-from vision_bench.typing.types import Weight
 from torch.optim.lr_scheduler import LambdaLR
 from data.statistics.pos_frequency import get_pos_freq
 from torchmetrics.functional.classification import (

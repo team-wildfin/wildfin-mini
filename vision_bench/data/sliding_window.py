@@ -6,7 +6,7 @@ from dataclasses import dataclass, asdict
 from math import ceil
 from tqdm import tqdm
 from collections import deque
-from vision_bench.debug import step_timer
+from vision_bench.utils.debug import step_timer
 from torch.utils.data import IterableDataset, TensorDataset
 from vision_bench.data.source import BaseSource
 from vision_bench.data.patcher import Patcher

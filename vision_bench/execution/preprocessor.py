@@ -8,12 +8,6 @@ import subprocess
 import yaml
 from vision_bench.utils.general import setup_logger
 from vision_bench.utils.submission import get_slurm_submission_command
-from config.data.datasets import CORALCAM, FISHFOLLOW
-from vision_bench.data.shard_manager import NestedFSShardManager
-from typing import List, Type
-import logging
-from vision_bench.data.shard_manager import ShardManager
-from vision_bench.typing.types import LocalDataset
 from vision_bench.execution.shard_executor import ShardExecutor
 # Example config values (replace with loading from a file if needed)
 

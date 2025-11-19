@@ -7,13 +7,10 @@ import subprocess
 import yaml
 import os
 from config.experiments.neurips import *
-from typing import List, Optional, Callable
+from typing import Optional
 from vision_bench.typing.experiment import Experiment
-from vision_bench.management.matcher import WandbRunMatcher
 from vision_bench.utils.general import setup_logger
 from vision_bench.utils.submission import get_slurm_submission_command
-from config.experiments.cvpr import CVPR_EXPS
-import pprint
 from vision_bench.management.query import query_pending_experiments
 from vision_bench.execution.exp_executor import ExperimentExecutor
 

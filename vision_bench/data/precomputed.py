@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset, IterableDataset, TensorDataset, Sampler
-from vision_bench.debug import step_timer
+from vision_bench.utils.debug import step_timer
 import numpy as np
 import torch
 import os

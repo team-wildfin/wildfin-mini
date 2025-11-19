@@ -5,7 +5,7 @@ FISHFOLLOW = LocalDataset(
     name="fishfollow",
     path='/share/j_sun/jth264/mikev3',
     precomputed_path='/share/j_sun/jth264/precomputed/fishfollow',
-     categories=[
+    categories=[
         "Other behavior",
         "Medium bites",
         "High bites",

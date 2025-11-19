@@ -5,19 +5,14 @@ for later use in metric computation.
 """
 import os
 import subprocess
-import wandb
 import logging
 from vision_bench.management.wandb_matcher import WandbRunMatcher
-from datetime import datetime, timezone
-import pprint
 from vision_bench.typing.experiment import Experiment
-from config.experiments.cvpr import CVPR_EXPS
 from vision_bench.utils.submission import get_slurm_submission_command
 from vision_bench.utils.general import setup_logger
 from vision_bench.management.query import query_pending_evaluations
 from vision_bench.execution.exp_executor import ExperimentExecutor
-from vision_bench.management.matcher import Matcher
-from typing import List, Optional, Callable, Dict, Union
+from typing import List, Optional 
 
 logger = setup_logger("evaluate", console=True, file=False, level=logging.DEBUG)
 

@@ -11,7 +11,7 @@ from tqdm import tqdm
 from vision_bench.utils.general import frame_id_with_padding
 from config.data.datasets import DATASETS 
 from config.data.sliding_styles import SLIDING_STYLES
-from vision_bench.debug import step_timer
+from vision_bench.utils.debug import step_timer
 import numpy as np
 import shutil
 

@@ -1,8 +1,7 @@
 from vision_bench.typing.experiment import Experiment
-from typing import List, Optional, Callable
+from typing import List, Optional
 import logging
 from abc import ABC, abstractmethod
-from vision_bench.management.matcher import Matcher
 from vision_bench.management.wandb_matcher import WandbRunMatcher
 
 
@@ -25,7 +24,7 @@ class ExperimentExecutor(ABC):
             logger: A logging.Logger object to log messages. If None, a default logger will be created.
             parallel: Whether to run experiments in parallel using Slurm. Default is False.
             local_artifact_dir: The local directory to store artifacts. If an artifact is not found
-                locally, it will be downloaded from W&B and stored here.
+            locally, it will be downloaded from W&B and stored here.
         """
         self.experiments = experiments
         self.train_matcher = train_matcher

@@ -7,23 +7,14 @@ Calculates the desired metrics for experimental evaluations.
 run oriented evaluation
 '''
 import os
-from unittest import runner 
-import yaml
-import wandb
-import csv
 import json
 import torch 
-import numpy as np
 from typing import Callable, Dict, List, Optional, Union
-from dataclasses import dataclass
 from vision_bench.management.wandb_matcher import WandbRunMatcher
-from config.experiments.cvpr import CVPR_EXPS
 import logging
 from functools import reduce
 from vision_bench.utils.general import setup_logger
 from vision_bench.utils.export import *
-import yaml
-from config.data.datasets import DATASETS
 from vision_bench.management.query import query_trained, query_evaluated
 from vision_bench.management.wandb_matcher import WandbRunMatcher
 from vision_bench.execution.exp_executor import ExperimentExecutor
@@ -33,8 +24,6 @@ from vision_bench.typing.metric import Metric
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 from typing import Callable, Dict, List, Union
 import torch
-import numpy as np
-
 
 class Exportor(ExperimentExecutor):
     """
@@ -125,6 +114,5 @@ class Exportor(ExperimentExecutor):
         evaluated = query_evaluated(self.eval_matcher, trained)
         runs = [self.eval_matcher.get_latest(v) for v in evaluated.values() if len(v) > 0]
         results = self.get_results(self.eval_matcher, runs)
-
         output_path = os.path.join(self.output_base, self.output_name)
         self.compute(results, output_path)

@@ -12,15 +12,11 @@ import torch
 from vision_bench.utils.general import setup_logger
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
 import subprocess
-import argparse
-import shutil
-from typing import Dict
-from config.data.datasets import CORALCAM, FISHFOLLOW
 from vision_bench.utils.submission import get_slurm_submission_command
 from vision_bench.execution.shard_executor import ShardExecutor
 from vision_bench.execution.validator import Validator
 from typing import List, Optional 
-from vision_bench.typing.types import LocalDataset, Split, SlidingStyle
+from vision_bench.typing.types import LocalDataset
 import logging
 from config.logging.loggers import get_console_logger
 
@@ -75,7 +71,7 @@ class FeatureExtractor(ShardExecutor):
             try: 
                 return self.ShardManager(dataset.precomputed_path).locate_precomputed(split_name, subset, sliding_style, 'inputs')
             except FileNotFoundError as e:
-                logger.warning(f"Precomputed input not found for {dataset.name} {split_name} {subset} {sliding_style}: {e}\nfalling back to raw source")
+                self.logger.warning(f"Precomputed input not found for {dataset.name} {split_name} {subset} {sliding_style}: {e}\nfalling back to raw source")
         return self.ShardManager(dataset.path).subset_path(split_name, subset)
     
     def run(self): 
