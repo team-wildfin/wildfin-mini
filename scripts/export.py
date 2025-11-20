@@ -21,6 +21,7 @@ from config.experiments.neurips import (
     RESNET_FULLTUNE
 )
 from config.experiments.cvpr import CVPR_EXPS
+from config.experiments.neurips import RANDOM_EXPS
 import logging
 from functools import reduce
 from fish_benchmark.utils.general import setup_logger
@@ -39,9 +40,9 @@ dataset = DATASETS[DATASET_NAME]
 LABEL_TOLERANCES = [7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results/new_grouping'
+OUTPUT_PATH = 'results/random'
 os.makedirs(OUTPUT_PATH, exist_ok=True)
-ALL_EXPS = CVPR_EXPS
+ALL_EXPS = RANDOM_EXPS
 
 subgroup_mappings = {
     "coralcam": {
