@@ -13,7 +13,6 @@ class DatasetBuilder():
                  label_transform=None, 
                  precomputed=False, 
                  feature_model=None, 
-                 min_ctime=None, 
                  only_labels=False
         ):
         self.path = path
@@ -24,8 +23,6 @@ class DatasetBuilder():
         self.precomputed = precomputed
         if feature_model: assert input_transform is None, "cannot transform extracted features"
         self.feature_model = feature_model
-        self.min_ctime = min_ctime
-        if self.min_ctime: assert precomputed, "min_ctime only works with precomputed datasets"
         self.only_labels = only_labels
 
     def set_transform(self, transform):
@@ -43,7 +40,6 @@ class DatasetBuilder():
                 self.input_transform, 
                 self.label_transform,
                 self.feature_model,
-                self.min_ctime
             )
         else: 
             source = (SourceFactory.from_default(self.path, self.dataset.name)

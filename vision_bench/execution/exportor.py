@@ -58,7 +58,7 @@ class Exportor(ExperimentExecutor):
         results = {}
         for run_id in run_ids:
             data_path = matcher.get_artifact(local_path=f"{run_id}.json",
-                                        remote_path = f"test_metrics_{run_id}.json:v0")
+                                             remote_path=f"{run_id}.json")
             with open(data_path, "r") as f:
                 data = json.load(f)
             results[run_id] = {}

@@ -20,7 +20,8 @@ from config.data.datasets import DATASETS
 from config.models.backbones import BACKBONE_CONFIGS
 from config.data.sliding_styles import SLIDING_STYLES
 from vision_bench.utils.artifact import log_best_model, log_latest_model
-from vision_bench.management.shard_manager import ShardManager
+from vision_bench.management.manager import ShardManager
+from config.management.matcher import MATCHERS
 
 def load_config(path: Union[str, Path]) -> Experiment:
     with open(path, "r") as f:
@@ -29,13 +30,12 @@ def load_config(path: Union[str, Path]) -> Experiment:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ckpt_dir", type=str, required=True, help="Directory to store model checkpoints")
+    parser.add_argument("--matcher_id", type=str, required=True, help="WandB run ID of the training run to evaluate")
     parser.add_argument("--config", type=str, required=True, help="Path to TrainConfig YAML or JSON")
-    parser.add_argument("--min_ctime", type=float, default=1746331200.0)
     args = parser.parse_args()
 
+    matcher = MATCHERS[args.matcher_id]
     config: Experiment = load_config(args.config)
-    min_ctime = args.min_ctime
     backbone_config = BACKBONE_CONFIGS[config.backbone]
     consumed_ndim = backbone_config.input_ndim - backbone_config.output_ndim
     sliding_style_config = SLIDING_STYLES[config.sliding_style]
@@ -62,8 +62,8 @@ def main():
         )
 
     wandb_logger = WandbLogger(
-        project=config.dataset,
-        entity="fish-benchmark",
+        project=matcher.project,
+        entity=matcher.entity,
         save_dir="./logs",
         log_model="best",
         tags=tags,
@@ -79,7 +79,6 @@ def main():
         input_transform=None,
         precomputed=True,
         feature_model=None if config.fulltune else config.backbone,
-        min_ctime=min_ctime,
     ).build()
 
     print("Loading val data...")
@@ -146,7 +145,7 @@ def main():
         monitor=config.monitor,
         save_top_k=1,
         mode="max",
-        dirpath=f"{args.ckpt_dir}/{wandb_logger.experiment.id}",
+        dirpath=f"{matcher.local_artifact_dir}/{wandb_logger.experiment.id}",
         filename="best-{epoch:02d}-{val_mAP:.2f}",
     )
 
@@ -154,7 +153,7 @@ def main():
         save_top_k=1,
         every_n_epochs=1,
         save_on_train_epoch_end=True,
-        dirpath=f"{args.ckpt_dir}/{wandb_logger.experiment.id}",
+        dirpath=f"{matcher.local_artifact_dir}/{wandb_logger.experiment.id}",
         filename="latest",
     )
 

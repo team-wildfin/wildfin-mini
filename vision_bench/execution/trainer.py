@@ -24,8 +24,8 @@ class Trainer(ExperimentExecutor):
             yaml.dump(config.model_dump(), f, sort_keys=False)
         return out_path
     
-    def run_training(self, config_path: str, config_id: str, slurm_output_base: Optional[str] = None):
-        wrap_cmd = f"python vision_bench/scripts/train.py --config {config_path} --ckpt_dir {self.local_artifact_dir}"
+    def run_script(self, matcher_id: str, config_path: str, config_id: str, slurm_output_base: Optional[str] = None):
+        wrap_cmd = f"python vision_bench/scripts/train.py --matcher_id {matcher_id} --config {config_path}"
         if self.parallel:
             output_dir = os.path.join(slurm_output_base, config_id)
             submission_name = config_id
@@ -40,16 +40,22 @@ class Trainer(ExperimentExecutor):
         self.logger.info(f"Running training with config: {config_id}\nCommand: {command}")
         subprocess.run(command, shell=True, check=True)
 
+    def execute(self, exp: Experiment, slurm_output_base: str, tmp_dir: str):
+        self.logger.info(f"Running training for experiment: {exp.id}")
+        config_path = Trainer.save_config_to_file(exp, tmp_dir)
+        try: 
+            self.run_script(self.train_matcher.id, config_path, exp.id, slurm_output_base)
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Training failed for {exp.id}: {e}")
+
     def run(self, 
             slurm_output_base: Optional[str] = None, 
             tmp_dir: str = "tmp_configs"): 
-        
-        while(pending_exps := query_pending_experiments(
-            self.train_matcher, self.experiments)):
-            exp = next(iter(pending_exps))
-            self.logger.info(f"Running training for experiment: {exp.id}")
-            config_path = Trainer.save_config_to_file(exp, tmp_dir)
-            try: 
-                self.run_training(config_path, exp.id, slurm_output_base)
-            except subprocess.CalledProcessError as e:
-                self.logger.error(f"Training failed for {exp.id}: {e}")
+        if self.avoid_reruns: 
+            while(pending_exps := query_pending_experiments(
+                self.train_matcher, self.experiments)):
+                exp = next(iter(pending_exps))
+                self.execute(exp, slurm_output_base, tmp_dir)
+        else:
+            for exp in self.experiments:
+                self.execute(exp, slurm_output_base, tmp_dir)

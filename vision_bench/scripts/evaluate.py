@@ -3,7 +3,6 @@ import wandb
 from vision_bench.model.litmodule import LitBinaryClassifierModule
 from vision_bench.data.builder import DatasetBuilder
 import os
-import yaml
 import torch
 from torch.utils.data import DataLoader
 from pytorch_lightning.loggers import WandbLogger
@@ -13,46 +12,40 @@ from config.data.sliding_styles import SLIDING_STYLES
 import glob
 from vision_bench.typing.experiment import Experiment, Evaluation
 from config.data.datasets import DATASETS
-from config.maps.backbone_preprocessors import PREPROCESSORS
 from config.maps.sliding_style_test import TEST_SLIDING_STYLES
-from vision_bench.management.wandb_matcher import WandbRunMatcher
+from vision_bench.management.manager import ShardManager
+from config.management.matcher import MATCHERS
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 def get_args():
     parser = argparse.ArgumentParser(description="Evaluate a model on a dataset")
-    parser.add_argument("--entity", type=str, required=True, help="WandB entity name")
-    parser.add_argument("--project", type=str, required=True, help="WandB project name")
+    parser.add_argument("--train_matcher_id", type=str, required=True, help="WandB run ID of the training run to evaluate")
+    parser.add_argument("--eval_matcher_id", type=str, required=True, help="WandB run ID of the evaluation run to log results to")
     parser.add_argument("--run", type=str, required=True, help="WandB run ID")
-    parser.add_argument("--model_ckpt_dir", type=str, required=True, help="Local directory to store artifacts")
-    parser.add_argument("--result_dest_dir", type=str, required=True, help="Directory to store results")
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = get_args()
-    train_run_matcher = WandbRunMatcher(
-        entity=args.entity, 
-        project=args.project, 
-        local_artifact_dir=args.model_ckpt_dir
-    )
+    train_matcher = MATCHERS[args.train_matcher_id]
+    eval_matcher = MATCHERS[args.eval_matcher_id]
 
-    local_ckpt_file = glob.glob(os.path.join(train_run_matcher.local_artifact_dir, args.run, 'best*.ckpt'))[0]
-    ckpt_file = train_run_matcher.get_artifact(
+    local_ckpt_file = glob.glob(os.path.join(train_matcher.local_artifact_dir, args.run, 'best*.ckpt'))[0]
+    ckpt_file = train_matcher.get_artifact(
         local_path = local_ckpt_file,
         remote_path = f"model-{args.run}:latest"
     )
     
-    training_run = wandb.Api().run(f"{args.entity}/{args.project}/{args.run}")
-    train_config = Experiment.model_validate(training_run.config)
+    train_config = Experiment.model_validate(train_matcher.get_run_config(args.run))
     test_sliding_style = TEST_SLIDING_STYLES[train_config.sliding_style] # name of the test sliding style
     config = Evaluation.model_validate(
         train_config.model_dump() |
         {
         "test_sliding_style": test_sliding_style,
         "training_run_id": args.run,
-        "training_entity": args.entity,
-        "training_project": args.project
+        "training_entity": train_matcher.entity,
+        "training_project": train_matcher.project
         }
     )
     #define testing config
@@ -67,16 +60,16 @@ if __name__ == "__main__":
     ]
 
     wandb_logger = WandbLogger(
-        project=f'{config.dataset}_eval',    
-        entity="fish-benchmark",
+        project=eval_matcher.project,    
+        entity=eval_matcher.entity,
         save_dir="./logs",
         tags = [v for k, v in config.items() if k in tags_keys] + (["fulltune"] if config.fulltune else []), 
         config=config.model_dump(),
     )
     dataset = DATASETS[config.dataset]
-    test_data_dir = os.path.join(dataset.precomputed_path, config.test_sliding_style, 'test') 
+    shard_manager = ShardManager(base_path=dataset.precomputed_path)
     test_dataset = DatasetBuilder(
-        path=test_data_dir, 
+        path=shard_manager.locate_base(config.test_sliding_style, "test"), 
         dataset=dataset,
         sliding_style=SLIDING_STYLES[config.test_sliding_style],
         input_transform=None,
@@ -90,6 +83,7 @@ if __name__ == "__main__":
         num_workers=7,
         pin_memory=True,
     )
+
     lit_module = LitBinaryClassifierModule.load_from_checkpoint(ckpt_file)
     lit_module.freeze()
     lit_module.eval()
@@ -104,7 +98,9 @@ if __name__ == "__main__":
         "targets": targets.tolist()
     }
 
-    json_path = os.path.join(args.result_dest_dir, f"{wandb_logger.experiment.id}.json")
+    if not os.path.exists(eval_matcher.local_artifact_dir):
+        os.makedirs(eval_matcher.local_artifact_dir, exist_ok=True)
+    json_path = os.path.join(eval_matcher.local_artifact_dir, f"{wandb_logger.experiment.id}.json")
     with open(json_path, "w") as f:
         json.dump(output_dict, f, indent=2)
 
@@ -118,5 +114,3 @@ if __name__ == "__main__":
     )
     artifact.add_file(json_path)
     wandb_logger.experiment.log_artifact(artifact)
-
-#python evaluation/main.py --entity fish-benchmark --project abby --run g5hc3uqy

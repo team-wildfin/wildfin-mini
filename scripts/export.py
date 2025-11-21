@@ -9,17 +9,12 @@ from config.experiments.testing import DINOV3_BASE_MEAN
 import logging
 from vision_bench.utils.general import setup_logger
 from config.metrics.metrics import * 
-from config.data.datasets import DATASETS
 from vision_bench.execution.exportor import Exportor
-from config.main import EVAL_RESULTS_DIR
+from config.management.matcher import CORALCAM_EVAL, CORALCAM_TRAINING
+from config.data.datasets import CORALCAM
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
-ENTITY = "fish-benchmark"
-DATASET_NAME = 'coralcam'
-PROJECT = f"{DATASET_NAME}"
-EVAL_PROJECT = f"{DATASET_NAME}_eval"
-dataset = DATASETS[DATASET_NAME]
 LABEL_TOLERANCES = [7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
@@ -63,14 +58,13 @@ if __name__ == "__main__":
             "ap_per_class": APPerClass(),
             "confusion_matrix": binary_confusion_matrix,
         }
-        exportor = Exportor(
+        Exportor(
             experiments=ALL_EXPS,
-            train_matcher=WandbRunMatcher(ENTITY, PROJECT),
-            eval_matcher=WandbRunMatcher(ENTITY, EVAL_PROJECT, local_artifact_dir=EVAL_RESULTS_DIR), 
+            train_matcher=CORALCAM_TRAINING,
+            eval_matcher=CORALCAM_EVAL, 
             aggregate_metrics=aggregate_metrics,
             per_class_metrics=per_class_metrics,
-            subgroup_mappings=subgroup_mappings[DATASET_NAME], 
+            subgroup_mappings=subgroup_mappings[CORALCAM.name], 
             output_base=OUTPUT_PATH,
-            output_name=f"{DATASET_NAME}_results_label_tolerance_{tolerance}.csv"
-        )
-        exportor.run()
+            output_name=f"{CORALCAM.name}_results_label_tolerance_{tolerance}.csv"
+        ).run()

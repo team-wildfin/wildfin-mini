@@ -69,16 +69,16 @@ class FeatureExtractor(ShardExecutor):
     def get_subset_data_source(self, dataset: LocalDataset, split_name: str, subset: str, sliding_style: str, precomputed):
         if precomputed: 
             try: 
-                return self.ShardManager(dataset.precomputed_path).locate_shard(split_name, subset, sliding_style, 'inputs')
+                return self.shard_manager(dataset.precomputed_path).locate_shard(split_name, subset, sliding_style, 'inputs')
             except FileNotFoundError as e:
                 self.logger.warning(f"Precomputed input not found for {dataset.name} {split_name} {subset} {sliding_style}: {e}\nfalling back to raw source")
-        return self.ShardManager(dataset.path).subset_path(split_name, subset)
+        return self.source_manager(dataset.path).subset_path(split_name, subset)
     
     def run(self): 
         for dataset in self.datasets: 
-            raw_source = self.ShardManager(dataset.path)
-            precomputed_source = self.ShardManager(dataset.precomputed_path)
-            logging_source = self.ShardManager(os.path.join("logs", "extract_features"))
+            raw_source = self.source_manager(dataset.path)
+            precomputed_source = self.shard_manager(dataset.precomputed_path)
+            logging_source = self.shard_manager(os.path.join("logs", "extract_features"))
             for split in dataset.splits: 
                 for model in self.models: 
                     for ss_name in set(split.get_sliding_style_names()) & set([ss.name for ss in MODEL_SLIDING_STYLES[model]]):

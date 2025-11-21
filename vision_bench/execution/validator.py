@@ -6,7 +6,7 @@ from vision_bench.typing.types import LocalDataset, Split, SlidingStyle
 import av
 import logging
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
-from vision_bench.management.shard_manager import ShardManager
+from vision_bench.management.manager import ShardManager
 logger = logging.getLogger(__name__)
 
 

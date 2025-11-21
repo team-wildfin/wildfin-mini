@@ -21,9 +21,9 @@ class Preprocessor(ShardExecutor):
 
     def run(self, save_input: bool = False): 
         for dataset in self.datasets:
-            source_locator = self.ShardManager(dataset.path)
-            dest_locator = self.ShardManager(dataset.precomputed_path)
-            logging_locator = self.ShardManager(os.path.join("logs", "slide_window"))
+            source_locator = self.source_manager(dataset.path)
+            dest_locator = self.shard_manager(dataset.precomputed_path)
+            logging_locator = self.shard_manager(os.path.join("logs", "slide_window"))
             for split in dataset.splits: 
                 for ss_name in set(self.sliding_styles).intersection(set(split.get_sliding_style_names())):
                     for subset in source_locator.list_subsets(split.name): 

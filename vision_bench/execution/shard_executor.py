@@ -1,4 +1,4 @@
-from vision_bench.management.shard_manager import ShardManager, ShardManager
+from vision_bench.management.manager import ShardManager, SourceManager
 from vision_bench.typing.types import LocalDataset
 from typing import List, Type
 import logging
@@ -11,7 +11,8 @@ class ShardExecutor:
                  sliding_styles: List[str], 
                  parallel: bool = False, 
                  logger: logging.Logger = get_console_logger(), 
-                 ShardManager: Type[ShardManager] = ShardManager):
+                 source_manager: Type[SourceManager] = SourceManager,
+                 shard_manager: Type[ShardManager] = ShardManager):
         """
         Initialize the Preprocessor with datasets, sliding styles, and other options.
         Args: 
@@ -26,8 +27,9 @@ class ShardExecutor:
         self.sliding_styles = sliding_styles
         self.parallel = parallel
         self.logger = logger
-        self.ShardManager = ShardManager
-
+        self.source_manager = source_manager
+        self.shard_manager = shard_manager
+        
     @abstractmethod
     def run(self, *args, **kwargs): 
         pass 

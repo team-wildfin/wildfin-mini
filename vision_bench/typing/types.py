@@ -12,7 +12,6 @@ Metric = Literal['val_mAP']
 Optimizer = Literal['adam']
 LabelType = Literal['onehot']
 
-
 class SlidingStyle(BaseModel):
     '''
     Defines a way to slide window over data to create model input samples. 

@@ -11,7 +11,7 @@ class PrecomputedDataset(Dataset):
     Dataset mounted on precomputed sliding window clips and labels. 
     Corresponding clips and labels have the same name but live in different folders
     '''
-    def __init__(self, path, categories, input_transform=None, label_transform = None, feature_model=None, min_ctime=None):
+    def __init__(self, path, categories, input_transform=None, label_transform = None, feature_model=None):
         '''
         path should be contain 2 subfolders: frames and labels
         '''
@@ -24,12 +24,12 @@ class PrecomputedDataset(Dataset):
         print(self.path)
         print(f"feature_model: {feature_model}")
         with step_timer("loading input file paths", verbose=PROFILE):
-            file_paths = get_files_of_type(self.path, ".npy", min_ctime=min_ctime)
+            file_paths = get_files_of_type(self.path, ".npy")
             INPUT_TYPE = "inputs" if feature_model is None else f"{feature_model}_features"
             self.input_paths = [p for p in file_paths if INPUT_TYPE in p]
             print(f"found {len(self.input_paths)} input files for input type {INPUT_TYPE}")
         with step_timer("loading label file paths", verbose=PROFILE):
-            self.label_paths = get_files_of_type(self.path, ".tsv", min_ctime=min_ctime)
+            self.label_paths = get_files_of_type(self.path, ".tsv")
             print(f"found {len(self.label_paths)} label files")
         with step_timer("creating dictionaries", verbose=PROFILE):
             self.label_dict = {os.path.basename(p).split('.')[0]: np.loadtxt(p, delimiter='\t') for p in self.label_paths}

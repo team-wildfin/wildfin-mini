@@ -20,17 +20,12 @@ import av
 from typing import Any, Callable, List, Union
 import glob
 
-def get_files_of_type(folder_path, file_type, min_ctime = None):
+def get_files_of_type(folder_path, file_type):
     res = []
     for root, dirs, files in os.walk(folder_path):
         for file in files:
             if file.lower().endswith(file_type) and not file.startswith("._"):
                 file_path = os.path.join(root, file)
-                if min_ctime is not None: 
-                    ctime = os.path.getctime(file_path)
-                    if ctime < min_ctime:
-                        print(f"File {file_path} has ctime {ctime} < min_ctime {min_ctime}, skipping.")
-                        continue
                 res.append(file_path)
     return res
 

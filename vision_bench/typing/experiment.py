@@ -7,7 +7,6 @@ class Experiment(BaseModel):
     '''
     The configuration for a training experiment. Purpose to be displayed on wandb. 
     '''
-    #id of the train config
     id: str
 
     #data configs

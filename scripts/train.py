@@ -7,11 +7,10 @@ from config.experiments.testing import DINOV3_BASE_MEAN
 from vision_bench.execution.trainer import Trainer
 from config.experiments.defaults import MISSING_VALUES
 from config.main import MODEL_CHECKPOINT_DIR
+from config.management.matcher import CORALCAM_TRAINING
 
 PARALLEL = False
 OUTPUT_BASE = os.path.join("logs", "train")
-ENTITY = "fish-benchmark"
-TRAINING_PROJECT = "coralcam"
 
 CONFIG_OUT = "generated_configs"
 os.makedirs(CONFIG_OUT, exist_ok=True)
@@ -22,8 +21,8 @@ logger = setup_logger(
 
 if __name__ == "__main__":
     Trainer(
-        DINOV3_BASE_MEAN, 
-        WandbRunMatcher(ENTITY, TRAINING_PROJECT, MISSING_VALUES), 
+        experiments = DINOV3_BASE_MEAN, 
+        train_matcher = CORALCAM_TRAINING, 
         parallel=PARALLEL, 
-        local_artifact_dir=MODEL_CHECKPOINT_DIR,
+        avoid_reruns = False
     ).run()

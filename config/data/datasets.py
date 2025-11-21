@@ -86,7 +86,9 @@ CORALCAM = LocalDataset(
     ]
 )
 
+
 DATASETS = {
-    "fishfollow": FISHFOLLOW,
-    "coralcam": CORALCAM,
+    dataset.name: dataset
+    for dataset in globals().values()
+    if isinstance(dataset, LocalDataset)
 }

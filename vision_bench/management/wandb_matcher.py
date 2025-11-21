@@ -32,6 +32,7 @@ class WandbRunMatcher(Matcher):
         """
         self.entity = entity
         self.project = project
+        self.id = f"{entity}/{project}"
         self.local_artifact_dir = local_artifact_dir
         self.default_values = default_values
 
@@ -113,33 +114,37 @@ class WandbRunMatcher(Matcher):
         return api.run(f"{self.entity}/{self.project}/{run_id}").config
     
 
-    def get_artifact(self,
-                     local_path: str, 
-                     remote_path: Optional[str] = None) -> str:
+    def get_artifact(
+        self,
+        local_path: str,
+        remote_path: Optional[str] = None,
+    ) -> str:
         """
-        Get the artifact data for the given run ID and artifact name.
-        local_path: The local path to the artifact file. The path is relative to the local_artifact_dir. If the file exists locally, it will be loaded from there.
-        remote_path: The remote path to the artifact file in W&B.
-
-        Returns: 
-
-        Local artifacts and remote artifacts may have different naming conventions. 
-        Priotitize local artifacts if they exist, otherwise download from W&B.
+        Priority: local artifact → remote artifact → error.
         """
         api = wandb.Api()
-        if local_path:
-            local_file_path = os.path.join(self.local_artifact_dir, local_path)
-            try: 
-                if os.path.exists(local_file_path):
-                    return local_file_path
-            except Exception as e: 
-                logger.warning(f"Failed to load local artifact {local_file_path}: {e}")
-        elif remote_path:
-            try: 
+
+        # 1. Try local
+        local_file_path = os.path.join(self.local_artifact_dir, local_path)
+        try:
+            if os.path.exists(local_file_path):
+                return local_file_path
+        except Exception as e:
+            logger.warning(f"Failed to load local artifact {local_file_path}: {e}")
+
+        # 2. Try remote
+        if remote_path:
+            try:
                 artifact_path = f"{self.entity}/{self.project}/{remote_path}"
                 artifact = api.artifact(artifact_path)
-                return artifact.download(root=self.local_artifact_dir)
+                downloaded_path = artifact.download(root=self.local_artifact_dir)
+                file_path = os.path.join(downloaded_path, os.path.basename(remote_path))
+                return file_path
             except Exception as e:
                 logger.warning(f"Failed to download artifact {remote_path}: {e}")
-        else: 
-            raise FileNotFoundError(f"Failed to find artifact: {local_path} or {remote_path}")
+
+        # 3. Nothing worked
+        raise FileNotFoundError(
+            f"Artifact not found locally ({local_file_path}) "
+            f"and remote_path not available or failed ({remote_path})"
+        )

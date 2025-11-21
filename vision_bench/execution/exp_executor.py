@@ -15,7 +15,7 @@ class ExperimentExecutor(ABC):
                  eval_matcher: Optional[WandbRunMatcher] = None, 
                  logger: Optional[logging.Logger] = None, 
                  parallel: bool = False, 
-                 local_artifact_dir: str = "./artifacts"):
+                 avoid_reruns: bool = True):
         """
         Args: 
             experiments: A list of Experiment objects to run.
@@ -31,7 +31,7 @@ class ExperimentExecutor(ABC):
         self.eval_matcher = eval_matcher
         self.parallel = parallel
         self.logger = logger or logging.getLogger(__name__)
-        self.local_artifact_dir = local_artifact_dir
+        self.avoid_reruns = avoid_reruns
 
     @abstractmethod
     def run(self, *args, **kwargs):
