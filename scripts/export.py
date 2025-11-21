@@ -5,13 +5,13 @@ run oriented evaluation
 '''
 import os
 from vision_bench.management.wandb_matcher import WandbRunMatcher
-from config.experiments.cvpr import CVPR_EXPS
+from config.experiments.testing import DINOV3_BASE_MEAN
 import logging
 from vision_bench.utils.general import setup_logger
 from config.metrics.metrics import * 
 from config.data.datasets import DATASETS
 from vision_bench.execution.exportor import Exportor
-from config.experiments.defaults import MISSING_VALUES
+from config.main import EVAL_RESULTS_DIR
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
@@ -23,9 +23,9 @@ dataset = DATASETS[DATASET_NAME]
 LABEL_TOLERANCES = [7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results/new_grouping'
+OUTPUT_PATH = 'results/testing'
 os.makedirs(OUTPUT_PATH, exist_ok=True)
-ALL_EXPS = CVPR_EXPS
+ALL_EXPS = DINOV3_BASE_MEAN
 
 subgroup_mappings = {
     "coralcam": {
@@ -65,8 +65,8 @@ if __name__ == "__main__":
         }
         exportor = Exportor(
             experiments=ALL_EXPS,
-            train_matcher=WandbRunMatcher(ENTITY, PROJECT, MISSING_VALUES),
-            eval_matcher=WandbRunMatcher(ENTITY, EVAL_PROJECT, MISSING_VALUES), 
+            train_matcher=WandbRunMatcher(ENTITY, PROJECT),
+            eval_matcher=WandbRunMatcher(ENTITY, EVAL_PROJECT, local_artifact_dir=EVAL_RESULTS_DIR), 
             aggregate_metrics=aggregate_metrics,
             per_class_metrics=per_class_metrics,
             subgroup_mappings=subgroup_mappings[DATASET_NAME], 

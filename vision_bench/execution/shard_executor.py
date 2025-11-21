@@ -1,4 +1,4 @@
-from vision_bench.data.shard_manager import ShardManager, NestedFSShardManager
+from vision_bench.management.shard_manager import ShardManager, ShardManager
 from vision_bench.typing.types import LocalDataset
 from typing import List, Type
 import logging
@@ -11,7 +11,7 @@ class ShardExecutor:
                  sliding_styles: List[str], 
                  parallel: bool = False, 
                  logger: logging.Logger = get_console_logger(), 
-                 ShardManager: Type[ShardManager] = NestedFSShardManager):
+                 ShardManager: Type[ShardManager] = ShardManager):
         """
         Initialize the Preprocessor with datasets, sliding styles, and other options.
         Args: 

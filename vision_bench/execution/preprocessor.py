@@ -14,7 +14,7 @@ from vision_bench.execution.shard_executor import ShardExecutor
 class Preprocessor(ShardExecutor): 
     def get_wrap_cmd(self, source, input_dest, label_dest, subset, dataset, sliding_style, save_input):
         return (
-            f'python data/action/slide_window.py '
+            f'python vision_bench/scripts/slide_window.py '
             f'--source "{source}" --input_dest "{input_dest}" --label_dest "{label_dest}" --id "{subset}" --dataset "{dataset}" '
             f'--save_input {save_input} --sliding_style "{sliding_style}"'
         )
@@ -31,9 +31,9 @@ class Preprocessor(ShardExecutor):
                         if not os.path.exists(source):
                             self.logger.error(f"Source path does not exist: {source}")
                             continue
-                        input_dest = dest_locator.locate_precomputed(dataset.name, split.name, subset, ss_name, shard_type='inputs')
-                        label_dest = dest_locator.locate_precomputed(dataset.name, split.name, subset, ss_name, shard_type='labels')
-                        output_dir = logging_locator.locate_precomputed(dataset.name, split.name, subset, ss_name)
+                        input_dest = dest_locator.locate_shard(sliding_style=ss_name, split=split.name, subset=subset, shard_type='inputs')
+                        label_dest = dest_locator.locate_shard(sliding_style=ss_name, split=split.name, subset=subset, shard_type='labels')
+                        output_dir = logging_locator.locate_shard(sliding_style=ss_name, split=split.name, subset=subset, shard_type='logs')
                         os.makedirs(output_dir, exist_ok=True)
                         wrap_cmd = self.get_wrap_cmd(source, input_dest, label_dest, subset, dataset.name, ss_name, save_input)
                         submission_name = f"{dataset.name}_{ss_name}_{split.name}_{subset}"

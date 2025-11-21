@@ -11,15 +11,16 @@ from pathlib import Path
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
-from vision_bench.models import ModelBuilder
+from vision_bench.model.models import ModelBuilder
 from vision_bench.data.builder import DatasetBuilder
 from vision_bench.data.sampler import MultiLabelBalancedSampler
-from vision_bench.litmodule import LitBinaryClassifierModule
+from vision_bench.model.litmodule import LitBinaryClassifierModule
 from vision_bench.typing.experiment import Experiment  # Your TrainConfig class
 from config.data.datasets import DATASETS
 from config.models.backbones import BACKBONE_CONFIGS
 from config.data.sliding_styles import SLIDING_STYLES
 from vision_bench.utils.artifact import log_best_model, log_latest_model
+from vision_bench.management.shard_manager import ShardManager
 
 def load_config(path: Union[str, Path]) -> Experiment:
     with open(path, "r") as f:
@@ -70,13 +71,9 @@ def main():
     )
 
     print("Loading train data...")
+    shard_manager = ShardManager(base_path=dataset.precomputed_path)
     train_dataset = DatasetBuilder(
-        path=os.path.join(
-            dataset.precomputed_path,
-            config.sliding_style,
-            "train",
-            config.train_subset or "",
-        ),
+        path=shard_manager.locate_base(config.sliding_style, "train", config.train_subset or ""),
         dataset=dataset,
         sliding_style=sliding_style_config,
         input_transform=None,
@@ -87,12 +84,7 @@ def main():
 
     print("Loading val data...")
     val_dataset = DatasetBuilder(
-        path=os.path.join(
-            dataset.precomputed_path,
-            config.sliding_style,
-            "val",
-            config.val_subset or "",
-        ),
+        path=shard_manager.locate_base(config.sliding_style, "val", config.val_subset or ""),
         dataset=dataset,
         sliding_style=sliding_style_config,
         input_transform=None,

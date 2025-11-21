@@ -38,12 +38,13 @@ class Evaluator(ExperimentExecutor):
                  
     def get_wrap_cmd(self, entity, project, run_id):
         return (
-            f'python evaluation/main.py '
+            f'python vision_bench/scripts/evaluate.py '
             f'--entity {entity} --project {project} --run {run_id} '
+            f'--model_ckpt_dir {self.model_ckpt_dir} --result_dest_dir {self.local_artifact_dir}'
         )
 
-    def eval(self, eval_matcher: WandbRunMatcher, run_id: str):
-        wrap_cmd = self.get_wrap_cmd(eval_matcher.entity, eval_matcher.project, run_id)
+    def eval(self, train_matcher: WandbRunMatcher, run_id: str):
+        wrap_cmd = self.get_wrap_cmd(train_matcher.entity, train_matcher.project, run_id)
         cmd = (
             get_slurm_submission_command(
                 f"{run_id}",
@@ -62,6 +63,6 @@ class Evaluator(ExperimentExecutor):
             self.logger.info("Evaluating the first pending experiment...")
             exp_id, run_id = next(iter(pending_eval.items()))
             try: 
-                self.eval(self.eval_matcher, run_id)
+                self.eval(self.train_matcher, run_id)
             except subprocess.CalledProcessError as e:
                 self.logger.error(f"Evaluation failed for {exp_id}: {e}")

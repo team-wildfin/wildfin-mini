@@ -61,7 +61,7 @@ class FeatureExtractor(ShardExecutor):
 
     def get_wrap_cmd(self, source, dataset, sliding_style, dest_path, video_id, model, precomputed):
         return (
-            f"python fish_benchmark/scripts/extract_features.py "
+            f"python vision_bench/scripts/extract_features.py "
             f'--source "{source}" --dest_path "{dest_path}" --id "{video_id}" --sliding_style {sliding_style} '
             f"--dataset {dataset} --model {model} --precomputed {precomputed} "
         )
@@ -69,7 +69,7 @@ class FeatureExtractor(ShardExecutor):
     def get_subset_data_source(self, dataset: LocalDataset, split_name: str, subset: str, sliding_style: str, precomputed):
         if precomputed: 
             try: 
-                return self.ShardManager(dataset.precomputed_path).locate_precomputed(split_name, subset, sliding_style, 'inputs')
+                return self.ShardManager(dataset.precomputed_path).locate_shard(split_name, subset, sliding_style, 'inputs')
             except FileNotFoundError as e:
                 self.logger.warning(f"Precomputed input not found for {dataset.name} {split_name} {subset} {sliding_style}: {e}\nfalling back to raw source")
         return self.ShardManager(dataset.path).subset_path(split_name, subset)
@@ -82,9 +82,9 @@ class FeatureExtractor(ShardExecutor):
             for split in dataset.splits: 
                 for model in self.models: 
                     for ss_name in set(split.get_sliding_style_names()) & set([ss.name for ss in MODEL_SLIDING_STYLES[model]]):
-                        skip = self.validator.get_complete_subsets(
-                                self.validator.find_report(dataset.name, split.name, ss_name, model)
-                                ) if self.validator else {}
+                        report = self.validator.find_report(dataset.name, split.name, ss_name, model) if self.validator else None
+                        print(f"Report for {dataset.name} {split.name} {ss_name} {model}: {report}")
+                        skip = Validator.get_complete_subsets(report) if self.validator else {}
                         for subset in raw_source.list_subsets(split.name):
                             if subset in skip:
                                 self.logger.debug(
@@ -92,12 +92,12 @@ class FeatureExtractor(ShardExecutor):
                                 )
                                 continue
                             subset_path = self.get_subset_data_source(dataset, split.name, subset, ss_name, self.use_precomputed)
-                            dest_path = precomputed_source.locate_precomputed(split.name, subset, ss_name, f"{model}_features")
+                            dest_path = precomputed_source.locate_shard(split=split.name, subset=subset, sliding_style=ss_name, shard_type=f"{model}_features")
                             os.makedirs(dest_path, exist_ok=True)
                             wrap_cmd = self.get_wrap_cmd(
                                 subset_path, dataset.name, ss_name, dest_path, subset, model, self.use_precomputed
                             )
-                            output_dir = logging_source.locate_precomputed(dataset.name, split.name, subset, ss_name)
+                            output_dir = logging_source.locate_shard(dataset.name, split.name, subset, ss_name)
                             submission_name = f"{dataset.name}_{ss_name}_{split.name}_{subset}_{model}"
                             command = (
                                 get_slurm_submission_command(submission_name, output_dir, wrap_cmd, gpu_count=1)

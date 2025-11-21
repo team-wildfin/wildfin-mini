@@ -1,6 +1,6 @@
 import argparse
 import wandb
-from vision_bench.litmodule import LitBinaryClassifierModule
+from vision_bench.model.litmodule import LitBinaryClassifierModule
 from vision_bench.data.builder import DatasetBuilder
 import os
 import yaml
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     train_run_matcher = WandbRunMatcher(
         entity=args.entity, 
         project=args.project, 
-        local_artifact_dir=args.local_artifact_dir
+        local_artifact_dir=args.model_ckpt_dir
     )
 
     local_ckpt_file = glob.glob(os.path.join(train_run_matcher.local_artifact_dir, args.run, 'best*.ckpt'))[0]

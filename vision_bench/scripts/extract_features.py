@@ -1,4 +1,4 @@
-from vision_bench.models import ModelBuilder
+from vision_bench.model.models import ModelBuilder
 from config.maps.backbone_preprocessors import PREPROCESSORS
 from vision_bench.data.builder import DatasetBuilder
 import yaml 

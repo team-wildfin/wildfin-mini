@@ -39,13 +39,5 @@ class Matcher(ABC):
         pass
 
     @abstractmethod
-    def log_artifact(self, run_id: str, artifact_name: str, artifact_data):
-        pass
-
-    @abstractmethod
     def get_run_config(self, run_id: str) -> dict:
         pass
-
-    @abstractmethod
-    def init_run(self): 
-        pass 

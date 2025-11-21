@@ -6,6 +6,7 @@ from vision_bench.typing.types import LocalDataset, Split, SlidingStyle
 import av
 import logging
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
+from vision_bench.management.shard_manager import ShardManager
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +41,7 @@ class Validator(ShardExecutor):
             report = yaml.safe_load(f)
         return report
     
+    @staticmethod
     def get_complete_subsets(report: Dict):
         # assert report is not empty
         assert report, "Report is empty"
@@ -96,6 +98,7 @@ class Validator(ShardExecutor):
     @staticmethod
     def compute(dataset: LocalDataset, split: Split, sliding_style: SlidingStyle, feature_extractor: str):
         report = {}
+        shard_manager = ShardManager(dataset.precomputed_path)
         split_path = os.path.join(dataset.path, split.name)
         report[split.name] = {}
         for subset in os.listdir(split_path): 
@@ -103,8 +106,11 @@ class Validator(ShardExecutor):
             subset_path = os.path.join(split_path, subset) 
             video_path = os.path.join(subset_path, f'{subset}.mp4')
             feature_type_name = feature_extractor if feature_extractor == 'inputs' else f'{feature_extractor}_features'
-            output_path = os.path.join(dataset.precomputed_path, sliding_style.name, split.name, subset, feature_type_name)
-            label_path = os.path.join(dataset.precomputed_path, sliding_style.name, split.name, subset, 'labels', f'{subset}.tsv')
+            output_path = shard_manager.locate_shard(split=split.name, subset=subset, sliding_style=sliding_style.name, shard_type=feature_type_name)
+            label_path = os.path.join(
+                shard_manager.locate_shard(split=split.name, subset=subset, sliding_style=sliding_style.name, shard_type='labels'), 
+                f"{subset}.tsv"
+            )
             expected_items = Validator.calculate_expected_files(video_path, sliding_style)
             feature_good, _, actual_files = Validator.validate_features(expected_items, output_path)
             label_good, _, actual_lines = Validator.validate_labels(expected_items, label_path)

@@ -53,8 +53,8 @@ FISHFOLLOW = LocalDataset(
 
 CORALCAM = LocalDataset(
     name="coralcam",
-    path='/share/j_sun/jth264/coralcam/organized',
-    precomputed_path='/share/j_sun/jth264/precomputed/coralcam',
+    path='/share/j_sun/jth264/refactor/coralcam',
+    precomputed_path='/share/j_sun/jth264/refactor/coralcam/precomputed',
     label_type="onehot",
     categories=[
         "mouth not visible",

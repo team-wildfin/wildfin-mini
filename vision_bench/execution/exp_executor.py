@@ -32,11 +32,6 @@ class ExperimentExecutor(ABC):
         self.parallel = parallel
         self.logger = logger or logging.getLogger(__name__)
         self.local_artifact_dir = local_artifact_dir
-        self.setup()
-
-    @abstractmethod
-    def setup(self):
-        pass
 
     @abstractmethod
     def run(self, *args, **kwargs):

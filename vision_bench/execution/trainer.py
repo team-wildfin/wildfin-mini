@@ -17,13 +17,15 @@ from vision_bench.execution.exp_executor import ExperimentExecutor
 class Trainer(ExperimentExecutor): 
     @staticmethod
     def save_config_to_file(config: Experiment, out_dir: str) -> str:
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir, exist_ok=True)
         out_path = os.path.join(out_dir, f"{config.id}.yml")
         with open(out_path, "w") as f:
             yaml.dump(config.model_dump(), f, sort_keys=False)
         return out_path
     
     def run_training(self, config_path: str, config_id: str, slurm_output_base: Optional[str] = None):
-        wrap_cmd = f"python fish_benchmark/scripts/train.py --config {config_path} --ckpt_dir {self.local_artifact_dir}"
+        wrap_cmd = f"python vision_bench/scripts/train.py --config {config_path} --ckpt_dir {self.local_artifact_dir}"
         if self.parallel:
             output_dir = os.path.join(slurm_output_base, config_id)
             submission_name = config_id

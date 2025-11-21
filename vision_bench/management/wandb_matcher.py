@@ -51,9 +51,9 @@ class WandbRunMatcher(Matcher):
         If non_duplicate is True, it will filter out runs that have already been evaluated.
         """
         matched_runs = {}
-        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": states}})
-        logger.debug(f"Found {len(source_runs)} finished runs in {self.source_project}.")
-        print(f"Found {len(source_runs)} finished runs in {self.source_project}.")
+        source_runs = wandb.Api().runs(f"{self.entity}/{self.project}", filters={"state": {"$in": states}})
+        logger.debug(f"Found {len(source_runs)} finished runs in {self.project}.")
+        print(f"Found {len(source_runs)} finished runs in {self.project}.")
         #source_runs = [run for run in source_runs if self._has_any_artifact(run)]
         for exp in experiments: 
             runs = []
@@ -68,7 +68,7 @@ class WandbRunMatcher(Matcher):
         Returns the set of evaluation run IDs that correspond to any of the given training run IDs.
         In most cases the train ids should be of the same experiment. 
         """
-        source_runs = wandb.Api().runs(f"{self.entity}/{self.source_project}", filters={"state": {"$in": states}})
+        source_runs = wandb.Api().runs(f"{self.entity}/{self.project}", filters={"state": {"$in": states}})
         matched_ids = []
         for train_id in train_ids:
             for run in source_runs:
@@ -128,12 +128,12 @@ class WandbRunMatcher(Matcher):
         """
         api = wandb.Api()
         if local_path:
+            local_file_path = os.path.join(self.local_artifact_dir, local_path)
             try: 
-                local_file_path = os.path.join(self.local_artifact_dir, local_path)
                 if os.path.exists(local_file_path):
                     return local_file_path
             except Exception as e: 
-                logger.warning(f"Failed to load local artifact {local_path}: {e}")
+                logger.warning(f"Failed to load local artifact {local_file_path}: {e}")
         elif remote_path:
             try: 
                 artifact_path = f"{self.entity}/{self.project}/{remote_path}"

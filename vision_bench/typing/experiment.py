@@ -1,8 +1,6 @@
 from pydantic import BaseModel, model_validator
 from typing import Optional, Literal
-print("importing backbone sliding styles...")
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
-print("importing types...")
 from vision_bench.typing.types import Pooling, Classifier, WeightConfig, Sampler, Metric, Optimizer, LabelType
 
 class Experiment(BaseModel): 

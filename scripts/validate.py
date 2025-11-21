@@ -2,27 +2,16 @@ import av
 import yaml
 import os
 from vision_bench.utils.general import setup_logger
-from config.maps.model_sliding_style import MODEL_SLIDING_STYLE
 from config.data.sliding_styles import SLIDING_STYLES
-from config.data.datasets import CORALCAM, FISHFOLLOW
-from vision_bench.typing.types import LocalDataset, Split, SlidingStyle
+from config.data.datasets import CORALCAM
+from config.main import VALIDATION_REPORTS_DIR
 from vision_bench.execution.validator import Validator
 
-DATASETS = [
-    CORALCAM,
-    FISHFOLLOW  
-]
 FEATURE_EXTRACTORS = [
-    # 'dino', 
-    # 'dino_large', 
-    # 'videomae', 
-    # 'resnet50', 
-    'dinov3_large',
-    # 'vjepa2'
+    "dinov3_base",
 ]  # or 'clip', etc.
-SAVE_DIR = 'data/validation/reports'
-if not os.path.exists(SAVE_DIR):
-    os.makedirs(SAVE_DIR, exist_ok=True)
+if not os.path.exists(VALIDATION_REPORTS_DIR):
+    os.makedirs(VALIDATION_REPORTS_DIR, exist_ok=True)
 logger = setup_logger(
     "validate_sliding_style",
     console=True,
@@ -30,7 +19,7 @@ logger = setup_logger(
 )
 if __name__ == "__main__":
     Validator(
-        datasets=DATASETS,
+        datasets=[CORALCAM],
         sliding_styles=SLIDING_STYLES,
-        root_path=SAVE_DIR,
+        root_path=VALIDATION_REPORTS_DIR,
     ).run(models=FEATURE_EXTRACTORS)
