@@ -1,10 +1,10 @@
 import os 
 import yaml
-from fish_benchmark.utils.general import get_files_of_type
+from vision_bench.utils.general import get_files_of_type
 import re
 import shutil
 import json
-from config.datasets import DATASETS
+from config.data.datasets import DATASETS
 
 DATASET_NAME = 'coralcam'
 DATASET = DATASETS[DATASET_NAME]

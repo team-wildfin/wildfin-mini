@@ -1,0 +1,11 @@
+val:
+  GX017052_638:
+    actual_files: 102
+    expected_items: 102
+    label_lines: 102
+    valid: true
+  GX017066_8120:
+    actual_files: 270
+    expected_items: 270
+    label_lines: 270
+    valid: true

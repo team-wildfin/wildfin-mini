@@ -1,8 +1,7 @@
-from config.models.models import ModelConfig, BackBoneConfig
+from config.models.models import BackBoneConfig
 from typing import Dict
-from fish_benchmark.typing.types import SlidingStyle
-from ..sliding_styles import *
-from typing import List, Dict, Callable, Literal
+from config.data.sliding_styles import *
+from typing import Dict
 
 print("defining backbone configs...")
 VIDEOMAE = BackBoneConfig(

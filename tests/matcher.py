@@ -1,5 +1,5 @@
 import logging 
-from fish_benchmark.utils.general import setup_logger
+from vision_bench.utils.general import setup_logger
 logger = setup_logger(
     "matcher_test",
     console=True,
@@ -11,8 +11,8 @@ import unittest
 logger.debug("importing experiments...")
 from config.experiments.cvpr import CVPR_EXPS   
 logger.debug("importing matcher...")
-from scripts.matcher import WandbRunMatcher
-from fish_benchmark.typing.experiment import Experiment
+from vision_bench.management.matcher import WandbRunMatcher
+from vision_bench.typing.experiment import Experiment
 from config.experiments.neurips import RESNET_FULLTUNE
 
 class MatcherTest(unittest.TestCase):

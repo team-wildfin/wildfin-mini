@@ -9,6 +9,7 @@
 /wandb/
 /creds/
 /test_metrics/
+/tmp_configs/
 /.DS_Store
 /.idea/
 /data/validation/reports/

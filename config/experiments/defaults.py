@@ -11,3 +11,8 @@ DEFAULT_FIELDS = {
     'max_samples_per_class': 1000,
     'freeze_backbone': False
 }
+MISSING_VALUES = {
+    'fulltune': False,
+    'freeze_backbone': False,
+    'label_type': 'onehot',
+}

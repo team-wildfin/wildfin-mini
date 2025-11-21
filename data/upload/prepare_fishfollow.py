@@ -3,7 +3,7 @@ import av
 import shutil
 import yaml
 import subprocess
-from config.datasets import DATASETS
+from config.data.datasets import DATASETS
 
 # --- Constants ---
 DATASET_NAME = 'fishfollow'

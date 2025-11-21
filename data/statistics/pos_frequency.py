@@ -2,7 +2,7 @@ import os
 import numpy as np
 import json
 import yaml
-from config.datasets import DATASETS
+from config.data.datasets import DATASETS
 
 def is_txt_or_tsv(filename):
     return filename.endswith(".txt") or filename.endswith(".tsv")

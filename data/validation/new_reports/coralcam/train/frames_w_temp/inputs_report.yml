@@ -1,0 +1,11 @@
+train:
+  GX017050_115:
+    actual_files: 798
+    expected_items: 798
+    label_lines: 798
+    valid: true
+  GX017052_824:
+    actual_files: 852
+    expected_items: 852
+    label_lines: 852
+    valid: true

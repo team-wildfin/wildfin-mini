@@ -1,6 +1,6 @@
 import unittest
 import torch
-from fish_benchmark.models import (
+from vision_bench.models import (
     BackBoneModel,
     MeanPooling,
     MaxPooling,

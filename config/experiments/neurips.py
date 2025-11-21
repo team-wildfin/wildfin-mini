@@ -1,10 +1,10 @@
-from fish_benchmark.typing.types import (
+from vision_bench.typing.types import (
     WeightConfig,
     InverseConfig,
     UniformConfig,
     FocalLossConfig,
 )
-from fish_benchmark.typing.experiment import Experiment
+from vision_bench.typing.experiment import Experiment
 from typing import List, Dict, Any
 from .defaults import DEFAULT_FIELDS
 

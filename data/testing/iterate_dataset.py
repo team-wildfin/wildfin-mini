@@ -5,11 +5,11 @@ print("importing torch")
 from torch.utils.data import DataLoader
 import torch
 print("importing fish_benchmark")
-from fish_benchmark.data.dataset import DatasetBuilder
-from fish_benchmark.data.sampler import MultiLabelBalancedSampler
-from fish_benchmark.utils.general import setup_logger 
-from fish_benchmark.models import get_input_transform
-from config.datasets import DATASETS
+from vision_bench.data.dataset import DatasetBuilder
+from vision_bench.data.sampler import MultiLabelBalancedSampler
+from vision_bench.utils.general import setup_logger 
+from vision_bench.models import get_input_transform
+from config.data.datasets import DATASETS
 print("importing utilities")
 import yaml
 import argparse

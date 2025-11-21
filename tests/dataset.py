@@ -1,6 +1,6 @@
-from fish_benchmark.data.dataset import PrecomputedDataset
-from config.datasets import CORALCAM, FISHFOLLOW
-from fish_benchmark.data.dataset import DatasetBuilder
+from vision_bench.data.dataset import PrecomputedDataset
+from config.data.datasets import CORALCAM, FISHFOLLOW
+from vision_bench.data.dataset import DatasetBuilder
 import os
 import unittest
 class TestDataset(unittest.TestCase): 

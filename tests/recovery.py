@@ -1,6 +1,6 @@
-from fish_benchmark.typing.experiment import Experiment, Evaluation
+from vision_bench.typing.experiment import Experiment, Evaluation
 from config.experiments.defaults import DEFAULT_FIELDS
-from fish_benchmark.typing.types import UniformConfig, FocalLossConfig
+from vision_bench.typing.types import UniformConfig, FocalLossConfig
 import wandb
 import pprint
 

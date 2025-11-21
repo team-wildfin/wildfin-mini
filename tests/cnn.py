@@ -1,4 +1,4 @@
-from fish_benchmark.models import CNN
+from vision_bench.models import CNN
 import torch
 
 model = CNN('resnet50')

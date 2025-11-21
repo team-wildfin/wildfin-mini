@@ -1,4 +1,4 @@
-from fish_benchmark.models import ModelBuilder
+from vision_bench.models import ModelBuilder
 import unittest
 from typing import Dict
 import torch
