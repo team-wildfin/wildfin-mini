@@ -1,6 +1,5 @@
 from vision_bench.typing.types import  LocalDataset, Split
 from .sliding_styles import *
-
 FISHFOLLOW = LocalDataset(
     name="fishfollow",
     path='/share/j_sun/jth264/mikev3',

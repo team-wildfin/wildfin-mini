@@ -35,7 +35,7 @@ Follow the 3 steps below to download and organize the data in standard format, t
 One can use Wildfin platform to run video benchmarking experiments on custom benchmarks after organizing files in the same format! 
 
 ---
-
+# Note: Downloading from dataverse is under preparation, not ready currently. Please refer to guide.ipynb to run system on local data. 
 ## 🔽 Step 1: Download Raw Videos and Annotations
 
 Use the following script to download raw data from Dataverse.
