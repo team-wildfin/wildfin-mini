@@ -27,7 +27,7 @@ logger = setup_logger(
 )
 
 if __name__ == "__main__":
-    for EXP in ECCV_FISHFOLLOW:
+    for EXP in ECCV_CORALCAM:
         dataset = DATASETS[EXP.dataset]
         sliding_style = SLIDING_STYLES[EXP.sliding_style]
         validator = Validator(

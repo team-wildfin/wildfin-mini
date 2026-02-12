@@ -13,6 +13,7 @@
 /.DS_Store
 /.idea/
 /data/validation/reports/
+/data/validation/new_reports/
 _build/
 /docs/build/
 /generated_configs/
