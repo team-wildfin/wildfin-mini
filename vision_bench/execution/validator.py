@@ -1,31 +1,23 @@
-from vision_bench.execution.shard_executor import ShardExecutor
-from typing import Dict, List
+from typing import Dict, Type
 import os
 import yaml
 from vision_bench.typing.types import LocalDataset, Split, SlidingStyle
 import av
 import logging
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLES
+from config.maps.sliding_style_test import TEST_NAME
+from config.data.sliding_styles import SLIDING_STYLES
 from vision_bench.management.manager import ShardManager
-logger = logging.getLogger(__name__)
 
 
-class Validator(ShardExecutor): 
+class Validator: 
     def __init__(self, 
-                 datasets: List[LocalDataset], 
-                 sliding_styles: List[str], 
                  root_path: str,
-                 parallel: bool = False, 
-                 logger: logging.Logger = None, 
-                 ShardManager=None):
-        super().__init__(
-            datasets=datasets,
-            sliding_styles=sliding_styles,
-            parallel=parallel,
-            logger=logger,
-            ShardManager=ShardManager
-        )
+                 shard_manager: Type[ShardManager] = ShardManager,
+                 logger: logging.Logger = None):
+        self.logger = logger or logging.getLogger(__name__)
         self.root_path = root_path
+        self.shard_manager = shard_manager
 
     def find_report(self, dataset, split, sliding_style, model) -> Dict: 
         # report should exist in REPORT_ROOT/dataset/split/sliding_style/<model>_report.yml
@@ -53,9 +45,6 @@ class Validator(ShardExecutor):
             if subset_data["actual_files"] == subset_data["expected_items"]:
                 res.append(subset)
         return res
-    
-    def run(self): 
-        assert self.root_path, "Root path not set for Validator"
 
     @staticmethod 
     def calculate_expected_files(video_path, style: SlidingStyle):
@@ -95,14 +84,13 @@ class Validator(ShardExecutor):
         is_valid = actual_lines == expected_files
         return is_valid, expected_files, actual_lines
 
-    @staticmethod
-    def compute(dataset: LocalDataset, split: Split, sliding_style: SlidingStyle, feature_extractor: str):
+    def compute(self, dataset: LocalDataset, split: Split, sliding_style: SlidingStyle, feature_extractor: str) -> Dict:
         report = {}
-        shard_manager = ShardManager(dataset.precomputed_path)
+        shard_manager = self.shard_manager(dataset.precomputed_path)
         split_path = os.path.join(dataset.path, split.name)
         report[split.name] = {}
         for subset in os.listdir(split_path): 
-            logger.info(f"Validating {dataset} {sliding_style} {feature_extractor} for split {split}, subset {subset}")
+            self.logger.debug(f"Validating {dataset.name} {sliding_style.name} {feature_extractor} for split {split.name}, subset {subset}")
             subset_path = os.path.join(split_path, subset) 
             video_path = os.path.join(subset_path, f'{subset}.mp4')
             feature_type_name = feature_extractor if feature_extractor == 'inputs' else f'{feature_extractor}_features'
@@ -121,18 +109,29 @@ class Validator(ShardExecutor):
                 'label_lines': actual_lines,
             }
         return report
+    
 
-    def run(self, models: List[str]): 
-        for dataset in self.datasets: 
-            for split in dataset.splits:   
-                for sliding_style in split.sliding_styles: 
-                    for model in models + ['inputs']:
-                        if (model != "inputs" and 
-                            sliding_style.name not in [s.name for s in MODEL_SLIDING_STYLES[model]]): continue
-                        report = Validator.compute(dataset, split, sliding_style, model)
-                        report_path = os.path.join(self.root_path, dataset.name, split.name, sliding_style.name, f'{model}_report.yml')
-                        os.makedirs(os.path.dirname(report_path), exist_ok=True)
-                        with open(report_path, 'w') as f:
-                            yaml.dump(report, f)
-                        print(f"Validation report saved to {report_path}")
-                        print("Report:", report)
+    def run(self, dataset: LocalDataset, sliding_style: SlidingStyle, model: str): 
+        '''
+        model can be 'inputs' or feature extractor name
+        sliding_style should be name of training sliding style. The testing sliding style will be determined based on mapping.  
+        '''
+        self.logger.info(f"Running validator for {dataset.name} with sliding style {sliding_style.name} and model {model}")
+        for split in dataset.splits:   
+            ss = (sliding_style if sliding_style in split.sliding_styles else 
+                 (SLIDING_STYLES[TEST_NAME[sliding_style.name]]
+                  if SLIDING_STYLES[TEST_NAME[sliding_style.name]] in split.sliding_styles 
+                  else None))
+            if not ss: 
+                self.logger.warning(f"No valid sliding style found for {dataset.name} {split.name} with requested style {sliding_style.name}. Skipping validation for this split.")
+                continue
+           
+            if (model != "inputs" and 
+                ss.name not in [s.name for s in MODEL_SLIDING_STYLES[model]]): continue
+            report = self.compute(dataset, split, ss, model)
+            report_path = os.path.join(self.root_path, dataset.name, split.name, ss.name, f'{model}_report.yml')
+            os.makedirs(os.path.dirname(report_path), exist_ok=True)
+            with open(report_path, 'w') as f:
+                yaml.dump(report, f)
+            self.logger.info(f"Validation report saved to {report_path}")
+            self.logger.debug(f"Report: {report}")

@@ -1,5 +1,5 @@
 
-TEST_SLIDING_STYLES = {
+TEST_NAME = {
     "frames": "test_frames", 
     "frames_w_temp": "test_frames",
     "sliding_window": "test_sliding_window",

@@ -1,11 +1,106 @@
 val:
+  GX017042_240:
+    actual_files: 826
+    expected_items: 826
+    label_lines: 826
+    valid: true
+  GX017042_9270:
+    actual_files: 1062
+    expected_items: 1062
+    label_lines: 1062
+    valid: true
+  GX017045_208:
+    actual_files: 317
+    expected_items: 317
+    label_lines: 317
+    valid: true
+  GX017045_446:
+    actual_files: 1059
+    expected_items: 1059
+    label_lines: 1059
+    valid: true
+  GX017045_91:
+    actual_files: 148
+    expected_items: 148
+    label_lines: 148
+    valid: true
+  GX017050_1241:
+    actual_files: 1500
+    expected_items: 1500
+    label_lines: 1500
+    valid: true
+  GX017051_1264:
+    actual_files: 2182
+    expected_items: 2182
+    label_lines: 2182
+    valid: true
+  GX017051_242:
+    actual_files: 730
+    expected_items: 730
+    label_lines: 730
+    valid: true
+  GX017051_852:
+    actual_files: 906
+    expected_items: 906
+    label_lines: 906
+    valid: true
+  GX017052_2431:
+    actual_files: 1038
+    expected_items: 1038
+    label_lines: 1038
+    valid: true
   GX017052_638:
     actual_files: 816
     expected_items: 816
     label_lines: 816
     valid: true
+  GX017065_18386:
+    actual_files: 1315
+    expected_items: 1315
+    label_lines: 1315
+    valid: true
+  GX017066_1996:
+    actual_files: 2859
+    expected_items: 2859
+    label_lines: 2859
+    valid: true
   GX017066_8120:
     actual_files: 2153
     expected_items: 2153
     label_lines: 2153
+    valid: true
+  GX017068_8516:
+    actual_files: 558
+    expected_items: 558
+    label_lines: 558
+    valid: true
+  GX017072_2619:
+    actual_files: 1271
+    expected_items: 1271
+    label_lines: 1271
+    valid: true
+  GX017073_824:
+    actual_files: 1225
+    expected_items: 1225
+    label_lines: 1225
+    valid: true
+  GX017074_1307:
+    actual_files: 1276
+    expected_items: 1276
+    label_lines: 1276
+    valid: true
+  GX017074_391:
+    actual_files: 1829
+    expected_items: 1829
+    label_lines: 1829
+    valid: true
+  GX017085_1731:
+    actual_files: 1687
+    expected_items: 1687
+    label_lines: 1687
+    valid: true
+  GX017085_786:
+    actual_files: 1429
+    expected_items: 1429
+    label_lines: 1429
     valid: true

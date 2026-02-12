@@ -1,11 +1,316 @@
 test:
+  GX017042_11744:
+    actual_files: 0
+    expected_items: 1436
+    label_lines: 1436
+    valid: false
+  GX017042_12047:
+    actual_files: 0
+    expected_items: 1426
+    label_lines: 1426
+    valid: false
+  GX017042_121:
+    actual_files: 0
+    expected_items: 497
+    label_lines: 497
+    valid: false
+  GX017042_501:
+    actual_files: 0
+    expected_items: 781
+    label_lines: 781
+    valid: false
+  GX017042_604:
+    actual_files: 0
+    expected_items: 911
+    label_lines: 911
+    valid: false
+  GX017042_674:
+    actual_files: 0
+    expected_items: 954
+    label_lines: 954
+    valid: false
+  GX017042_9551:
+    actual_files: 0
+    expected_items: 725
+    label_lines: 725
+    valid: false
+  GX017042_9766:
+    actual_files: 0
+    expected_items: 889
+    label_lines: 889
+    valid: false
+  GX017042_9768:
+    actual_files: 0
+    expected_items: 622
+    label_lines: 622
+    valid: false
+  GX017045_375:
+    actual_files: 0
+    expected_items: 287
+    label_lines: 287
+    valid: false
+  GX017045_384:
+    actual_files: 0
+    expected_items: 244
+    label_lines: 244
+    valid: false
+  GX017045_4:
+    actual_files: 0
+    expected_items: 695
+    label_lines: 695
+    valid: false
+  GX017045_508:
+    actual_files: 0
+    expected_items: 291
+    label_lines: 291
+    valid: false
+  GX017045_543:
+    actual_files: 0
+    expected_items: 265
+    label_lines: 265
+    valid: false
+  GX017045_546:
+    actual_files: 0
+    expected_items: 318
+    label_lines: 318
+    valid: false
+  GX017050_1044:
+    actual_files: 0
+    expected_items: 1600
+    label_lines: 1600
+    valid: false
+  GX017050_1046:
+    actual_files: 0
+    expected_items: 692
+    label_lines: 692
+    valid: false
+  GX017050_1050:
+    actual_files: 0
+    expected_items: 972
+    label_lines: 972
+    valid: false
+  GX017050_186:
+    actual_files: 0
+    expected_items: 915
+    label_lines: 915
+    valid: false
+  GX017050_216:
+    actual_files: 0
+    expected_items: 1670
+    label_lines: 1670
+    valid: false
+  GX017050_219:
+    actual_files: 0
+    expected_items: 946
+    label_lines: 946
+    valid: false
+  GX017051_1474:
+    actual_files: 0
+    expected_items: 1523
+    label_lines: 1523
+    valid: false
+  GX017051_1512:
+    actual_files: 0
+    expected_items: 979
+    label_lines: 979
+    valid: false
+  GX017051_1524:
+    actual_files: 0
+    expected_items: 1237
+    label_lines: 1237
+    valid: false
+  GX017051_411:
+    actual_files: 0
+    expected_items: 609
+    label_lines: 609
+    valid: false
+  GX017051_472:
+    actual_files: 0
+    expected_items: 1215
+    label_lines: 1215
+    valid: false
+  GX017051_629:
+    actual_files: 0
+    expected_items: 446
+    label_lines: 446
+    valid: false
+  GX017052_1660:
+    actual_files: 0
+    expected_items: 2229
+    label_lines: 2229
+    valid: false
+  GX017052_1664:
+    actual_files: 0
+    expected_items: 852
+    label_lines: 852
+    valid: false
+  GX017052_1715:
+    actual_files: 0
+    expected_items: 1616
+    label_lines: 1616
+    valid: false
+  GX017052_2684:
+    actual_files: 0
+    expected_items: 1260
+    label_lines: 1260
+    valid: false
+  GX017052_2699:
+    actual_files: 0
+    expected_items: 1418
+    label_lines: 1418
+    valid: false
+  GX017052_2763:
+    actual_files: 0
+    expected_items: 1005
+    label_lines: 1005
+    valid: false
+  GX017065_10226:
+    actual_files: 0
+    expected_items: 981
+    label_lines: 981
+    valid: false
+  GX017065_10311:
+    actual_files: 0
+    expected_items: 1247
+    label_lines: 1247
+    valid: false
   GX017065_17010:
-    actual_files: 1319
+    actual_files: 0
     expected_items: 1319
     label_lines: 1319
-    valid: true
+    valid: false
+  GX017065_24830:
+    actual_files: 0
+    expected_items: 1707
+    label_lines: 0
+    valid: false
+  GX017065_25052:
+    actual_files: 0
+    expected_items: 1762
+    label_lines: 1762
+    valid: false
+  GX017065_7006:
+    actual_files: 0
+    expected_items: 817
+    label_lines: 817
+    valid: false
+  GX017066_5595:
+    actual_files: 0
+    expected_items: 2201
+    label_lines: 2201
+    valid: false
+  GX017066_6010:
+    actual_files: 0
+    expected_items: 1675
+    label_lines: 1675
+    valid: false
   GX017066_618:
-    actual_files: 2056
+    actual_files: 0
     expected_items: 2056
     label_lines: 2056
-    valid: true
+    valid: false
+  GX017068_10828:
+    actual_files: 0
+    expected_items: 956
+    label_lines: 956
+    valid: false
+  GX017068_205:
+    actual_files: 0
+    expected_items: 1301
+    label_lines: 1301
+    valid: false
+  GX017068_6301:
+    actual_files: 0
+    expected_items: 667
+    label_lines: 667
+    valid: false
+  GX017072_1368:
+    actual_files: 0
+    expected_items: 2527
+    label_lines: 2527
+    valid: false
+  GX017072_1612:
+    actual_files: 0
+    expected_items: 1181
+    label_lines: 1181
+    valid: false
+  GX017072_1640:
+    actual_files: 0
+    expected_items: 918
+    label_lines: 918
+    valid: false
+  GX017073_2500:
+    actual_files: 0
+    expected_items: 2266
+    label_lines: 2266
+    valid: false
+  GX017073_2548:
+    actual_files: 0
+    expected_items: 1210
+    label_lines: 1210
+    valid: false
+  GX017073_3:
+    actual_files: 0
+    expected_items: 1041
+    label_lines: 1041
+    valid: false
+  GX017074_1060:
+    actual_files: 0
+    expected_items: 1278
+    label_lines: 1278
+    valid: false
+  GX017074_110:
+    actual_files: 0
+    expected_items: 1624
+    label_lines: 1624
+    valid: false
+  GX017074_1215:
+    actual_files: 0
+    expected_items: 1756
+    label_lines: 1756
+    valid: false
+  GX017074_1448:
+    actual_files: 0
+    expected_items: 1022
+    label_lines: 1022
+    valid: false
+  GX017074_1594:
+    actual_files: 0
+    expected_items: 965
+    label_lines: 965
+    valid: false
+  GX017074_1600:
+    actual_files: 0
+    expected_items: 988
+    label_lines: 988
+    valid: false
+  GX017074_859:
+    actual_files: 0
+    expected_items: 2152
+    label_lines: 2152
+    valid: false
+  GX017085_1126:
+    actual_files: 0
+    expected_items: 1884
+    label_lines: 1884
+    valid: false
+  GX017085_1338:
+    actual_files: 0
+    expected_items: 955
+    label_lines: 955
+    valid: false
+  GX017085_4261:
+    actual_files: 0
+    expected_items: 1256
+    label_lines: 1256
+    valid: false
+  GX017085_4606:
+    actual_files: 0
+    expected_items: 1680
+    label_lines: 1680
+    valid: false
+  GX017085_4989:
+    actual_files: 0
+    expected_items: 1902
+    label_lines: 1902
+    valid: false

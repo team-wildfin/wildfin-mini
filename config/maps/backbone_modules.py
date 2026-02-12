@@ -11,6 +11,7 @@ BACKBONE_MODULES: Dict[str, Callable[[], nn.Module]] = {
         attn_implementation="sdpa"
     ), 
     "videomae": lambda: VideoMAEModel.from_pretrained("MCG-NJU/videomae-base"), 
+    "videomae_large": lambda: VideoMAEModel.from_pretrained("MCG-NJU/videomae-large"),
     "dino": lambda: AutoModel.from_pretrained('facebook/dinov2-base'),
     "dino_large": lambda: AutoModel.from_pretrained('facebook/dinov2-large'),
     "dinov3_base": lambda: AutoModel.from_pretrained("facebook/dinov3-vitb16-pretrain-lvd1689m"),

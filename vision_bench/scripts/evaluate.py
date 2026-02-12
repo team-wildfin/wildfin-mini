@@ -12,7 +12,7 @@ from config.data.sliding_styles import SLIDING_STYLES
 import glob
 from vision_bench.typing.experiment import Experiment, Evaluation
 from config.data.datasets import DATASETS
-from config.maps.sliding_style_test import TEST_SLIDING_STYLES
+from config.maps.sliding_style_test import TEST_NAME
 from vision_bench.management.manager import ShardManager
 from config.management.matcher import MATCHERS
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     )
     
     train_config = Experiment.model_validate(train_matcher.get_run_config(args.run))
-    test_sliding_style = TEST_SLIDING_STYLES[train_config.sliding_style] # name of the test sliding style
+    test_sliding_style = TEST_NAME[train_config.sliding_style] # name of the test sliding style
     config = Evaluation.model_validate(
         train_config.model_dump() |
         {
