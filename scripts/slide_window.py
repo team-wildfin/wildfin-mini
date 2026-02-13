@@ -11,12 +11,6 @@ from itertools import chain
 from typing import Set, Tuple
 
 # Example config values (replace with loading from a file if needed)
-SLIDING_STYLES = [
-    "frames_w_temp", 
-    "sliding_window_w_temp", 
-    "test_frames", 
-    "test_sliding_window", 
-]
 PARALLEL = False
 SAVE_INPUT = True
 

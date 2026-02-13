@@ -12,6 +12,15 @@ VIDEOMAE = BackBoneConfig(
     input_ndim=4,
     output_ndim=2,
 ) 
+VIDEOMAE_LARGE = BackBoneConfig(
+    name="videomae_large",
+    architecture="transformer",
+    crop_size=(224, 224),
+    hidden_size=1024,
+    input_ndim=4,
+    output_ndim=2,
+)
+
 DINO = BackBoneConfig(
     name="dino",
     architecture="transformer",
@@ -64,12 +73,9 @@ VJEPA2 = BackBoneConfig(
     output_ndim=2,
 )
 
+
 BACKBONE_CONFIGS: Dict[str, BackBoneConfig] = {
-    "videomae": VIDEOMAE,
-    "dino": DINO,
-    "dino_large": DINO_LARGE,
-    "dinov3_base": DINOV3_BASE,
-    "dinov3_large": DINOV3_LARGE,
-    "resnet50": RESNET50,
-    "vjepa2": VJEPA2,
+    dataset.name: dataset
+    for dataset in globals().values()
+    if isinstance(dataset, BackBoneConfig)
 }

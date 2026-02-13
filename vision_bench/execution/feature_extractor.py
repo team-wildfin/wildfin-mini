@@ -8,7 +8,7 @@ extracts features from precomputed inputs
 
 import os
 from config.maps.sliding_style_test import TEST_NAME
-from scripts.slide_window import SLIDING_STYLES
+from config.data.sliding_styles import SLIDING_STYLES
 from vision_bench.management.manager import ShardManager, SourceManager
 from vision_bench.utils.general import setup_logger
 from config.maps.model_sliding_style import MODEL_SLIDING_STYLES

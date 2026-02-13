@@ -3,7 +3,6 @@ extracts features from precomputed inputs
 """
 import os
 import torch
-from scripts.evaluate import PARALLEL
 from vision_bench.utils.general import setup_logger
 from config.data.datasets import CORALCAM
 from vision_bench.execution.feature_extractor import FeatureExtractor
@@ -43,7 +42,8 @@ if __name__ == "__main__":
             )
             FeatureExtractor(
                 validator=validator,
-                logger=logger
+                logger=logger, 
+                parallel=True
             ).run(dataset=dataset, 
                 sliding_style=sliding_style, 
                 model=EXP.backbone
@@ -56,6 +56,6 @@ if __name__ == "__main__":
                 model = 'inputs'
             )
             Preprocessor(
-                logger=logger,
-                parallel=PARALLEL
+                validator=validator,
+                logger=logger
             ).run(dataset=dataset, sliding_style=sliding_style, save_input=True)

@@ -6,25 +6,29 @@ Class that handles processing of data:
 import logging
 import os
 import subprocess
-from typing import Type
+from typing import Optional, Type
+from vision_bench.execution.validator import Validator
 from vision_bench.management.manager import ShardManager, SourceManager
 from vision_bench.typing.types import LocalDataset, SlidingStyle
 from config.maps.sliding_style_test import TEST_NAME
 from config.data.sliding_styles import SLIDING_STYLES
 from vision_bench.utils.submission import get_slurm_submission_command
 from vision_bench.execution.shard_executor import ShardExecutor
+    
 # Example config values (replace with loading from a file if needed)
 
 class Preprocessor: 
     def __init__(self, 
                  source_manager: Type[SourceManager] = SourceManager,
                  shard_manager: Type[ShardManager] = ShardManager,
+                 validator: Optional[Validator] = None,
                  logger: logging.Logger = None, 
                  parallel: bool = False): 
         self.source_manager = source_manager
         self.shard_manager = shard_manager
         self.logger = logger or logging.getLogger(__name__)
         self.parallel = parallel
+        self.validator = validator
     
     @staticmethod
     def get_wrap_cmd(source, input_dest, label_dest, subset, dataset, sliding_style, save_input):
@@ -43,8 +47,20 @@ class Preprocessor:
                  (SLIDING_STYLES[TEST_NAME[sliding_style.name]]
                   if SLIDING_STYLES[TEST_NAME[sliding_style.name]] in split.sliding_styles 
                   else None))
+            
+            
+            if save_input: 
+                report = self.validator.find_report(dataset.name, split.name, ss.name, 'inputs') if self.validator else None
+                if report is None: 
+                    raise ValueError(f"No validation report found for {dataset.name} {split.name} {ss.name} {'inputs'}. Cannot determine which subsets to skip. Please run the validator first.")
 
+            skip = Validator.get_complete_subsets(report) if report and self.validator else {}
             for subset in source_locator.list_subsets(split.name): 
+                if subset in skip:
+                    self.logger.debug(
+                        f"Skipping {subset} for {dataset.name} {split.name} {ss.name} {'inputs'}"
+                    )
+                    continue
                 source = source_locator.subset_path(split.name, subset)
                 if not os.path.exists(source):
                     self.logger.error(f"Source path does not exist: {source}")
