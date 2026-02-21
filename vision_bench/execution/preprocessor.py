@@ -38,11 +38,15 @@ class Preprocessor:
             f'--save_input {save_input} --sliding_style "{sliding_style}"'
         )
 
-    def run(self, dataset: LocalDataset, sliding_style: SlidingStyle, save_input: bool = False): 
+    def run(self, dataset: LocalDataset, sliding_style: SlidingStyle, compute_for_test: bool = False, save_input: bool = False): 
         source_locator = self.source_manager(dataset.path)
         dest_locator = self.shard_manager(dataset.precomputed_path)
         logging_locator = self.shard_manager(os.path.join("logs", "slide_window"))
         for split in dataset.splits: 
+            if not compute_for_test and split.name == "test":
+                self.logger.info(f"Skipping test split for {dataset.name} since compute_for_test is False.")
+                continue
+            
             ss = (sliding_style if sliding_style in split.sliding_styles else 
                  (SLIDING_STYLES[TEST_NAME[sliding_style.name]]
                   if SLIDING_STYLES[TEST_NAME[sliding_style.name]] in split.sliding_styles 

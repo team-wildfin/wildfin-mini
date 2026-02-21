@@ -64,7 +64,7 @@ class FeatureExtractor:
                 self.logger.warning(f"Precomputed input not found for {dataset.name} {split_name} {subset} {sliding_style}: {e}\nfalling back to raw source")
         return self.source_manager(dataset.path).subset_path(split_name, subset)
     
-    def run(self, dataset: LocalDataset, sliding_style: SlidingStyle, model: str): 
+    def run(self, dataset: LocalDataset, sliding_style: SlidingStyle, model: str, compute_for_test: bool = False): 
         '''
         sliding_style: name of the training sliding style. Testing sliding style is inferred from this.
         '''
@@ -73,6 +73,9 @@ class FeatureExtractor:
         logging_source = self.shard_manager(os.path.join("logs", "extract_features"))
         self.logger.info(f"Validator is set to: {self.validator.root_path}")
         for split in dataset.splits: 
+            if not compute_for_test and split.name == "test":
+                self.logger.info(f"Skipping test split for {dataset.name} since compute_for_test is False.")
+                continue
             ss = (sliding_style if sliding_style in split.sliding_styles else 
                  (SLIDING_STYLES[TEST_NAME[sliding_style.name]]
                   if SLIDING_STYLES[TEST_NAME[sliding_style.name]] in split.sliding_styles 

@@ -17,6 +17,18 @@ CORALCAM_EVAL = WandbRunMatcher(
     local_artifact_dir=EVAL_RESULTS_DIR, 
     default_values=MISSING_VALUES
 )
+FISHFOLLOW_TRAINING = WandbRunMatcher(
+    entity=ENTITY,
+    project='fishfollow',
+    local_artifact_dir=MODEL_CHECKPOINT_DIR,
+    default_values=MISSING_VALUES
+)
+FISHFOLLOW_EVAL = WandbRunMatcher(
+    entity=ENTITY,
+    project='fishfollow_eval',
+    local_artifact_dir=EVAL_RESULTS_DIR,
+    default_values=MISSING_VALUES
+)
 
 MATCHERS = {
     matcher.id: matcher 

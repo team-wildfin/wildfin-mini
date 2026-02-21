@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import os
 import sys
 import yaml
@@ -22,6 +23,8 @@ from config.data.sliding_styles import SLIDING_STYLES
 from vision_bench.utils.artifact import log_best_model, log_latest_model
 from vision_bench.management.manager import ShardManager
 from config.management.matcher import MATCHERS
+
+logger = logging.getLogger(__name__)
 
 def load_config(path: Union[str, Path]) -> Experiment:
     with open(path, "r") as f:
@@ -70,7 +73,7 @@ def main():
         config=config.model_dump(),  # Use model_dump to get a dict representation
     )
 
-    print("Loading train data...")
+    logger.info("Loading train data...")
     shard_manager = ShardManager(base_path=dataset.precomputed_path)
     train_dataset = DatasetBuilder(
         path=shard_manager.locate_base(config.sliding_style, "train", config.train_subset or ""),
@@ -81,7 +84,7 @@ def main():
         feature_model=None if config.fulltune else config.backbone,
     ).build()
 
-    print("Loading val data...")
+    logger.info("Loading val data...")
     val_dataset = DatasetBuilder(
         path=shard_manager.locate_base(config.sliding_style, "val", config.val_subset or ""),
         dataset=dataset,
@@ -91,7 +94,7 @@ def main():
         feature_model=None if config.fulltune else config.backbone,
     ).build()
 
-    print("Data loaded.")
+    logger.info("Data loaded.")
     if config.sampler == "balanced":
         train_sampler = MultiLabelBalancedSampler(
             train_dataset, max_samples_per_class=config.max_samples_per_class
@@ -114,7 +117,7 @@ def main():
     )
 
     if config.fulltune:
-        print("Building full fine-tuning model...")
+        logger.info("Building full fine-tuning model...")
         model = (
             ModelBuilder.build(
                 backbone_name=config.backbone,
@@ -127,7 +130,7 @@ def main():
             )
         )
     else:
-        print("Building classifier head on frozen features...")
+        logger.info("Building classifier head on frozen features...")
         hidden_size = BACKBONE_CONFIGS[config.backbone].hidden_size
         model = (
             ModelBuilder.build(
@@ -166,7 +169,7 @@ def main():
     lit_module.set_root_path(dataset.path)
 
     tqdm_disable = not sys.stdout.isatty()
-    print(f"Are we in an interactive terminal? {not tqdm_disable}")
+    logger.info(f"Are we in an interactive terminal? {not tqdm_disable}")
     trainer = L.Trainer(
         max_epochs=config.epochs,
         logger=wandb_logger,
@@ -179,11 +182,11 @@ def main():
     try:
         log_best_model(best_ckpt, wandb_logger.experiment)
     except Exception as e:
-        print(f"Error logging best model: {e}")
+        logger.error(f"Error logging best model: {e}")
     try:
         log_latest_model(latest_ckpt, wandb_logger.experiment)
     except Exception as e:
-        print(f"Error logging latest model: {e}")
+        logger.error(f"Error logging latest model: {e}")
 
 if __name__ == "__main__":
     main()

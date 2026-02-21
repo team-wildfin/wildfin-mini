@@ -1,12 +1,7 @@
-print("experiment defaults importing...")
 from .defaults import DEFAULT_FIELDS
-print("experiment types importing...")
 from vision_bench.typing.experiment import Experiment
-print("loss types importing...")
 from vision_bench.typing.types import UniformConfig, FocalLossConfig
-print("experiment constants importing...")
 from .neurips import DINO_WEIGHTED_EXPS, VIDEOMAE_WEIGHTED_EXPS, RESNET50_WEIGHTED_EXPS, RESNET_FULLTUNE
-print("experiment packages imported")
 
 DINOV3_LARGE_ATTENTION = [
     Experiment(

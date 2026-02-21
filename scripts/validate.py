@@ -1,25 +1,50 @@
-import av
-import yaml
+"""
+extracts features from precomputed inputs
+"""
 import os
+import torch
 from vision_bench.utils.general import setup_logger
-from config.data.sliding_styles import SLIDING_STYLES
 from config.data.datasets import CORALCAM
-from config.main import VALIDATION_REPORTS_DIR
+from vision_bench.execution.feature_extractor import FeatureExtractor
 from vision_bench.execution.validator import Validator
+from vision_bench.execution.preprocessor import Preprocessor
+from config.main import VALIDATION_REPORTS_DIR
+from config.experiments.eccv import ECCV_EXPS, ECCV_CORALCAM, ECCV_FISHFOLLOW
+from config.data.datasets import DATASETS
+from config.data.sliding_styles import SLIDING_STYLES
 
-FEATURE_EXTRACTORS = [
-    "dinov3_base",
-]  # or 'clip', etc.
-if not os.path.exists(VALIDATION_REPORTS_DIR):
-    os.makedirs(VALIDATION_REPORTS_DIR, exist_ok=True)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+OUT_ROOT = os.path.join("logs", "validation")
+if not os.path.exists(OUT_ROOT):
+    os.makedirs(OUT_ROOT, exist_ok=True)
 logger = setup_logger(
-    "validate_sliding_style",
+    "validator",
+    os.path.join(OUT_ROOT, "validator.log"),
     console=True,
     file=False,
+    level="INFO"
 )
+
 if __name__ == "__main__":
-    Validator(
-        datasets=[CORALCAM],
-        sliding_styles=SLIDING_STYLES,
-        root_path=VALIDATION_REPORTS_DIR,
-    ).run(models=FEATURE_EXTRACTORS)
+    for EXP in ECCV_FISHFOLLOW:
+        dataset = DATASETS[EXP.dataset]
+        sliding_style = SLIDING_STYLES[EXP.sliding_style]
+        validator = Validator(
+            root_path=VALIDATION_REPORTS_DIR,
+            logger=logger)
+        if not EXP.fulltune: 
+            #only tuning the classification head hence need to extract features first
+            validator.run(
+                dataset=dataset, 
+                sliding_style = sliding_style, 
+                model = EXP.backbone, 
+                compute_for_test=True
+            )
+        else: 
+            #need to extract the input frames
+            validator.run(
+                dataset=dataset, 
+                sliding_style = sliding_style, 
+                model = 'inputs', 
+                compute_for_test=True
+            )

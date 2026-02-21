@@ -45,7 +45,7 @@ class Evaluator(ExperimentExecutor):
             while(pending_eval := query_pending_evaluations(
                 self.train_matcher, self.eval_matcher, self.experiments)):
                 self.logger.info("Evaluating the first pending experiment...")
-                run_id = next(iter(pending_eval.items()))
+                run_id = next(iter(pending_eval.items()))[1] # pending eval returns {exp_id: train_run_id}, we take the first train_run_id to evaluate
                 self.execute(run_id)
         else: 
             for exp in self.experiments: 

@@ -26,7 +26,7 @@ logger = setup_logger(
 )
 
 if __name__ == "__main__":
-    for EXP in ECCV_CORALCAM:
+    for EXP in ECCV_FISHFOLLOW:
         dataset = DATASETS[EXP.dataset]
         sliding_style = SLIDING_STYLES[EXP.sliding_style]
         validator = Validator(
@@ -43,10 +43,11 @@ if __name__ == "__main__":
             FeatureExtractor(
                 validator=validator,
                 logger=logger, 
-                parallel=True
+                parallel=False
             ).run(dataset=dataset, 
                 sliding_style=sliding_style, 
-                model=EXP.backbone
+                model=EXP.backbone, 
+                compute_for_test=False
                 ) 
         else: 
             #need to extract the input frames
@@ -58,4 +59,7 @@ if __name__ == "__main__":
             Preprocessor(
                 validator=validator,
                 logger=logger
-            ).run(dataset=dataset, sliding_style=sliding_style, save_input=True)
+            ).run(dataset=dataset, 
+                  sliding_style=sliding_style, 
+                  compute_for_test=False,
+                  save_input=True)

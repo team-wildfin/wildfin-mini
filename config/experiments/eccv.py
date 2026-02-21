@@ -96,3 +96,5 @@ ECCV_EXPS = (
 
 ECCV_CORALCAM = [exp for exp in ECCV_EXPS if exp.dataset == "coralcam"]
 ECCV_FISHFOLLOW = [exp for exp in ECCV_EXPS if exp.dataset == "fishfollow"]
+ECCV_FISHFOLLOW_VIDEOMAE_LARGE = [exp for exp in ECCV_FISHFOLLOW if exp.backbone == "videomae_large"]
+ECCV_FISHFOLLOW_DINOV3_BASE = [exp for exp in ECCV_FISHFOLLOW if exp.backbone == "dinov3_base"]

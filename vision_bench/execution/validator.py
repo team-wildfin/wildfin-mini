@@ -111,13 +111,16 @@ class Validator:
         return report
     
 
-    def run(self, dataset: LocalDataset, sliding_style: SlidingStyle, model: str): 
+    def run(self, dataset: LocalDataset, sliding_style: SlidingStyle, model: str, compute_for_test: bool = False): 
         '''
         model can be 'inputs' or feature extractor name
         sliding_style should be name of training sliding style. The testing sliding style will be determined based on mapping.  
         '''
         self.logger.info(f"Running validator for {dataset.name} with sliding style {sliding_style.name} and model {model}")
         for split in dataset.splits:   
+            if not compute_for_test and split.name == "test":
+                self.logger.info(f"Skipping test split for {dataset.name} since compute_for_test is False.")
+                continue
             ss = (sliding_style if sliding_style in split.sliding_styles else 
                  (SLIDING_STYLES[TEST_NAME[sliding_style.name]]
                   if SLIDING_STYLES[TEST_NAME[sliding_style.name]] in split.sliding_styles 
