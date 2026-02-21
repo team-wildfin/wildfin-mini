@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     # Create and log W&B artifact
     artifact = wandb.Artifact(
-        name=f"test_metrics_{wandb_logger.experiment.id}.json",
+        name=f"{wandb_logger.experiment.id}.json",
         type="metrics",
         description="Model test probabilities and targets",
     )

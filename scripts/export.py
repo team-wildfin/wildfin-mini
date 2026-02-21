@@ -6,21 +6,22 @@ run oriented evaluation
 import os
 from vision_bench.management.wandb_matcher import WandbRunMatcher
 from config.experiments.testing import DINOV3_BASE_MEAN
+from config.experiments.eccv import ECCV_CORALCAM, ECCV_FISHFOLLOW
 import logging
 from vision_bench.utils.general import setup_logger
 from config.metrics.metrics import * 
 from vision_bench.execution.exportor import Exportor
-from config.management.matcher import CORALCAM_EVAL, CORALCAM_TRAINING
-from config.data.datasets import CORALCAM
+from config.management.matcher import CORALCAM_EVAL, CORALCAM_TRAINING, FISHFOLLOW_EVAL, FISHFOLLOW_TRAINING
+from config.data.datasets import CORALCAM, FISHFOLLOW
 logger = setup_logger("export", "logs/export.log", console=True, file=True, level=logging.INFO)
 
 # ==== CONFIG ====
 LABEL_TOLERANCES = [7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results/testing'
+OUTPUT_PATH = 'results/eccv'
 os.makedirs(OUTPUT_PATH, exist_ok=True)
-ALL_EXPS = DINOV3_BASE_MEAN
+ALL_EXPS = ECCV_FISHFOLLOW
 
 subgroup_mappings = {
     "coralcam": {
@@ -60,11 +61,11 @@ if __name__ == "__main__":
         }
         Exportor(
             experiments=ALL_EXPS,
-            train_matcher=CORALCAM_TRAINING,
-            eval_matcher=CORALCAM_EVAL, 
+            train_matcher=FISHFOLLOW_TRAINING,
+            eval_matcher=FISHFOLLOW_EVAL, 
             aggregate_metrics=aggregate_metrics,
             per_class_metrics=per_class_metrics,
-            subgroup_mappings=subgroup_mappings[CORALCAM.name], 
+            subgroup_mappings=subgroup_mappings[FISHFOLLOW.name], 
             output_base=OUTPUT_PATH,
-            output_name=f"{CORALCAM.name}_results_label_tolerance_{tolerance}.csv"
+            output_name=f"{FISHFOLLOW.name}_eccv_label_tolerance_{tolerance}.csv"
         ).run()
