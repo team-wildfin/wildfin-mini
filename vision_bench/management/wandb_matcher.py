@@ -116,21 +116,21 @@ class WandbRunMatcher(Matcher):
 
     def get_artifact(
         self,
-        local_path: str,
+        local_path: Optional[str],
         remote_path: Optional[str] = None,
     ) -> str:
         """
         Priority: local artifact → remote artifact → error.
         """
         api = wandb.Api()
-
-        # 1. Try local
-        local_file_path = os.path.join(self.local_artifact_dir, local_path)
-        try:
-            if os.path.exists(local_file_path):
-                return local_file_path
-        except Exception as e:
-            logger.warning(f"Failed to load local artifact {local_file_path}: {e}")
+        if local_path: 
+            # 1. Try local
+            local_file_path = os.path.join(self.local_artifact_dir, local_path)
+            try:
+                if os.path.exists(local_file_path):
+                    return local_file_path
+            except Exception as e:
+                logger.warning(f"Failed to load local artifact {local_file_path}: {e}")
 
         # 2. Try remote
         if remote_path:

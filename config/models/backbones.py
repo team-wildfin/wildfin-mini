@@ -75,7 +75,7 @@ VJEPA2 = BackBoneConfig(
 
 
 BACKBONE_CONFIGS: Dict[str, BackBoneConfig] = {
-    dataset.name: dataset
-    for dataset in globals().values()
-    if isinstance(dataset, BackBoneConfig)
+    backbone.name: backbone
+    for backbone in globals().values()
+    if isinstance(backbone, BackBoneConfig)
 }
