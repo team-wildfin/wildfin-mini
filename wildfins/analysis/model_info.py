@@ -1,5 +1,5 @@
 from config.experiments.cvpr import CVPR_EXPS
-from config.experiments.eccv import ECCV_EXPS
+from config.experiments.eccv import ECCV_EXPS, ECCV_CORALCAM_VJEPA2_ATTENTION
 from fvcore.nn import FlopCountAnalysis, parameter_count
 from config.models.backbones import BACKBONE_CONFIGS
 import torch
@@ -42,7 +42,7 @@ def get_model_infos(EXPS: List[Experiment], calc_fun: Callable, name: str):
     return results
 
 if __name__ == "__main__":
-    EXPS = CVPR_EXPS + ECCV_EXPS
+    EXPS = ECCV_CORALCAM_VJEPA2_ATTENTION
     flops = get_model_infos(EXPS, lambda model, fake_input: FlopCountAnalysis(model, fake_input).total(), "flops")
     parameters = get_model_infos(EXPS, lambda model, fake_input: parameter_count(model)[''], "parameters")
     with open(os.path.join(script_dir, "flops.yaml"), "w") as f:

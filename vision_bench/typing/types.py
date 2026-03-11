@@ -63,8 +63,8 @@ class LocalDataset(BaseModel):
     splits: List[Split]
 
 Backbone = Literal['dino', 'dino_large', 'videomae', 'resnet50']
-Classifier = Literal['mlp']
-Pooling = Literal['mean', 'attention']
+Classifier = Literal['mlp', 'linear']
+Pooling = Literal['mean', 'attention', 'vjepa2_attention']
 
 class FocalLossConfig(BaseModel): 
     weight_method: Literal['focal_loss'] = 'focal_loss'

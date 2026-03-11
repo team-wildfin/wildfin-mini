@@ -87,14 +87,40 @@ VIDEOMAE_LARGE_MEAN = [
     for dataset in ["coralcam", "fishfollow"]
 ]
 
+VJEPA2_VJEPA2_ATTENTION = [
+    Experiment(
+        **{
+            **DEFAULT_FIELDS,
+            'id': f'vjepa2_vjepa2_attention_{weight_config.weight_method}_{dataset}_{sliding_style}',
+            'dataset': dataset,
+            'sliding_style': sliding_style,
+            'backbone': "vjepa2",
+            'pooling': 'vjepa2_attention', 
+            'classifier': 'linear',       # overrides DEFAULT_FIELDS
+            'sampler': "balanced",
+            'weight_config': weight_config,
+            'epochs': 40,
+            'fulltune': True,
+            'freeze_backbone': True, 
+                  # overrides DEFAULT_FIELDS
+        }
+    )
+    for sliding_style in ["sliding_window_w_temp"]
+    for weight_config in [UniformConfig(), FocalLossConfig(focal_loss_alpha=0.75, focal_loss_gamma=5.0)]
+    for dataset in ["coralcam", "fishfollow"]
+]
+
 ECCV_EXPS = (
     DINOV3_BASE_ATTENTION + 
     DINOV3_BASE_MEAN +
     VIDEOMAE_LARGE_ATTENTION + 
-    VIDEOMAE_LARGE_MEAN
+    VIDEOMAE_LARGE_MEAN + 
+    VJEPA2_VJEPA2_ATTENTION
 )
 
 ECCV_CORALCAM = [exp for exp in ECCV_EXPS if exp.dataset == "coralcam"]
 ECCV_FISHFOLLOW = [exp for exp in ECCV_EXPS if exp.dataset == "fishfollow"]
 ECCV_FISHFOLLOW_VIDEOMAE_LARGE = [exp for exp in ECCV_FISHFOLLOW if exp.backbone == "videomae_large"]
+ECCV_CORALCAM_VJEPA2_ATTENTION = [exp for exp in ECCV_CORALCAM if exp.pooling == "vjepa2_attention"]
+ECCV_FISHFOLLOW_VJEPA2_ATTENTION = [exp for exp in ECCV_FISHFOLLOW if exp.pooling == "vjepa2_attention"]
 ECCV_FISHFOLLOW_DINOV3_BASE = [exp for exp in ECCV_FISHFOLLOW if exp.backbone == "dinov3_base"]
