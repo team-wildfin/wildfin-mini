@@ -21,8 +21,8 @@ logger = setup_logger(
 
 if __name__ == "__main__":
     Trainer(
-        experiments = ECCV_CORALCAM_VJEPA2_ATTENTION + ECCV_FISHFOLLOW_VJEPA2_ATTENTION, 
-        train_matcher = CORALCAM_TRAINING, 
+        experiments =  ECCV_FISHFOLLOW_VJEPA2_ATTENTION, 
+        train_matcher = FISHFOLLOW_TRAINING, 
         parallel=False, 
         avoid_reruns = True
     ).run()

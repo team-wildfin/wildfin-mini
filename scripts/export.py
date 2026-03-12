@@ -19,9 +19,9 @@ logger = setup_logger("export", "logs/export.log", console=True, file=True, leve
 LABEL_TOLERANCES = [7]
 PARALLEL = False
 DOWNLOAD_DIR = "test_metrics"
-OUTPUT_PATH = 'results/eccv'
+OUTPUT_PATH = 'wildfins/results/eccv'
 os.makedirs(OUTPUT_PATH, exist_ok=True)
-ALL_EXPS = ECCV_FISHFOLLOW
+ALL_EXPS = ECCV_CORALCAM
 
 subgroup_mappings = {
     "coralcam": {
@@ -61,11 +61,11 @@ if __name__ == "__main__":
         }
         Exportor(
             experiments=ALL_EXPS,
-            train_matcher=FISHFOLLOW_TRAINING,
-            eval_matcher=FISHFOLLOW_EVAL, 
+            train_matcher=CORALCAM_TRAINING,
+            eval_matcher=CORALCAM_EVAL, 
             aggregate_metrics=aggregate_metrics,
             per_class_metrics=per_class_metrics,
-            subgroup_mappings=subgroup_mappings[FISHFOLLOW.name], 
+            subgroup_mappings=subgroup_mappings[CORALCAM.name], 
             output_base=OUTPUT_PATH,
-            output_name=f"{FISHFOLLOW.name}_eccv_label_tolerance_{tolerance}.csv"
+            output_name=f"{CORALCAM.name}_eccv_label_tolerance_{tolerance}.csv"
         ).run()

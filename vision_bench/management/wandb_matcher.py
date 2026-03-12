@@ -55,11 +55,13 @@ class WandbRunMatcher(Matcher):
         source_runs = wandb.Api().runs(f"{self.entity}/{self.project}", filters={"state": {"$in": states}})
         logger.debug(f"Found {len(source_runs)} finished runs in {self.project}.")
         print(f"Found {len(source_runs)} finished runs in {self.project}.")
+        
         #source_runs = [run for run in source_runs if self._has_any_artifact(run)]
         for exp in experiments: 
             runs = []
             for run in source_runs: 
-                if self.match_config(run.config, exp):
+                run_config = self.get_run_config(run.id)
+                if self.match_config(run_config, exp):
                     runs.append(run.id)
             matched_runs[exp.id] = runs
         return matched_runs
@@ -73,7 +75,8 @@ class WandbRunMatcher(Matcher):
         matched_ids = []
         for train_id in train_ids:
             for run in source_runs:
-                if run.config.get('training_run_id', None) == train_id:
+                run_config = self.get_run_config(run.id)
+                if run_config.get('training_run_id', None) == train_id:
                     matched_ids.append(run.id)
                     break
         return matched_ids
