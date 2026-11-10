@@ -40,7 +40,7 @@ One can use Wildfin platform to run video benchmarking experiments on custom ben
 Use the following script to download raw data from Dataverse.
 
 ```bash
-python data/action/download/download.py
+python data/download/download.py
 ```
 
 ---
